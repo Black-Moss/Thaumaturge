@@ -23,7 +23,6 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -42,27 +41,32 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
     private static final int STATUS_ATTACHED = 1;
     private static final int STATUS_ENERGIZED = 2;
     private static final int PLAIN_TINT = 0xFFFFFF;
-    private static final int ADVANCED_TINT = 0xFF4A3C;
-    private static final int TRANSDUCER_IDLE_TINT = 0xB4F2B8;
-    private static final int TRANSDUCER_ATTACHED_TINT = 0xFFA246;
-    private static final int TRANSDUCER_ENERGIZED_TINT = 0xFF2E78;
+    private static final int ADVANCED_TINT = 0xFF3333;
+    private static final int TRANSDUCER_IDLE_TINT = 0x80FF80;
+    private static final int TRANSDUCER_ATTACHED_TINT = 0xFF991A;
+    private static final int TRANSDUCER_ENERGIZED_TINT = 0xFF004D;
     private static final int BUBBLE_PLAIN_RGB = 0xFFFFFF;
-    private static final int BUBBLE_ADVANCED_RGB = 0xFF7A52;
+    private static final int BUBBLE_ADVANCED_RGB = 0xFF4444;
     private static final int BUBBLE_LIGHT = 220;
-    private static final float ARM_SLIDE = 0.09F;
-    private static final float TRANSDUCER_EXTENSION_CAP = 100.0F;
-    private static final float TRANSDUCER_GLOW_FLOOR = 0.25F;
-    private static final float PULSE_BASE = 0.78F;
-    private static final float PULSE_AMPLITUDE = 0.22F;
-    private static final float PULSE_PERIOD = 44.0F;
-    private static final float PULSE_ARM_PHASE = 0.6F;
-    private static final float BUBBLE_HALF = 0.72F;
+    private static final int OPAQUE_ALPHA = 255;
+    private static final float STABILIZER_SLIDE_DIVISOR = 100.0F;
+    private static final int TRANSDUCER_COUNT_CAP = 50;
+    private static final float TRANSDUCER_EXTENSION_DIVISOR = 137.0F;
+    private static final float TRANSDUCER_GLOW_GAIN = 2.5F;
+    private static final int GLOW_LIGHT_BASE = 50;
+    private static final float GLOW_LIGHT_RANGE = 170.0F;
+    private static final float PULSE_BASE = 0.9F;
+    private static final float PULSE_AMPLITUDE = 0.1F;
+    private static final float PULSE_DIVISOR = 3.0F;
+    private static final float PULSE_ARM_SHIFT = 5.0F;
+    private static final float BUBBLE_HALF = 0.9F;
     private static final float BUBBLE_HEIGHT = 1.5F;
-    private static final float BUBBLE_OPACITY = 0.5F;
-    private static final float BUBBLE_PULSE_BASE = 0.7F;
-    private static final float BUBBLE_PULSE_PERIOD = 90.0F;
+    private static final float BUBBLE_OPACITY_BASE = 0.5F;
+    private static final float BUBBLE_OPACITY_AMPLITUDE = 0.1F;
+    private static final float BUBBLE_PULSE_DIVISOR = 8.0F;
+    private static final float ALPHA_SCALE = 255.0F;
     private static final int ARM_COUNT = 4;
-    private static final int LOCK_PULSE_SLOT = ARM_COUNT;
+    private static final int LOCK_ARM = 0;
     private static final float ARM_AZIMUTH_STEP = 90.0F;
     private static final float ARM_TILT = 45.0F;
     private static final float CENTER = 0.5F;
@@ -114,18 +118,17 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
     }
 
     public static void submitParts(int count, boolean advanced, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        float engagement = engagement(count);
-        submitMesh(STABILIZER_SKIN, engagement * ARM_SLIDE, engagement, advanced ? ADVANCED_TINT : PLAIN_TINT, false, ticks, poseStack, collector, light);
+        float slide = count / STABILIZER_SLIDE_DIVISOR;
+        submitMesh(STABILIZER_SKIN, slide, engagement(count), advanced ? ADVANCED_TINT : PLAIN_TINT, false, ticks, poseStack, collector, light);
     }
 
     public static void submitTransducerParts(int count, int status, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        float extension = Math.min(count, TRANSDUCER_EXTENSION_CAP) / TRANSDUCER_EXTENSION_CAP;
-        float glow = Mth.lerp(extension, TRANSDUCER_GLOW_FLOOR, 1.0F);
-        submitMesh(TRANSDUCER_SKIN, extension * ARM_SLIDE, glow, transducerTint(status), true, ticks, poseStack, collector, light);
+        float extension = Math.min(count, TRANSDUCER_COUNT_CAP) / TRANSDUCER_EXTENSION_DIVISOR;
+        submitMesh(TRANSDUCER_SKIN, extension, extension * TRANSDUCER_GLOW_GAIN, transducerTint(status), true, ticks, poseStack, collector, light);
     }
 
     private static float engagement(int count) {
-        return Math.clamp((float) count / BlockEntityNodeStabilizer.MAX_COUNT, 0.0F, 1.0F);
+        return (float) count / BlockEntityNodeStabilizer.MAX_COUNT;
     }
 
     private static int transducerTint(int status) {
@@ -136,16 +139,17 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
         };
     }
 
-    private static void submitMesh(Skin skin, float slide, float glow, int tint, boolean lockGlows, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
+    private static void submitMesh(Skin skin, float slide, float glowBase, int tint, boolean lockGlows, float ticks, PoseStack poseStack, SubmitNodeCollector collector, int light) {
         TTMesh mesh = GolemMeshes.get(MESH);
         TTMeshPart lock = findPart(mesh, LOCK_PART);
         TTMeshPart piston = findPart(mesh, PISTON_PART);
         RenderType base = RenderTypes.entityCutout(skin.base());
-        RenderType overlay = TTFXRenderTypes.entityAdditive(skin.overlay());
+        RenderType overlay = RenderTypes.entityTranslucent(skin.overlay());
+        int overlayColor = ARGB.color(OPAQUE_ALPHA, tint);
         if (lock != null) {
             drawPart(lock, base, WHITE, light, poseStack, collector);
-            if (lockGlows && glow > 0.0F) {
-                drawPart(lock, overlay, glowColor(tint, glow, ticks, LOCK_PULSE_SLOT), LightCoordsUtil.FULL_BRIGHT, poseStack, collector);
+            if (lockGlows) {
+                drawPart(lock, overlay, overlayColor, glowLight(glowBase, ticks, LOCK_ARM), poseStack, collector);
             }
         }
         if (piston == null) {
@@ -157,23 +161,19 @@ public final class NodeStabilizerRenderer implements BlockEntityRenderer<BlockEn
             poseStack.mulPose(Axis.YP.rotationDegrees(ARM_TILT));
             poseStack.translate(0.0F, 0.0F, slide);
             drawPart(piston, base, WHITE, light, poseStack, collector);
-            if (glow > 0.0F) {
-                drawPart(piston, overlay, glowColor(tint, glow, ticks, arm), LightCoordsUtil.FULL_BRIGHT, poseStack, collector);
-            }
+            drawPart(piston, overlay, overlayColor, glowLight(glowBase, ticks, arm), poseStack, collector);
             poseStack.popPose();
         }
     }
 
-    private static int glowColor(int tint, float glow, float ticks, int slot) {
-        float pulse = PULSE_BASE + PULSE_AMPLITUDE * Mth.sin(Mth.TWO_PI * ticks / PULSE_PERIOD + slot * PULSE_ARM_PHASE);
-        return ARGB.color(Math.clamp(glow * pulse, 0.0F, 1.0F), tint);
+    private static int glowLight(float glowBase, float ticks, int arm) {
+        float pulse = Mth.sin((ticks + arm * PULSE_ARM_SHIFT) / PULSE_DIVISOR) * PULSE_AMPLITUDE + PULSE_BASE;
+        return GLOW_LIGHT_BASE + (int) (GLOW_LIGHT_RANGE * glowBase * pulse);
     }
 
     private static void queueBubble(NodeStabilizerRenderState state, CameraRenderState camera) {
-        float engagement = engagement(state.count);
-        float breath = 0.5F + 0.5F * Mth.sin(Mth.TWO_PI * state.ticks / BUBBLE_PULSE_PERIOD);
-        float alpha = engagement * BUBBLE_OPACITY * Mth.lerp(breath, BUBBLE_PULSE_BASE, 1.0F);
-        int color = ARGB.color(Math.clamp(alpha, 0.0F, 1.0F), state.advanced ? BUBBLE_ADVANCED_RGB : BUBBLE_PLAIN_RGB);
+        float alpha = engagement(state.count) * (BUBBLE_OPACITY_BASE + BUBBLE_OPACITY_AMPLITUDE * Mth.sin(state.ticks / BUBBLE_PULSE_DIVISOR));
+        int color = ARGB.color((int) (alpha * ALPHA_SCALE), state.advanced ? BUBBLE_ADVANCED_RGB : BUBBLE_PLAIN_RGB);
         Quaternionf facing = new Quaternionf(camera.orientation);
         BlockPos pos = state.blockPos;
         Vec3 origin = new Vec3(pos.getX() + CENTER, pos.getY() + BUBBLE_HEIGHT, pos.getZ() + CENTER);

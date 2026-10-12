@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.content.entity;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
 import com.leclowndu93150.thaumaturge.api.warp.WarpType;
-import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTMobEffects;
 import net.minecraft.core.BlockPos;
@@ -35,9 +34,7 @@ final class RiftCollapse {
     private static final double EFFECT_REACH_SQR = EFFECT_REACH * EFFECT_REACH;
     private static final int TICKS_PER_SECOND = 20;
     private static final int EFFECT_AMPLIFIER = 0;
-    private static final float SMOKE_RED = 0.15F;
-    private static final float SMOKE_GREEN = 0.1F;
-    private static final float SMOKE_BLUE = 0.2F;
+    private static final float FINAL_BLAST_POWER = 0.0F;
 
     boolean tick(ServerLevel level, EntityFluxRift rift) {
         int size = rift.currentSize() - SHRINK_PER_TICK;
@@ -69,7 +66,7 @@ final class RiftCollapse {
     private static void finish(ServerLevel level, EntityFluxRift rift) {
         int strength = (int) Math.sqrt(Math.max(0, rift.collapseSize()));
         dropLoot(level, rift, strength);
-        Effects.bamf(level, rift.position()).color(SMOKE_RED, SMOKE_GREEN, SMOKE_BLUE).withSound().send();
+        level.explode(rift, rift.getX(), rift.getY(), rift.getZ(), FINAL_BLAST_POWER, false, Level.ExplosionInteraction.NONE);
         RiftCollapseProfile profile = RiftCollapseProfiles.forTier(rift.stabilityTier());
         if (!profile.isInert()) {
             afflictSurroundings(level, rift, profile);
@@ -84,8 +81,8 @@ final class RiftCollapse {
             pearl.set(DataComponents.DAMAGE, PEARL_MIN_WEAR + random.nextInt(PEARL_WEAR_SPREAD));
             rift.spawnAtLocation(level, pearl);
         }
-        if (strength > 0) {
-            rift.spawnAtLocation(level, new ItemStack(TTItems.VOID_SEED.get(), strength));
+        for (int i = 0; i < strength; i++) {
+            rift.spawnAtLocation(level, new ItemStack(TTItems.VOID_SEED.get()), 0.0F);
         }
     }
 
@@ -108,7 +105,7 @@ final class RiftCollapse {
         if (creature instanceof ServerPlayer player) {
             int warp = (int) (profile.warpPoints() * closeness);
             if (warp > 0) {
-                WarpHelper.addWarp(player, warp, WarpType.PERMANENT);
+                WarpHelper.addWarp(player, warp, WarpType.NORMAL);
                 WarpHelper.addWarp(player, warp, WarpType.TEMPORARY);
             }
         }

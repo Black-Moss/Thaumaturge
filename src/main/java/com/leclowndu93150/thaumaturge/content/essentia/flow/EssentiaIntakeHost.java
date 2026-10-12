@@ -14,8 +14,4 @@ public interface EssentiaIntakeHost {
     Direction intakeFace();
 
     boolean wantsEssentia();
-
-    default int intakeSuction(int baseSuction) {
-        return baseSuction;
-    }
 }

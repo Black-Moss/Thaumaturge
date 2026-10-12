@@ -24,26 +24,23 @@ public final class FloatyLineRenderer {
     private static final float CHANNEL_SCALE = 255.0F;
     private static final int MAX_BLOCK_SKY_LIGHT = 15;
     private static final int FULL_BRIGHT = LightCoordsUtil.pack(MAX_BLOCK_SKY_LIGHT, MAX_BLOCK_SKY_LIGHT);
-    private static final float EDGE_LOW_V = 1.0F;
-    private static final float EDGE_HIGH_V = 0.0F;
-    private static final int SEGMENTS_PER_ROUND_BLOCK = 4;
+    private static final float EDGE_FAR_V = 1.0F;
+    private static final float EDGE_NEAR_V = 0.0F;
+    private static final int SEGMENTS_PER_ROUND_BLOCK = 2;
     private static final long CLOCK_WRAP = 72000L;
-    private static final double PERIOD_X = 40.0;
-    private static final double PERIOD_Y = 60.0;
-    private static final double PERIOD_Z = 90.0;
-    private static final double WAVES_ALONG_LINE = 1.5;
-    private static final double SWAY_BLOCKS = 0.18;
-    private static final double TAPER_SLOPE = 2.5;
-    private static final double TWO_PI = Math.PI * 2.0;
+    private static final double SCROLL_CLOCK_PER_TICK = 50.0 / 30.0;
+    private static final double WOBBLE_REACH = 0.5;
+    private static final double PHASE_SPAN_X = 0.5;
+    private static final double PHASE_SPAN_Y = 2.0 / 3.0;
+    private static final double PHASE_SPAN_Z = 1.0;
+    private static final double PHASE_DIVISOR_X = 12.0;
+    private static final double PHASE_DIVISOR_Y = 9.0;
+    private static final double PHASE_DIVISOR_Z = 6.0;
 
     private FloatyLineRenderer() {}
 
     public static void submit(PoseStack poseStack, SubmitNodeCollector collector, Vec3 offset, float time, int color, float scrollSpeed, float fraction, float halfWidth) {
         collector.submitCustomGeometry(poseStack, renderType(), (pose, buffer) -> emit(pose.pose(), buffer, offset, time, color, scrollSpeed, fraction, halfWidth));
-    }
-
-    public static void submitShaded(PoseStack poseStack, SubmitNodeCollector collector, Vec3 offset, float time, int color, float scrollSpeed, float fraction, float halfWidth) {
-        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.translucent(WISPY_TEXTURE), (pose, buffer) -> emit(pose.pose(), buffer, offset, time, color, scrollSpeed, fraction, halfWidth));
     }
 
     public static void draw(PoseStack poseStack, MultiBufferSource buffers, Vec3 offset, float time, int color, float scrollSpeed, float fraction, float halfWidth) {
@@ -76,33 +73,34 @@ public final class FloatyLineRenderer {
 
     private static RibbonSample[] sampleCurve(Vec3 offset, double span, int segments, int count, float time, float scrollSpeed) {
         RibbonSample[] samples = new RibbonSample[count];
-        float scroll = time * scrollSpeed;
+        double scroll = time * SCROLL_CLOCK_PER_TICK * scrollSpeed;
         for (int index = 0; index < count; index++) {
             double along = index / (double) segments;
-            double envelope = Math.sin(along * Math.PI);
-            double sway = SWAY_BLOCKS * envelope;
-            double travel = along * WAVES_ALONG_LINE;
-            double x = offset.x * along + sway * Math.sin(TWO_PI * (time / PERIOD_X - travel));
-            double y = offset.y * along + sway * Math.sin(TWO_PI * (time / PERIOD_Y - travel));
-            double z = offset.z * along + sway * Math.sin(TWO_PI * (time / PERIOD_Z - travel));
-            double alpha = Math.min(1.0, envelope * TAPER_SLOPE);
+            double taper = 1.0 - Math.abs(2.0 * along - 1.0);
+            double reach = along * WOBBLE_REACH * taper;
+            double remaining = span * (1.0 - along);
+            double x = offset.x * along + reach * Math.sin(remaining * PHASE_SPAN_X - time / PHASE_DIVISOR_X);
+            double y = offset.y * along + reach * Math.sin(remaining * PHASE_SPAN_Y - time / PHASE_DIVISOR_Y);
+            double z = offset.z * along + reach * Math.sin(remaining * PHASE_SPAN_Z - time / PHASE_DIVISOR_Z);
+            double alpha = taper;
             if (along > TAIL_GLOW_START) {
                 alpha = Math.max(alpha, (along - TAIL_GLOW_START) / TAIL_GLOW_RANGE * TAIL_GLOW_PEAK);
             }
-            float u = (float) (along * span) + scroll;
+            float u = (float) (remaining - scroll);
             samples[index] = new RibbonSample(x, y, z, u, (float) Math.min(1.0, alpha));
         }
         return samples;
     }
 
     private static void emitRibbon(VertexConsumer buffer, Matrix4fc matrix, RibbonSample[] samples, RibbonAxis axis, float halfWidth, float red, float green, float blue) {
+        float farShift = axis.farSign() * halfWidth;
         for (int index = 0; index < samples.length - 1; index++) {
             RibbonSample from = samples[index];
             RibbonSample to = samples[index + 1];
-            writeVertex(buffer, matrix, from, axis, -halfWidth, EDGE_LOW_V, red, green, blue);
-            writeVertex(buffer, matrix, from, axis, halfWidth, EDGE_HIGH_V, red, green, blue);
-            writeVertex(buffer, matrix, to, axis, halfWidth, EDGE_HIGH_V, red, green, blue);
-            writeVertex(buffer, matrix, to, axis, -halfWidth, EDGE_LOW_V, red, green, blue);
+            writeVertex(buffer, matrix, from, axis, farShift, EDGE_FAR_V, red, green, blue);
+            writeVertex(buffer, matrix, from, axis, -farShift, EDGE_NEAR_V, red, green, blue);
+            writeVertex(buffer, matrix, to, axis, -farShift, EDGE_NEAR_V, red, green, blue);
+            writeVertex(buffer, matrix, to, axis, farShift, EDGE_FAR_V, red, green, blue);
         }
     }
 
@@ -112,14 +110,16 @@ public final class FloatyLineRenderer {
     }
 
     private enum RibbonAxis {
-        VERTICAL(0.0F, 1.0F), HORIZONTAL(1.0F, 0.0F);
+        VERTICAL(0.0F, 1.0F, -1.0F), HORIZONTAL(1.0F, 0.0F, 1.0F);
 
         private final float stepX;
         private final float stepY;
+        private final float farSign;
 
-        RibbonAxis(float stepX, float stepY) {
+        RibbonAxis(float stepX, float stepY, float farSign) {
             this.stepX = stepX;
             this.stepY = stepY;
+            this.farSign = farSign;
         }
 
         private float stepX() {
@@ -128,6 +128,10 @@ public final class FloatyLineRenderer {
 
         private float stepY() {
             return this.stepY;
+        }
+
+        private float farSign() {
+            return this.farSign;
         }
     }
 

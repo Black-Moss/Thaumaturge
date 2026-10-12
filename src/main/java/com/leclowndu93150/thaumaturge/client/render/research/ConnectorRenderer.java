@@ -40,7 +40,7 @@ public final class ConnectorRenderer {
     private static final int ARROW_RIGHT_V = 125;
     private static final int ARROW_LEFT_U = 186;
     private static final int ARROW_LEFT_V = 125;
-    private static final int ARROW_TIP_GAP = 13;
+    private static final int ARROW_TIP_GAP = 10;
     private static final int ARROW_SIDE = 3;
 
     private final List<Piece> pending = new ArrayList<>();

@@ -26,10 +26,10 @@ import org.jspecify.annotations.Nullable;
 public final class BlockRechargePedestal extends BaseEntityBlock {
     public static final MapCodec<BlockRechargePedestal> CODEC = simpleCodec(BlockRechargePedestal::new);
 
-    private static final float POP_VOLUME = 0.25F;
-    private static final float TAKE_PITCH = 1.45F;
-    private static final float PLACE_PITCH = 1.7F;
-    private static final float PITCH_WOBBLE = 0.12F;
+    private static final float POP_VOLUME = 0.2F;
+    private static final float TAKE_PITCH_MULTIPLIER = 1.5F;
+    private static final float PLACE_PITCH_MULTIPLIER = 1.6F;
+    private static final float PITCH_SPREAD = 0.7F;
 
     private static final VoxelShape SHAPE = Shapes.or(box(1.0, 0.0, 1.0, 15.0, 2.0, 15.0), box(2.0, 2.0, 2.0, 14.0, 4.0, 14.0), box(5.0, 4.0, 5.0, 11.0, 12.0, 11.0),
             box(4.0, 12.0, 4.0, 12.0, 14.0, 12.0), box(4.0, 14.0, 4.0, 6.0, 16.0, 6.0), box(4.0, 14.0, 10.0, 6.0, 16.0, 12.0), box(10.0, 14.0, 4.0, 12.0, 16.0, 6.0),
@@ -89,7 +89,7 @@ public final class BlockRechargePedestal extends BaseEntityBlock {
             pedestal.setItem(inHand.copyWithCount(1));
             inHand.consume(1, player);
         }
-        playPop(level, pos, taking ? TAKE_PITCH : PLACE_PITCH);
+        playPop(level, pos, taking ? TAKE_PITCH_MULTIPLIER : PLACE_PITCH_MULTIPLIER);
         return InteractionResult.SUCCESS_SERVER;
     }
 
@@ -100,9 +100,11 @@ public final class BlockRechargePedestal extends BaseEntityBlock {
         }
     }
 
-    private static void playPop(Level level, BlockPos pos, float pitch) {
+    private static void playPop(Level level, BlockPos pos, float multiplier) {
         RandomSource random = level.getRandom();
-        float wobble = (random.nextFloat() - random.nextFloat()) * PITCH_WOBBLE;
-        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, POP_VOLUME, pitch + wobble);
+        float first = random.nextFloat();
+        float second = random.nextFloat();
+        float pitch = ((first - second) * PITCH_SPREAD + 1.0F) * multiplier;
+        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, POP_VOLUME, pitch);
     }
 }

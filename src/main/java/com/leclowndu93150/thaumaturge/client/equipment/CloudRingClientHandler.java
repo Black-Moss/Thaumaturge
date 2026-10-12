@@ -27,11 +27,9 @@ import net.neoforged.neoforge.common.CommonHooks;
 public final class CloudRingClientHandler {
     private static final int MIN_AIRBORNE_TICKS = 2;
     private static final double HALF = 0.5;
-    private static final int PUFF_COUNT = 7;
-    private static final double PUFF_HEIGHT = 0.1;
-    private static final double PUFF_SPREAD = 0.06;
-    private static final double PUFF_SINK = 0.02;
-    private static final float SOUND_VOLUME = 0.12F;
+    private static final int PUFF_COUNT = 8;
+    private static final double PUFF_HEIGHT = 0.5;
+    private static final float SOUND_VOLUME = 0.1F;
     private static final float SOUND_PITCH_BASE = 1.0F;
     private static final float SOUND_PITCH_NOISE = 0.05F;
     private static final double JUMP_VELOCITY = 0.75;
@@ -97,13 +95,11 @@ public final class CloudRingClientHandler {
     }
 
     private static void puff(Level level, LocalPlayer player, RandomSource random) {
-        double feet = player.getY() + PUFF_HEIGHT;
+        double y = player.getY() + PUFF_HEIGHT;
         for (int i = 0; i < PUFF_COUNT; i++) {
             double x = player.getX() + (random.nextDouble() - HALF) * player.getBbWidth();
             double z = player.getZ() + (random.nextDouble() - HALF) * player.getBbWidth();
-            double vx = (random.nextDouble() - HALF) * PUFF_SPREAD;
-            double vz = (random.nextDouble() - HALF) * PUFF_SPREAD;
-            level.addParticle(ParticleTypes.CLOUD, x, feet, z, vx, -PUFF_SINK * random.nextDouble(), vz);
+            level.addParticle(ParticleTypes.POOF, x, y, z, 0.0, 0.0, 0.0);
         }
     }
 }

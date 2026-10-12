@@ -82,7 +82,7 @@ public final class SpiderNestDecorator extends TreeDecorator {
     }
 
     private static int rollHorizontal(RandomSource random) {
-        return random.nextInt(2 * WEB_BOX_HALF_WIDTH + 1) - WEB_BOX_HALF_WIDTH;
+        return random.nextInt(2 * WEB_BOX_HALF_WIDTH) - WEB_BOX_HALF_WIDTH;
     }
 
     private boolean touchesAnchor(Context context, BlockPos pos) {

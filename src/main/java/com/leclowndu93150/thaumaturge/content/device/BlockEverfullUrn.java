@@ -35,7 +35,7 @@ public final class BlockEverfullUrn extends BaseEntityBlock {
     private static final int BOTTLE_COST = 333;
     private static final float SPLASH_VOLUME = 0.33F;
     private static final float SPLASH_BASE_PITCH = 1.0F;
-    private static final double SPLASH_PITCH_SPREAD = 0.2;
+    private static final double SPLASH_PITCH_SPREAD = 0.3;
     private static final VoxelShape SHAPE = Shapes.or(box(3.0, 1.0, 3.0, 13.0, 9.0, 13.0), box(4.0, 0.0, 4.0, 12.0, 1.0, 12.0), box(4.0, 9.0, 4.0, 12.0, 10.0, 12.0),
             box(5.0, 10.0, 5.0, 11.0, 15.0, 11.0), box(4.0, 13.0, 4.0, 5.0, 16.0, 12.0), box(5.0, 13.0, 4.0, 12.0, 16.0, 5.0), box(5.0, 13.0, 11.0, 12.0, 16.0, 12.0),
             box(11.0, 13.0, 5.0, 12.0, 16.0, 11.0));
@@ -96,7 +96,7 @@ public final class BlockEverfullUrn extends BaseEntityBlock {
         }
         ItemStack water = PotionContents.createItemStack(Items.POTION, Potions.WATER);
         if (!player.getInventory().add(water)) {
-            player.spawnAtLocation(level, water);
+            player.drop(water, false);
         }
         urn.drainWater(BOTTLE_COST);
         splash(level, pos);

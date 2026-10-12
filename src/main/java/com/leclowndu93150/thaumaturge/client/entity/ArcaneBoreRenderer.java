@@ -32,7 +32,6 @@ public final class ArcaneBoreRenderer extends MobRenderer<EntityArcaneBore, Arca
         float headPitch = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
         state.bodyRot = 0.0F;
         state.yRot = headYaw;
-        state.xRot = headPitch;
         state.headPitch = headPitch;
         state.digging = entity.clientDiggingSmoothed() && entity.isActive() && entity.holdsValidTool();
         state.beamUvScroll = BoreDrillFx.beamUvScroll(state.ageInTicks);

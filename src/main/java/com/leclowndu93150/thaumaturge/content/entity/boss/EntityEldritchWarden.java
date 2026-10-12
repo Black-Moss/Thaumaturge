@@ -16,7 +16,6 @@ import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -40,7 +39,7 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -69,9 +68,8 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
     private static final int RANGED_PRIORITY = 2;
     private static final int MELEE_PRIORITY = 3;
     private static final int HOME_PRIORITY = 5;
-    private static final int STROLL_PRIORITY = 6;
-    private static final int LOOK_PLAYER_PRIORITY = 7;
-    private static final int LOOK_AROUND_PRIORITY = 8;
+    private static final int STROLL_PRIORITY = 7;
+    private static final int LOOK_PRIORITY = 8;
     private static final int RETALIATE_PRIORITY = 1;
     private static final int PLAYER_PRIORITY = 2;
     private static final int CULTIST_PRIORITY = 3;
@@ -82,36 +80,30 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
     private static final float CAST_RADIUS = 24.0F;
     private static final double MELEE_SPEED = 1.1;
     private static final double HOME_SPEED = 0.8;
-    private static final double STROLL_SPEED = 0.8;
+    private static final double STROLL_SPEED = 1.0;
     private static final float LOOK_DISTANCE = 8.0F;
     private static final float ORB_CHANCE = 0.8F;
     private static final float ORB_SPEED = 1.0F;
     private static final float ORB_INACCURACY = 2.0F;
-    private static final float ORB_VOLUME = 3.0F;
-    private static final float SCREECH_VOLUME = 6.0F;
+    private static final float ORB_VOLUME = 2.0F;
+    private static final double ORB_DROP = 0.13;
+    private static final float SCREECH_VOLUME = 4.0F;
     private static final float PITCH_BASE = 1.0F;
     private static final float PITCH_SPREAD = 0.1F;
-    private static final double SCREECH_SHOVE = 1.6;
+    private static final double SCREECH_SHOVE = 1.5;
     private static final double SCREECH_LIFT = 0.1;
     private static final int SCREECH_TICKS = 400;
     private static final int SCREECH_AMPLIFIER = 0;
     private static final int SCREECH_WARP_BASE = 3;
     private static final int SCREECH_WARP_SPREAD = 3;
-    private static final int AMBIENT_INTERVAL = 600;
+    private static final int AMBIENT_INTERVAL = 500;
     private static final double TRAIL_CORNER = 0.25;
     private static final double[] TRAIL_OFFSETS = {-TRAIL_CORNER, TRAIL_CORNER};
-    private static final int WISP_INTERVAL = 3;
-    private static final double WISP_HEIGHT = 0.25;
-    private static final double WISP_SPREAD = 0.5;
-    private static final double WISP_RISE = 0.02;
-    private static final float WISP_DRIFT = -0.02F;
-    private static final float WISP_RED = 0.18F;
-    private static final float WISP_GREEN = 0.08F;
-    private static final float WISP_BLUE = 0.24F;
-    private static final int SMOKE_PER_TICK = 2;
-    private static final int SMOKE_COLOR = 0x3A1450;
-    private static final double SMOKE_START_HEIGHT = 1.0;
-    private static final float SMOKE_MIN_RADIUS = 0.8F;
+    private static final int SMOKE_INTERVAL = 4;
+    private static final int SMOKE_COUNT = 33;
+    private static final int SMOKE_COLOR = 0x22112F;
+    private static final double SMOKE_MIN_HEIGHT = 1.0;
+    private static final int SMOKE_FLOOR_MARGIN = 1;
     private static final int FULL_TURN_DEGREES = 360;
 
     private final CastingArms arms = new CastingArms(this);
@@ -135,9 +127,9 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
         goalSelector.addGoal(RANGED_PRIORITY, new LongRangeAttackGoal(this, CAST_SPEED, CAST_MIN_DISTANCE, CAST_MIN_INTERVAL, CAST_MAX_INTERVAL, CAST_RADIUS));
         goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
         goalSelector.addGoal(HOME_PRIORITY, new MoveTowardsRestrictionGoal(this, HOME_SPEED));
-        goalSelector.addGoal(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
-        goalSelector.addGoal(LOOK_PLAYER_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
-        goalSelector.addGoal(LOOK_AROUND_PRIORITY, new RandomLookAroundGoal(this));
+        goalSelector.addGoal(STROLL_PRIORITY, new RandomStrollGoal(this, STROLL_SPEED));
+        goalSelector.addGoal(LOOK_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
+        goalSelector.addGoal(LOOK_PRIORITY, new RandomLookAroundGoal(this));
         targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
         targetSelector.addGoal(PLAYER_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, true));
         targetSelector.addGoal(CULTIST_PRIORITY, new NearestAttackableTargetGoal<>(this, EntityCultist.class, true));
@@ -175,7 +167,6 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
         }
         shield.tick();
         leaveSappingTrail(level);
-        trailWisps(level);
         if (emergenceTicks() > 0) {
             riseFromSmoke(level);
         }
@@ -207,29 +198,22 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
         }
     }
 
-    private void trailWisps(ServerLevel level) {
-        if (tickCount % WISP_INTERVAL != 0) {
+    private void riseFromSmoke(ServerLevel level) {
+        if (tickCount % SMOKE_INTERVAL != 0) {
             return;
         }
+        double height = Math.max(SMOKE_MIN_HEIGHT, getBbHeight() * (EMERGENCE_TICKS - emergenceTicks()) / EMERGENCE_TICKS);
+        Vec3 centre = position().add(0.0, height / 2.0, 0.0);
+        int floor = Mth.floor(getBoundingBox().minY) - SMOKE_FLOOR_MARGIN;
         RandomSource random = getRandom();
-        Vec3 at = new Vec3(getX() + random.triangle(0.0, WISP_SPREAD), getY() + getBbHeight() * WISP_HEIGHT + random.triangle(0.0, WISP_SPREAD), getZ() + random.triangle(0.0, WISP_SPREAD));
-        Effects.wispyMotes(level, at).color(WISP_RED, WISP_GREEN, WISP_BLUE).motion(0.0, WISP_RISE, 0.0).drift(WISP_DRIFT).send();
-    }
-
-    private void riseFromSmoke(ServerLevel level) {
-        float progress = 1.0F - (float) emergenceTicks() / EMERGENCE_TICKS;
-        double column = Mth.lerp(progress, SMOKE_START_HEIGHT, getBbHeight());
-        float radius = Math.max(SMOKE_MIN_RADIUS, (float) column / 2.0F);
-        int floor = Mth.floor(getY());
-        RandomSource random = getRandom();
-        for (int puff = 0; puff < SMOKE_PER_TICK; puff++) {
-            Effects.spiralSmoke(level, new Vec3(getX(), floor + radius, getZ())).radius(radius).start(random.nextInt(FULL_TURN_DEGREES)).minY(floor).color(SMOKE_COLOR).send();
+        for (int puff = 0; puff < SMOKE_COUNT; puff++) {
+            Effects.spiralSmoke(level, centre).radius((float) height).start(random.nextInt(FULL_TURN_DEGREES)).minY(floor).color(SMOKE_COLOR).send();
         }
     }
 
     @Override
     public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
-        if (source.is(DamageTypes.DROWN) || source.is(DamageTypes.WITHER)) {
+        if (source.is(DamageTypes.DROWN) || source.is(DamageTypes.WITHER) || source.is(DamageTypeTags.WITHER_IMMUNE_TO)) {
             return true;
         }
         if (rings.active() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
@@ -264,7 +248,7 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
     private void castOrb(ServerLevel level, LivingEntity target) {
         Vec3 hand = arms.castFromNextHand();
         EntityEldritchOrb orb = new EntityEldritchOrb(level, this);
-        orb.setPos(orb.getX() + hand.x, orb.getY(), orb.getZ() + hand.z);
+        orb.setPos(orb.getX() + hand.x, orb.getY() - ORB_DROP, orb.getZ() + hand.z);
         Vec3 aim = LeadingAim.at(orb, target);
         orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_INACCURACY);
         level.addFreshEntity(orb);
@@ -272,21 +256,21 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
     }
 
     private void screech(ServerLevel level, LivingEntity target) {
-        arms.raiseBoth();
         float yaw = getYRot() * Mth.DEG_TO_RAD;
-        target.knockback(SCREECH_SHOVE, Mth.sin(yaw), -Mth.cos(yaw));
-        target.setDeltaMovement(target.getDeltaMovement().add(0.0, SCREECH_LIFT, 0.0));
+        target.setDeltaMovement(target.getDeltaMovement().add(-Mth.sin(yaw) * SCREECH_SHOVE, SCREECH_LIFT, Mth.cos(yaw) * SCREECH_SHOVE));
         target.hurtMarked = true;
         target.addEffect(new MobEffectInstance(MobEffects.WITHER, SCREECH_TICKS, SCREECH_AMPLIFIER), this);
         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, SCREECH_TICKS, SCREECH_AMPLIFIER), this);
         if (target instanceof ServerPlayer player) {
             WarpHelper.addWarp(player, SCREECH_WARP_BASE + getRandom().nextInt(SCREECH_WARP_SPREAD), WarpType.TEMPORARY);
         }
-        level.sendParticles(ParticleTypes.SONIC_BOOM, getX(), getEyeY(), getZ(), 1, 0.0, 0.0, 0.0, 0.0);
         playLoud(level, TTSounds.EGSCREECH.get(), SCREECH_VOLUME);
     }
 
     private void playLoud(ServerLevel level, SoundEvent sound, float volume) {
+        if (isSilent()) {
+            return;
+        }
         level.playSound(null, getX(), getY(), getZ(), sound, SoundSource.HOSTILE, volume, PITCH_BASE + getRandom().nextFloat() * PITCH_SPREAD);
     }
 

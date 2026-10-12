@@ -12,7 +12,6 @@ import com.leclowndu93150.thaumaturge.registry.TTBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTDataMaps;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,10 +42,15 @@ public final class NodeGenerator {
     private static final double PERCENT_TOTAL = 100.0;
     private static final int MODIFIER_ODDS_DIVISOR = 2;
     private static final float BLIGHTED_STRENGTH_FACTOR = 1.5F;
-    private static final float REDUCED_STRENGTH_DIVISOR = 4.0F;
+    private static final int REDUCED_STRENGTH_DIVISOR = 4;
     private static final int STRENGTH_FLOOR = 8;
     private static final int BONUS_ASPECT_ROLLS = 3;
-    private static final float WEIGHT_FLOOR = 0.05F;
+    private static final int BIOME_SEED_POINTS = 2;
+    private static final int BOOSTED_BASE_COUNT = 2;
+    private static final int BOOSTED_WEIGHT_MIN = 50;
+    private static final int BOOSTED_WEIGHT_SPAN = 25;
+    private static final int STANDARD_WEIGHT_MIN = 25;
+    private static final int STANDARD_WEIGHT_SPAN = 50;
     private static final double BONUS_NONE_WEIGHT = 0.5;
     private static final int[] FACTORIALS = {1, 1, 2, 6};
     private static final int DESIRE_POINTS = 2;
@@ -60,10 +64,10 @@ public final class NodeGenerator {
     };
     private static final Map<NodeType, TypeFlavour> FLAVOURS = Map.of(NodeType.HUNGRY, NodeGenerator::desireFlavour, NodeType.PURE, NodeGenerator::purityFlavour, NodeType.DARK,
             NodeGenerator::gloomFlavour);
-    private static final List<TerrainRule> SURVEY_RULES = List.of(new TerrainRule(state -> state.getFluidState().is(FluidTags.WATER), COMMON_SURVEY_THRESHOLD, List.of(TTAspects.AQUA)),
-            new TerrainRule(state -> state.getFluidState().is(FluidTags.LAVA), COMMON_SURVEY_THRESHOLD, List.of(TTAspects.IGNIS, TTAspects.TERRA)),
-            new TerrainRule(state -> state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE), STONE_SURVEY_THRESHOLD, List.of(TTAspects.TERRA)),
-            new TerrainRule(state -> state.is(BlockTags.LEAVES), COMMON_SURVEY_THRESHOLD, List.of(TTAspects.HERBA)));
+    private static final List<TerrainRule> SURVEY_RULES = List.of(new TerrainRule(state -> state.getFluidState().is(FluidTags.WATER), COMMON_SURVEY_THRESHOLD, List.of(TTAspects.AQUA), true),
+            new TerrainRule(state -> state.getFluidState().is(FluidTags.LAVA), COMMON_SURVEY_THRESHOLD, List.of(TTAspects.IGNIS, TTAspects.TERRA), true),
+            new TerrainRule(state -> state.is(Blocks.STONE) || state.is(Blocks.DEEPSLATE), STONE_SURVEY_THRESHOLD, List.of(TTAspects.TERRA), true),
+            new TerrainRule(state -> state.is(BlockTags.LEAVES), COMMON_SURVEY_THRESHOLD, List.of(TTAspects.HERBA), false));
     private static final List<RollStage> PIPELINE = List.of(NodeGenerator::chooseType, NodeGenerator::chooseModifier, NodeGenerator::settleStrength, NodeGenerator::seedAspects,
             NodeGenerator::addBonusAspects, NodeGenerator::addTypeFlavour, NodeGenerator::surveySurroundings, NodeGenerator::spendBudget);
 
@@ -167,7 +171,7 @@ public final class NodeGenerator {
         }
         Holder<Biome> biome = level.getBiome(pos);
         BiomeAuraModifier auraModifier = biome.getData(TTDataMaps.BIOME_AURA_MODIFIER);
-        float biomeStrength = baseAura * (auraModifier == null ? 1.0F : auraModifier.value());
+        int biomeStrength = (int) (baseAura * (auraModifier == null ? 1.0F : auraModifier.value()));
         AspectPools pools = new AspectPools(registry, primals, compounds, biomeAspectHolders(registry, biome));
         RollContext context = new RollContext(level, pos, random, biome, biomeStrength, pools, silverwood, eerie, small, specialRarity);
         Draft draft = new Draft();
@@ -255,37 +259,27 @@ public final class NodeGenerator {
     }
 
     private static void allocateBudget(Map<Holder<IAspect>, Integer> target, int budget, RandomSource random) {
-        int committed = target.values().stream().mapToInt(Integer::intValue).sum();
-        int extra = Math.max(0, budget - committed);
         List<Holder<IAspect>> keys = new ArrayList<>(target.keySet());
         int count = keys.size();
-        double[] weights = new double[count];
-        double weightSum = 0.0;
+        int[] weights = new int[count];
+        int weightSum = 0;
         for (int slot = 0; slot < count; slot++) {
-            weights[slot] = random.nextFloat() + WEIGHT_FLOOR;
+            weights[slot] = drawWeight(target.get(keys.get(slot)), random);
             weightSum += weights[slot];
         }
-        int[] shares = new int[count];
-        double[] remainders = new double[count];
-        int assigned = 0;
         for (int slot = 0; slot < count; slot++) {
-            double quota = extra * weights[slot] / weightSum;
-            shares[slot] = (int) quota;
-            remainders[slot] = quota - shares[slot];
-            assigned += shares[slot];
+            int share = (int) ((float) weights[slot] / (float) weightSum * (float) budget);
+            if (share > 0) {
+                target.merge(keys.get(slot), share, Integer::sum);
+            }
         }
-        List<Integer> byRemainder = new ArrayList<>(count);
-        for (int slot = 0; slot < count; slot++) {
-            byRemainder.add(slot);
+    }
+
+    private static int drawWeight(int baseCount, RandomSource random) {
+        if (baseCount == BOOSTED_BASE_COUNT) {
+            return BOOSTED_WEIGHT_MIN + random.nextInt(BOOSTED_WEIGHT_SPAN);
         }
-        byRemainder.sort(Comparator.comparingDouble((Integer slot) -> remainders[slot]).reversed());
-        int leftover = extra - assigned;
-        for (int rank = 0; rank < leftover; rank++) {
-            shares[byRemainder.get(rank % count)]++;
-        }
-        for (int slot = 0; slot < count; slot++) {
-            target.merge(keys.get(slot), shares[slot], Integer::sum);
-        }
+        return STANDARD_WEIGHT_MIN + random.nextInt(STANDARD_WEIGHT_SPAN);
     }
 
     private static void chooseType(RollContext context, Draft draft) {
@@ -307,20 +301,20 @@ public final class NodeGenerator {
 
     private static void settleStrength(RollContext context, Draft draft) {
         RandomSource random = context.random();
-        float strength = context.biomeStrength();
+        int strength = context.biomeStrength();
         if (draft.type != NodeType.PURE && context.biome().is(TTBiomeTags.IS_TAINTED)) {
-            strength *= BLIGHTED_STRENGTH_FACTOR;
+            strength = Math.round(strength * BLIGHTED_STRENGTH_FACTOR);
             if (random.nextBoolean() && !ThaumaturgeCommonConfig.WUSS_MODE.get()) {
                 draft.type = NodeType.TAINTED;
-                strength *= BLIGHTED_STRENGTH_FACTOR;
+                strength = Math.round(strength * BLIGHTED_STRENGTH_FACTOR);
             }
         }
         if (context.silverwood() || context.small()) {
             strength /= REDUCED_STRENGTH_DIVISOR;
         }
-        int whole = Math.max(STRENGTH_FLOOR, (int) strength);
-        int half = whole / 2;
-        draft.budget = half + random.nextInt(whole - half);
+        strength = Math.max(STRENGTH_FLOOR, strength);
+        int half = strength / 2;
+        draft.budget = half + random.nextInt(half);
     }
 
     private static void seedAspects(RollContext context, Draft draft) {
@@ -331,10 +325,7 @@ public final class NodeGenerator {
             tally(draft.tally, pickFrom(pools.compounds(), random));
             return;
         }
-        for (Holder<IAspect> aspect : pools.biomeSpecific()) {
-            tally(draft.tally, aspect);
-        }
-        tally(draft.tally, pickFrom(pools.biomeSpecific(), random));
+        draft.tally.merge(pickFrom(pools.biomeSpecific(), random), BIOME_SEED_POINTS, Integer::sum);
     }
 
     private static void addBonusAspects(RollContext context, Draft draft) {
@@ -396,10 +387,15 @@ public final class NodeGenerator {
     }
 
     private static void classify(BlockState state, int[] counts) {
+        boolean claimed = false;
         for (int index = 0; index < counts.length; index++) {
-            if (SURVEY_RULES.get(index).matcher().test(state)) {
+            TerrainRule rule = SURVEY_RULES.get(index);
+            if (rule.exclusive() && claimed) {
+                continue;
+            }
+            if (rule.matcher().test(state)) {
                 counts[index]++;
-                return;
+                claimed |= rule.exclusive();
             }
         }
     }
@@ -419,14 +415,14 @@ public final class NodeGenerator {
     private record AspectPools(HolderLookup.RegistryLookup<IAspect> registry, List<Holder<IAspect>> primals, List<Holder<IAspect>> compounds, List<Holder<IAspect>> biomeSpecific) {
     }
 
-    private record RollContext(ServerLevelAccessor level, BlockPos pos, RandomSource random, Holder<Biome> biome, float biomeStrength, AspectPools pools, boolean silverwood, boolean eerie,
+    private record RollContext(ServerLevelAccessor level, BlockPos pos, RandomSource random, Holder<Biome> biome, int biomeStrength, AspectPools pools, boolean silverwood, boolean eerie,
             boolean small, int specialRarity) {
     }
 
     private record BonusDraw(int primals, int compounds) {
     }
 
-    private record TerrainRule(Predicate<BlockState> matcher, int threshold, List<ResourceKey<IAspect>> aspects) {
+    private record TerrainRule(Predicate<BlockState> matcher, int threshold, List<ResourceKey<IAspect>> aspects, boolean exclusive) {
     }
 
     private static final class Draft {

@@ -17,7 +17,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.event.EventHooks;
 
 final class NodeTypeBehavior {
-    private static final int TAINT_SPREAD_RANGE = 4;
+    private static final int TAINT_SPREAD_BOUND = 5;
     private static final int POLLUTE_INTERVAL = 200;
     private static final float POLLUTE_SATURATION_FACTOR = 0.8F;
     private static final double POLLUTE_BASE_DIVISOR = 3.0;
@@ -71,7 +71,7 @@ final class NodeTypeBehavior {
     }
 
     private static int taintOffset(RandomSource random) {
-        return random.nextInt(TAINT_SPREAD_RANGE * 2 + 1) - TAINT_SPREAD_RANGE;
+        return random.nextInt(TAINT_SPREAD_BOUND) - random.nextInt(TAINT_SPREAD_BOUND);
     }
 
     private static boolean pure(BlockEntityNode node, ServerLevel level, BlockPos pos, RandomSource random) {
@@ -107,8 +107,8 @@ final class NodeTypeBehavior {
         if (guard == null) {
             return;
         }
-        double x = centreX + (random.nextDouble() * 2.0 - 1.0) * GUARD_PLACEMENT_REACH;
-        double z = centreZ + (random.nextDouble() * 2.0 - 1.0) * GUARD_PLACEMENT_REACH;
+        double x = pos.getX() + (random.nextDouble() - random.nextDouble()) * GUARD_PLACEMENT_REACH;
+        double z = pos.getZ() + (random.nextDouble() - random.nextDouble()) * GUARD_PLACEMENT_REACH;
         int y = pos.getY() + random.nextInt(GUARD_VERTICAL_REACH * 2 + 1) - GUARD_VERTICAL_REACH;
         guard.snapTo(x, y, z, random.nextFloat() * WHOLE_TURN, 0.0F);
         if (!guard.checkSpawnRules(level, EntitySpawnReason.EVENT) || !guard.checkSpawnObstruction(level)) {

@@ -6,8 +6,10 @@ import net.minecraft.core.Direction;
 import org.joml.Matrix4f;
 
 public final class CrystalFaceTransforms {
-    private static final long FACE_SEED_STRIDE = 0x9E3779B97F4A7C15L;
+    private static final long FACE_SEED_STRIDE = 5L;
+    private static final Direction[] SEED_FACE_ORDER = {Direction.UP, Direction.DOWN, Direction.EAST, Direction.WEST, Direction.NORTH, Direction.SOUTH};
     private static final Map<Direction, Matrix4f> TRANSFORMS = build();
+    private static final Map<Direction, Long> SEED_OFFSETS = buildSeedOffsets();
 
     private CrystalFaceTransforms() {}
 
@@ -16,7 +18,15 @@ public final class CrystalFaceTransforms {
     }
 
     public static long seedOffset(Direction face) {
-        return (face.ordinal() + 1) * FACE_SEED_STRIDE;
+        return SEED_OFFSETS.get(face);
+    }
+
+    private static Map<Direction, Long> buildSeedOffsets() {
+        Map<Direction, Long> offsets = new EnumMap<>(Direction.class);
+        for (int index = 0; index < SEED_FACE_ORDER.length; index++) {
+            offsets.put(SEED_FACE_ORDER[index], index * FACE_SEED_STRIDE);
+        }
+        return offsets;
     }
 
     private static Map<Direction, Matrix4f> build() {

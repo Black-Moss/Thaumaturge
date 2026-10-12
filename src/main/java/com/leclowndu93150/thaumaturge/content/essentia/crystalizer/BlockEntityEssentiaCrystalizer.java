@@ -65,18 +65,18 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
     private static final int SUCTION_FLOOR = 0;
     private static final int NOTHING_MOVED = 0;
     private static final boolean OUTPUT_ALLOWED = false;
-    private static final double DROP_DISTANCE = 0.7;
+    private static final double DROP_DISTANCE = 0.65;
     private static final double DROP_SPEED = 0.04;
-    private static final int VENT_TICKS = 6;
-    private static final double VENT_DISTANCE = 0.55;
-    private static final double VENT_JITTER = 0.15;
+    private static final int VENT_TICKS = 7;
+    private static final double VENT_ORIGIN_DIVISOR = 2.1;
+    private static final double VENT_MOTION_DIVISOR = 4.0;
+    private static final double VENT_JITTER = 0.1;
     private static final float COLOR_STEP = 0.05F;
-    private static final float TINT_LIFT = 0.25F;
     private static final float SPEED_RISE = 0.1F;
     private static final float SPEED_FALL = 0.2F;
-    private static final float FINISH_VOLUME = 0.2F;
-    private static final float FINISH_BASE_PITCH = 1.75F;
-    private static final float FINISH_PITCH_SPREAD = 0.2F;
+    private static final float FINISH_VOLUME = 0.25F;
+    private static final float FINISH_BASE_PITCH = 2.6F;
+    private static final float FINISH_PITCH_SPREAD = 0.8F;
 
     private @Nullable ResourceKey<IAspect> aspect;
     private int progress;
@@ -161,16 +161,19 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
         Holder<IAspect> held = heldHolder();
         aspect = null;
         progress = 0;
-        if (held != null) {
-            ItemStack crystal = EssentiaCrystalAccess.create(held, ONE_POINT);
-            ItemStack leftover = InvHelper.insertAt(server, worldPosition.relative(output), output.getOpposite(), crystal, false);
-            if (!leftover.isEmpty()) {
-                dropOutward(server, output, leftover);
-                ventTicks = VENT_TICKS;
-            }
+        if (held == null) {
+            changedForClients();
+            return;
+        }
+        ItemStack crystal = EssentiaCrystalAccess.create(held, ONE_POINT);
+        ItemStack leftover = InvHelper.insertAt(server, worldPosition.relative(output), output.getOpposite(), crystal, false);
+        if (!leftover.isEmpty()) {
+            dropOutward(server, output, leftover);
+            ventTicks = VENT_TICKS;
         }
         RandomSource random = server.getRandom();
-        server.playSound(null, worldPosition, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, FINISH_VOLUME, FINISH_BASE_PITCH + random.nextFloat() * FINISH_PITCH_SPREAD);
+        float pitch = FINISH_BASE_PITCH + (random.nextFloat() - random.nextFloat()) * FINISH_PITCH_SPREAD;
+        server.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, FINISH_VOLUME, pitch);
         changedForClients();
     }
 
@@ -183,29 +186,28 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
 
     private void emitPuff(ServerLevel server, Direction output) {
         RandomSource random = server.getRandom();
-        Vec3 face = Vec3.atCenterOf(worldPosition).add(output.getStepX() * VENT_DISTANCE, output.getStepY() * VENT_DISTANCE, output.getStepZ() * VENT_DISTANCE);
-        double mx = output.getStepX() + jitter(random);
-        double my = output.getStepY() + jitter(random);
-        double mz = output.getStepZ() + jitter(random);
-        Effects.vent(server, face).motion(mx, my, mz).color(VENT_COLOR).scale(VENT_SCALE).send();
+        Vec3 origin = Vec3.atCenterOf(worldPosition).add(
+                jitter(random) + output.getStepX() / VENT_ORIGIN_DIVISOR,
+                jitter(random) + output.getStepY() / VENT_ORIGIN_DIVISOR,
+                jitter(random) + output.getStepZ() / VENT_ORIGIN_DIVISOR);
+        double mx = output.getStepX() / VENT_MOTION_DIVISOR + jitter(random);
+        double my = output.getStepY() / VENT_MOTION_DIVISOR + jitter(random);
+        double mz = output.getStepZ() / VENT_MOTION_DIVISOR + jitter(random);
+        Effects.vent(server, origin).motion(mx, my, mz).color(VENT_COLOR).scale(VENT_SCALE).send();
     }
 
     private void fadeTint(Level level) {
         Holder<IAspect> held = aspect == null ? null : Aspects.resolve(level, aspect);
         int packed = held == null ? WHITE_TINT : held.value().color();
-        crystalRed = approach(crystalRed, brighten(channel(packed, RED_SHIFT)), COLOR_STEP);
-        crystalGreen = approach(crystalGreen, brighten(channel(packed, GREEN_SHIFT)), COLOR_STEP);
-        crystalBlue = approach(crystalBlue, brighten(channel(packed, 0)), COLOR_STEP);
-    }
-
-    private static float brighten(float channel) {
-        return Math.min(1.0F, channel + (1.0F - channel) * TINT_LIFT);
+        crystalRed = approach(crystalRed, channel(packed, RED_SHIFT), COLOR_STEP);
+        crystalGreen = approach(crystalGreen, channel(packed, GREEN_SHIFT), COLOR_STEP);
+        crystalBlue = approach(crystalBlue, channel(packed, 0), COLOR_STEP);
     }
 
     private void spin(boolean unpowered) {
         boolean working = unpowered && aspect != null;
-        rotationSpeed = working ? approach(rotationSpeed, MAX_SPEED, SPEED_RISE) : approach(rotationSpeed, 0.0F, SPEED_FALL);
         rotation = (rotation + rotationSpeed) % FULL_TURN;
+        rotationSpeed = working ? approach(rotationSpeed, MAX_SPEED, SPEED_RISE) : approach(rotationSpeed, 0.0F, SPEED_FALL);
     }
 
     private void hold(@Nullable ResourceKey<IAspect> incoming) {

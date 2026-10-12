@@ -15,8 +15,8 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class TTClientFluidExtensions {
-    private static final int PURIFYING_TINT = 0xC8F3E6C8;
-    private static final int LIQUID_DEATH_TINT = 0xF0461A72;
+    private static final int PURIFYING_TINT = 0x77FFEEAA;
+    private static final int LIQUID_DEATH_TINT = 0xFF4D0066;
 
     private TTClientFluidExtensions() {}
 

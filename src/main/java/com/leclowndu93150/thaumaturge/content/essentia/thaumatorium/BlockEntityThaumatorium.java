@@ -35,6 +35,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -56,9 +57,9 @@ public final class BlockEntityThaumatorium extends AbstractSyncedBlockEntity imp
     private static final int CATALYST_SLOT = 0;
     private static final int HEAT_DEPTH = 2;
     private static final int CATALYST_COST = 1;
-    private static final float HISS_VOLUME = 0.3F;
-    private static final float HISS_PITCH_LOW = 1.7F;
-    private static final float HISS_PITCH_RANGE = 0.25F;
+    private static final float HISS_VOLUME = 0.25F;
+    private static final float HISS_PITCH_BASE = 2.6F;
+    private static final float HISS_PITCH_SPREAD = 0.8F;
 
     private final CatalystHandler catalyst = new CatalystHandler();
     private final RecipeQueue queue = new RecipeQueue();
@@ -229,7 +230,8 @@ public final class BlockEntityThaumatorium extends AbstractSyncedBlockEntity imp
         requirements.clearReceived();
         credit(level, result);
         InvHelper.eject(level, pos, front(), result);
-        float pitch = HISS_PITCH_LOW + level.getRandom().nextFloat() * HISS_PITCH_RANGE;
+        RandomSource random = level.getRandom();
+        float pitch = HISS_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * HISS_PITCH_SPREAD;
         level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, HISS_VOLUME, pitch);
         setChangedAndSync();
     }

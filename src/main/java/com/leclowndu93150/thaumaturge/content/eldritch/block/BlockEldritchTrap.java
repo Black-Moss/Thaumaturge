@@ -20,15 +20,14 @@ public final class BlockEldritchTrap extends BaseEntityBlock {
 
     private static final float CELL_CENTER = 0.5F;
     private static final float NO_GRAVITY = 0.0F;
-    private static final double OFFSET_SPREAD = 0.6;
-    private static final int MAX_OFFSET = 1;
-    private static final float RED_BASE = 0.55F;
-    private static final float RED_SPREAD = 0.3F;
-    private static final float GREEN_MAX = 0.15F;
-    private static final float BLUE_BASE = 0.85F;
-    private static final float BLUE_SPREAD = 0.15F;
-    private static final int DURATION_BASE = 3;
-    private static final int DURATION_SPREAD = 3;
+    private static final int OFFSET_ROLL_BOUND = 2;
+    private static final float RED_BASE = 0.5F;
+    private static final float RED_SPREAD = 0.5F;
+    private static final float GREEN_MAX = 0.3F;
+    private static final float BLUE_BASE = 0.9F;
+    private static final float BLUE_SPREAD = 0.1F;
+    private static final int DURATION_BASE = 16;
+    private static final int DURATION_SPREAD = 4;
 
     public BlockEldritchTrap(BlockBehaviour.Properties properties) {
         super(properties);
@@ -59,8 +58,7 @@ public final class BlockEldritchTrap extends BaseEntityBlock {
     }
 
     private static int offset(RandomSource random) {
-        long step = Math.round(random.nextGaussian() * OFFSET_SPREAD);
-        return (int) Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, step));
+        return random.nextInt(OFFSET_ROLL_BOUND) - random.nextInt(OFFSET_ROLL_BOUND);
     }
 
     @Override

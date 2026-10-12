@@ -74,6 +74,11 @@ public final class BlockEntityManaPod extends AbstractSyncedBlockEntity {
         settleAspect(server, stage, server.getRandom());
     }
 
+    public void rollSpawnAspect(LevelReader reader, RandomSource random) {
+        aspectKey = random.nextInt(HERBA_ONE_IN) == 0 ? TTAspects.HERBA : pickPrimal(reader.registryAccess(), random);
+        setChanged();
+    }
+
     public void settleAspect(LevelReader reader, int stage, RandomSource random) {
         if (stage < BLEND_STAGE) {
             return;

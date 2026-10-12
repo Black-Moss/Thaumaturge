@@ -66,7 +66,7 @@ public final class EssentiaIntake implements IEssentiaConduit {
     }
 
     private int strengthOn(@Nullable Direction face) {
-        return connectsOn(face) && host.wantsEssentia() ? host.intakeSuction(suction) : 0;
+        return connectsOn(face) && host.wantsEssentia() ? suction : 0;
     }
 
     @Override

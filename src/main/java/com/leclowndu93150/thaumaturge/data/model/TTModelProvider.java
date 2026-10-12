@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.data.model;
 
-import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.client.color.AspectColorTint;
 import com.leclowndu93150.thaumaturge.client.color.AspectFilterTint;
 import com.leclowndu93150.thaumaturge.client.color.CrystalAspectTint;
@@ -72,7 +71,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 import net.minecraft.client.color.item.Constant;
@@ -96,8 +94,6 @@ import net.minecraft.client.renderer.special.ChestSpecialRenderer;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.CachedOutput;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedList;
@@ -151,27 +147,8 @@ public final class TTModelProvider extends ModelProvider {
     private static final int FULL_TURN_QUARTERS = 4;
     private static final float RESEARCH_TABLE_ITEM_SCALE = 0.5F;
 
-    private final CompletableFuture<HolderLookup.Provider> registries;
-    private HolderLookup.@Nullable Provider lookup;
-
-    public TTModelProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
+    public TTModelProvider(PackOutput output) {
         super(output, TTIds.MODID);
-        this.registries = registries;
-    }
-
-    @Override
-    public CompletableFuture<?> run(CachedOutput cache) {
-        return registries.thenCompose(provider -> {
-            lookup = provider;
-            return super.run(cache);
-        });
-    }
-
-    private HolderLookup.Provider lookup() {
-        if (lookup == null) {
-            throw new IllegalStateException("Model generation started before the registry lookup was ready");
-        }
-        return lookup;
     }
 
     @Override
@@ -923,7 +900,7 @@ public final class TTModelProvider extends ModelProvider {
         itemModels.generateFlatItem(TTItems.PLATE_VOID.get(), ModelTemplates.FLAT_ITEM);
 
         CrystalBlockstateGenerator.register(blockModels);
-        CrystalItemModelGenerator.register(itemModels, lookup().lookupOrThrow(IAspect.REGISTRY_KEY));
+        CrystalItemModelGenerator.register(itemModels);
         WardedGlassModelGenerator.register(blockModels, itemModels);
         EssentiaCrystalModelGenerator.register(itemModels);
         registerManaPod(blockModels, itemModels);

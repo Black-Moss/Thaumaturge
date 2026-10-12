@@ -67,7 +67,7 @@ public final class BlockEntityHungryChest extends ChestBlockEntity {
         if (remaining <= 0) {
             item.discard();
         } else {
-            stack.shrink(accepted);
+            item.setItem(stack.copyWithCount(remaining));
         }
         item.playSound(SoundEvents.GENERIC_EAT.value(), EAT_VOLUME, (random.nextFloat() - random.nextFloat()) * EAT_PITCH_SPREAD + EAT_PITCH_BASE);
         return true;

@@ -29,6 +29,9 @@ final class PanelContext {
     private static final int PANEL_SCALE = 2;
     private static final int TEXT_COLOR = 0xFF504E50;
     private static final int LABEL_OFFSET_Y = -104;
+    private static final int BACKDROP_V = 15;
+    private static final int BACKDROP_HEIGHT = 52;
+    private static final int BACKDROP_OFFSET = -26;
     private static final int FRAME_U = 20;
     private static final int FRAME_V = 3;
     private static final int FRAME_X = -8;
@@ -98,6 +101,10 @@ final class PanelContext {
     void blitScaled(GuiGraphicsExtractor graphics, int u, int v, int w, int h, int offsetX, int offsetY, int tint) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK_OVERLAY, offsetX, offsetY, (float) u, (float) v, w, h, w, h, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE,
                 tint);
+    }
+
+    void blitBackdrop(GuiGraphicsExtractor graphics, int u, int width) {
+        blitScaled(graphics, u, BACKDROP_V, width, BACKDROP_HEIGHT, BACKDROP_OFFSET, BACKDROP_OFFSET, WHITE);
     }
 
     void drawOutputFrame(GuiGraphicsExtractor graphics) {

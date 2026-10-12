@@ -15,11 +15,11 @@ import net.minecraft.world.level.Level;
 import org.jspecify.annotations.Nullable;
 
 public final class UseBehavior implements ISealBehavior {
-    public static final SealSetting LEFT_CLICK = new SealSetting("left_click", "gui.thaumaturge.seal.setting.left", false);
-    public static final SealSetting INTO_AIR = new SealSetting("into_air", "gui.thaumaturge.seal.setting.empty", false);
-    public static final SealSetting BARE_HANDED = new SealSetting("bare_handed", "gui.thaumaturge.seal.setting.emptyhand", false);
-    public static final SealSetting SNEAKING = new SealSetting("sneaking", "gui.thaumaturge.seal.setting.sneak", false);
-    public static final SealSetting REQUEST_ITEMS = new SealSetting("request_items", "gui.thaumaturge.seal.setting.provision_whitelist", false);
+    public static final SealSetting LEFT_CLICK = new SealSetting("pleft", "gui.thaumaturge.seal.setting.left", false);
+    public static final SealSetting INTO_AIR = new SealSetting("pempty", "gui.thaumaturge.seal.setting.empty", false);
+    public static final SealSetting BARE_HANDED = new SealSetting("pemptyhand", "gui.thaumaturge.seal.setting.emptyhand", false);
+    public static final SealSetting SNEAKING = new SealSetting("psneak", "gui.thaumaturge.seal.setting.sneak", false);
+    public static final SealSetting REQUEST_ITEMS = new SealSetting("ppro", "gui.thaumaturge.seal.setting.provision_whitelist", false);
 
     private static final int STAGGER = 49;
     private static final int SCAN_PERIOD = 5;
@@ -64,16 +64,17 @@ public final class UseBehavior implements ISealBehavior {
         }
         ISealFilter filter = ItemMatchSettings.filterOf(seal);
         ItemStack required = filter.stack(TOOL_SLOT);
-        if (required.isEmpty()) {
+        boolean openList = required.isEmpty();
+        if (openList && !filter.isBlacklist()) {
             return false;
         }
         for (ItemStack carried : golem.hands().contents()) {
-            if (!carried.isEmpty() && ItemMatchSettings.accepts(seal, carried)) {
+            if (!carried.isEmpty() && (openList || ItemMatchSettings.accepts(seal, carried))) {
                 return true;
             }
         }
         if (seal.setting(REQUEST_ITEMS) && !filter.isBlacklist()) {
-            GolemDispatch.orderSupply(golem.level(), seal, required);
+            GolemDispatch.orderSupply(golem.level(), seal, required.copy());
         }
         return false;
     }

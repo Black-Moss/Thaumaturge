@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
-import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.screen.AbstractTTContainerScreen;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.client.screen.TTTooltips;
@@ -29,7 +28,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -41,7 +40,8 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
     private static final int WAND_SLOT_TEX_OFFSET_X = 10;
     private static final int WAND_SLOT_TEX_OFFSET_Y = 6;
     private static final int WAND_COST_Y_OFFSET = 129;
-    private static final int TEXT_HOVER_HEIGHT = 6;
+    private static final int TEXT_HOVER_ABOVE = 1;
+    private static final int TEXT_HOVER_BELOW = 6;
     private static final int WAND_COST_HOVER_MIN_HALF_WIDTH = 10;
     private static final int SLOT_SIZE = 16;
     private static final DecimalFormat WAND_COST_FORMAT = new DecimalFormat("#.##");
@@ -51,18 +51,19 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
     private static final int GLOW_SOURCE_SIZE = 64;
     private static final int GLOW_SIZE = GLOW_SOURCE_SIZE / 2;
     private static final int GLOW_ORIGIN = -GLOW_SIZE / 2;
-    private static final float GLOW_ALPHA = 0.55F;
-    private static final int GLOW_TURN_TICKS = 1440;
-    private static final float GLOW_SLOT_TURN = Mth.TWO_PI / MenuArcaneWorkbench.PRIMAL_ORDER.size();
-    private static final float SLOT_CENTER = SLOT_SIZE / 2.0F;
+    private static final int GLOW_ALPHA = 128;
+    private static final float GLOW_SLOT_PHASE = 60.0F;
+    private static final float GLOW_TICKS_PER_RADIAN = 75.0F;
+    private static final float GLOW_PIVOT_X = 7.5F;
+    private static final float GLOW_PIVOT_Y = 8.0F;
 
     private static final int VIS_TEXT_X = 168;
     private static final int VIS_AVAILABLE_Y = 46;
     private static final int VIS_COST_Y = 38;
     private static final float TEXT_SCALE = 0.5F;
-    private static final int VIS_SHORT_COLOR = 0xFFE88A99;
-    private static final int VIS_ENOUGH_COLOR = 0xFFA29CF0;
-    private static final int VIS_COST_COLOR = 0xFFB2EEF0;
+    private static final int VIS_SHORT_COLOR = 0xFFEE6E6E;
+    private static final int VIS_ENOUGH_COLOR = 0xFF6E6EEE;
+    private static final int VIS_COST_COLOR = 0xFFC0FFFF;
     private static final int WAND_COST_COLOR = 0xFFFFFFFF;
     private static final int PERCENT = 100;
     private static final String WAND_COST_SEPARATOR = " | ";
@@ -88,7 +89,7 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
         int available = menu.getCachedVis();
         int required = plan == null ? 0 : plan.auraVis();
         if (recipe != null) {
-            drawCrystalGlows(graphics, recipe, level.getGameTime(), partialTick);
+            drawCrystalGlows(graphics, plan, player, partialTick);
         }
         boolean visShort = available < required;
         Component availableLine = TTTooltips.workbenchVisAvailable(available);
@@ -104,7 +105,7 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
             }
         }
         if (recipe != null) {
-            showCrystalTooltip(graphics, recipe, mouseX, mouseY);
+            showCrystalTooltip(graphics, plan, mouseX, mouseY);
         }
         if (plan != null && !plan.wandCentivis().isEmpty()) {
             drawWandPayment(graphics, level.registryAccess(), plan.wandCentivis(), mouseX, mouseY);
@@ -119,27 +120,33 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
         return ThaumaturgeCraftingManager.findMatchingArcaneRecipe(level, input.withPlayer(player), player);
     }
 
-    private void drawCrystalGlows(GuiGraphicsExtractor graphics, IArcaneRecipe recipe, long gameTime, float partialTick) {
-        float spin = (Math.floorMod(gameTime, GLOW_TURN_TICKS) + partialTick) / GLOW_TURN_TICKS * Mth.TWO_PI;
-        for (AspectInstance entry : recipe.crystalCost().entries()) {
+    private void drawCrystalGlows(GuiGraphicsExtractor graphics, WorkbenchPayment.Plan plan, LocalPlayer player, float partialTick) {
+        Entity camera = minecraft.getCameraEntity();
+        float age = (camera == null ? player.tickCount : camera.tickCount) + partialTick;
+        for (AspectInstance entry : plan.crystalsToConsume().entries()) {
             int slot = crystalSlot(entry);
             if (slot < 0) {
                 continue;
             }
             int color = ARGB.color(GLOW_ALPHA, entry.aspect().value().color());
             graphics.pose().pushMatrix();
-            graphics.pose().translate(leftPos + MenuArcaneWorkbench.CRYSTAL_X[slot] + SLOT_CENTER, topPos + MenuArcaneWorkbench.CRYSTAL_Y[slot] + SLOT_CENTER);
-            graphics.pose().rotate(spin + slot * GLOW_SLOT_TURN);
-            graphics.blit(TTRenderPipelines.GUI_TEXTURED_ADDITIVE, background(), GLOW_ORIGIN, GLOW_ORIGIN, GLOW_U, GLOW_V, GLOW_SIZE, GLOW_SIZE, GLOW_SOURCE_SIZE, GLOW_SOURCE_SIZE,
+            graphics.pose().translate(leftPos + MenuArcaneWorkbench.CRYSTAL_X[slot] + GLOW_PIVOT_X, topPos + MenuArcaneWorkbench.CRYSTAL_Y[slot] + GLOW_PIVOT_Y);
+            graphics.pose().rotate(slot * GLOW_SLOT_PHASE + age / GLOW_TICKS_PER_RADIAN);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, background(), GLOW_ORIGIN, GLOW_ORIGIN, GLOW_U, GLOW_V, GLOW_SIZE, GLOW_SIZE, GLOW_SOURCE_SIZE, GLOW_SOURCE_SIZE,
                     TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE, color);
             graphics.pose().popMatrix();
         }
     }
 
-    private void showCrystalTooltip(GuiGraphicsExtractor graphics, IArcaneRecipe recipe, int mouseX, int mouseY) {
-        for (AspectInstance entry : recipe.crystalCost().entries()) {
+    private void showCrystalTooltip(GuiGraphicsExtractor graphics, WorkbenchPayment.Plan plan, int mouseX, int mouseY) {
+        for (AspectInstance entry : plan.crystalsToConsume().entries()) {
             int slot = crystalSlot(entry);
-            if (slot < 0 || !isHovering(MenuArcaneWorkbench.CRYSTAL_X[slot], MenuArcaneWorkbench.CRYSTAL_Y[slot], SLOT_SIZE, SLOT_SIZE, mouseX, mouseY)) {
+            if (slot < 0) {
+                continue;
+            }
+            int x0 = leftPos + MenuArcaneWorkbench.CRYSTAL_X[slot];
+            int y0 = topPos + MenuArcaneWorkbench.CRYSTAL_Y[slot];
+            if (!isInside(x0, y0, x0 + SLOT_SIZE, y0 + SLOT_SIZE, mouseX, mouseY)) {
                 continue;
             }
             List<Component> lines = new ArrayList<>();
@@ -160,23 +167,30 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
 
     private static Component costLine(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
         int vis = plan.auraVis();
-        if (!plan.crystalsToConsume().isEmpty()) {
-            return TTTooltips.workbenchVisCostUnfocused(vis);
-        }
         int discount = discountPercent(recipe, plan);
-        return discount > 0 ? TTTooltips.workbenchVisCostDiscounted(vis, discount) : TTTooltips.workbenchVisCost(vis);
+        if (discount > 0) {
+            return TTTooltips.workbenchVisCostDiscounted(vis, discount);
+        }
+        return plan.crystalsToConsume().isEmpty() ? TTTooltips.workbenchVisCost(vis) : TTTooltips.workbenchVisCostUnfocused(vis);
     }
 
     private static List<Component> costTooltip(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
-        if (!plan.crystalsToConsume().isEmpty()) {
-            return TTTooltips.workbenchVisCostUnfocusedTooltip(Math.round((WandEconomy.CRAFT_AURA_SURCHARGE - 1.0F) * PERCENT));
-        }
         int discount = discountPercent(recipe, plan);
-        return discount > 0 ? TTTooltips.workbenchVisCostDiscountedTooltip(discount) : TTTooltips.workbenchVisCostTooltip();
+        if (discount > 0) {
+            return TTTooltips.workbenchVisCostDiscountedTooltip(discount);
+        }
+        if (plan.crystalsToConsume().isEmpty()) {
+            return TTTooltips.workbenchVisCostTooltip();
+        }
+        return TTTooltips.workbenchVisCostUnfocusedTooltip(Math.round((WandEconomy.CRAFT_AURA_SURCHARGE - 1.0F) * PERCENT));
     }
 
     private static int discountPercent(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
-        return recipe.visCost() <= 0 ? 0 : Math.round((1.0F - (float) plan.auraVis() / recipe.visCost()) * PERCENT);
+        int base = recipe.visCost();
+        if (base <= 0 || plan.auraVis() >= base) {
+            return 0;
+        }
+        return Math.round(PERCENT - plan.auraVis() * (float) PERCENT / base);
     }
 
     private void drawWandPayment(GuiGraphicsExtractor graphics, HolderLookup.Provider registries, Map<ResourceKey<IAspect>, Integer> wandCentivis, int mouseX, int mouseY) {
@@ -184,7 +198,7 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
         boolean first = true;
         for (Map.Entry<ResourceKey<IAspect>, Integer> entry : wandCentivis.entrySet()) {
             if (!first) {
-                line.append(Component.literal(WAND_COST_SEPARATOR).withStyle(ChatFormatting.GRAY));
+                line.append(Component.literal(WAND_COST_SEPARATOR).withStyle(ChatFormatting.DARK_GRAY));
             }
             String amount = WAND_COST_FORMAT.format(entry.getValue() / (double) WandEconomy.CENTIVIS_PER_VIS);
             line.append(Component.literal(amount).withStyle(WandTooltips.primalColor(registries, entry.getKey())));
@@ -198,15 +212,21 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
     }
 
     private boolean isOverHalfText(Component text, int centreX, int top, int minHalfWidth, int mouseX, int mouseY) {
-        int halfWidth = Math.max(Math.round(font.width(text) * TEXT_SCALE / 2.0F), minHalfWidth);
-        return isHovering(centreX - halfWidth, top, halfWidth * 2, TEXT_HOVER_HEIGHT, mouseX, mouseY);
+        int halfWidth = Math.max(font.width(text) / 2 / 2, minHalfWidth);
+        int cx = leftPos + centreX;
+        int y = topPos + top;
+        return isInside(cx - halfWidth, y - TEXT_HOVER_ABOVE, cx + halfWidth, y + TEXT_HOVER_BELOW, mouseX, mouseY);
+    }
+
+    private static boolean isInside(int x0, int y0, int x1, int y1, int mouseX, int mouseY) {
+        return x0 <= mouseX && mouseX < x1 && y0 <= mouseY && mouseY < y1;
     }
 
     private void drawHalfText(GuiGraphicsExtractor graphics, Component text, int centreX, int top, int color) {
         graphics.pose().pushMatrix();
         graphics.pose().translate(leftPos + centreX, topPos + top);
         graphics.pose().scale(TEXT_SCALE, TEXT_SCALE);
-        graphics.centeredText(font, text, 0, 0, color);
+        graphics.text(font, text, -font.width(text) / 2, 0, color, false);
         graphics.pose().popMatrix();
     }
 }

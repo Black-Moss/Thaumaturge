@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
@@ -34,7 +33,9 @@ final class GolemPartChoice<T> {
                 }
             }
         }
-        LAST_INDEX[slot] = candidates.isEmpty() ? 0 : Mth.clamp(LAST_INDEX[slot], 0, candidates.size() - 1);
+        if (LAST_INDEX[slot] >= candidates.size()) {
+            LAST_INDEX[slot] = 0;
+        }
     }
 
     static <V> Identifier idOf(Registry<V> registry, V value) {

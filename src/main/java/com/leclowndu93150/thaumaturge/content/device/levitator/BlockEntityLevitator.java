@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -29,8 +30,8 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
     private static final int SYNC_INTERVAL = 20;
     private static final double PUSH = 0.1;
     private static final double SPEED_CAP = 0.35;
-    private static final double DAMPING = 0.7;
-    private static final double LIFT = 1.0;
+    private static final double DAMPING = 0.9;
+    private static final double HOVER = 0.08;
     private static final float IDLE_STREAM_CHANCE = 0.1F;
     private static final float STREAM_CHANCE = 0.6F;
 
@@ -91,7 +92,7 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
         }
         int carried = carry(level, pos, facing);
         if (level.isClientSide()) {
-            LevitatorMist.stream(level, pos, facing, carried > 0 ? STREAM_CHANCE : IDLE_STREAM_CHANCE);
+            LevitatorMist.stream(level, pos, facing, IDLE_STREAM_CHANCE);
         } else if (carried > 0 && level.getGameTime() % SYNC_INTERVAL == 0) {
             setChangedAndSync();
         }
@@ -105,7 +106,7 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
         int gained = Math.round(received * CHARGE_PER_VIS);
         if (gained > 0) {
             charge += gained;
-            setChanged();
+            setChangedAndSync();
         }
     }
 
@@ -121,10 +122,9 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
             charge -= cost;
             carried++;
             rider.resetFallDistance();
-            if (rider.isLocalInstanceAuthoritative()) {
-                push(rider, facing);
-            }
+            push(rider, facing);
             if (level.isClientSide()) {
+                LevitatorMist.stream(level, pos, facing, STREAM_CHANCE);
                 LevitatorMist.cling(level, rider);
             }
         }
@@ -138,38 +138,27 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
         if (!entity.isAlive() || entity.isSpectator()) {
             return false;
         }
-        return entity instanceof ItemEntity || entity instanceof Player || entity instanceof AbstractHorse || entity.isPushable();
+        return entity instanceof ItemEntity || entity instanceof AbstractHorse || entity.isPushable();
     }
 
     private static void push(Entity rider, Direction facing) {
         Vec3 motion = rider.getDeltaMovement();
-        if (facing == Direction.UP && rider.isShiftKeyDown() && rider instanceof Player) {
+        if (facing == Direction.UP && rider.isShiftKeyDown()) {
             if (motion.y < 0.0) {
                 rider.setDeltaMovement(motion.x, motion.y * DAMPING, motion.z);
             }
             return;
         }
-        double x = accelerate(motion.x, facing.getStepX());
-        double y = accelerate(motion.y, facing.getStepY());
-        double z = accelerate(motion.z, facing.getStepZ());
+        double x = motion.x + facing.getStepX() * PUSH;
+        double y = motion.y + facing.getStepY() * PUSH;
+        double z = motion.z + facing.getStepZ() * PUSH;
         if (facing.getAxis() != Direction.Axis.Y && !rider.onGround()) {
             if (y < 0.0) {
                 y *= DAMPING;
             }
-            y += rider.getGravity() * LIFT;
+            y += HOVER;
         }
-        rider.setDeltaMovement(x, y, z);
-    }
-
-    private static double accelerate(double speed, int step) {
-        if (step == 0) {
-            return speed;
-        }
-        double along = speed * step;
-        if (along < SPEED_CAP) {
-            along = Math.min(SPEED_CAP, along + PUSH);
-        }
-        return along * step;
+        rider.setDeltaMovement(Mth.clamp(x, -SPEED_CAP, SPEED_CAP), Mth.clamp(y, -SPEED_CAP, SPEED_CAP), Mth.clamp(z, -SPEED_CAP, SPEED_CAP));
     }
 
     private int measureClearance(Level level, BlockPos pos, Direction facing) {

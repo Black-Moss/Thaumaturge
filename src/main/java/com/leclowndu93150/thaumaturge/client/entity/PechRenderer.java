@@ -24,13 +24,12 @@ public final class PechRenderer extends MobRenderer<EntityPech, PechRenderState,
     private static final float MODEL_LIFT = -1.501F;
     private static final float PIXEL = 1.0F / 16.0F;
     private static final float FIST_CENTRE_X = 1.0F * PIXEL;
-    private static final float FIST_DROP = 5.0F * PIXEL;
+    private static final float HELD_ITEM_HEIGHT = 0.525F;
     private static final float FIST_FORWARD = 1.0F * PIXEL;
     private static final float GRIP_PITCH_DEGREES = -90.0F;
     private static final float GRIP_TURN_DEGREES = 180.0F;
-    private static final float HELD_ITEM_SCALE = 0.8F;
-    private static final float BOW_SHIFT_OUT = 0.5F * PIXEL;
-    private static final float BOW_SHIFT_UP = 1.5F * PIXEL;
+    private static final float BOW_SHIFT_X = -0.075F;
+    private static final float BOW_SHIFT_Y = -0.1F;
 
     public PechRenderer(EntityRendererProvider.Context context) {
         super(context, new PechModel(context.bakeLayer(TTModelLayers.PECH)), SHADOW_RADIUS);
@@ -74,13 +73,12 @@ public final class PechRenderer extends MobRenderer<EntityPech, PechRenderState,
         float outward = arm == HumanoidArm.LEFT ? 1.0F : -1.0F;
         poseStack.pushPose();
         armPart.translateAndRotate(poseStack);
-        poseStack.translate(outward * FIST_CENTRE_X, FIST_DROP, -FIST_FORWARD);
+        poseStack.translate(outward * FIST_CENTRE_X, HELD_ITEM_HEIGHT, -FIST_FORWARD);
         if (state.holdingBow && arm == state.mainArm) {
-            poseStack.translate(outward * BOW_SHIFT_OUT, -BOW_SHIFT_UP, 0.0F);
+            poseStack.translate(BOW_SHIFT_X, BOW_SHIFT_Y, 0.0F);
         }
         poseStack.mulPose(Axis.XP.rotationDegrees(GRIP_PITCH_DEGREES));
         poseStack.mulPose(Axis.YP.rotationDegrees(GRIP_TURN_DEGREES));
-        poseStack.scale(HELD_ITEM_SCALE, HELD_ITEM_SCALE, HELD_ITEM_SCALE);
         item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
         poseStack.popPose();
     }

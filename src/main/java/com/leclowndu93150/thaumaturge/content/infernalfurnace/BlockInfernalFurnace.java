@@ -57,9 +57,9 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
     private static final int BLAZE_RESISTANCE_AMPLIFIER = 0;
     private static final double BLAZE_CENTER = 0.5;
     private static final double BLAZE_HEIGHT = 1.0;
-    private static final double BLOCK_CENTRE = 0.5;
-    private static final double CENTRE_PULL = 0.05;
-    private static final double ITEM_HOP = 0.1;
+    private static final double EDGE_NEAR = 0.3;
+    private static final double EDGE_FAR = 0.7;
+    private static final double EDGE_NUDGE = 0.0001;
 
     public BlockInfernalFurnace(BlockBehaviour.Properties properties) {
         super(properties);
@@ -119,24 +119,14 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
         }
     }
 
-    @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        if (level.getBlockEntity(pos) instanceof BlockEntityInfernalFurnace furnace) {
-            furnace.spill(level, pos);
-        }
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-    }
-
     public static void destroyFurnace(LevelAccessor level, BlockPos core, BlockState coreState, BlockPos broken) {
         if (level.isClientSide()) {
             return;
         }
         restoreShell(level, core, broken);
         boolean blaze = ThaumaturgeServerConfig.INFERNAL_FURNACE_TURN_TO_BLAZE.get();
-        if (!core.equals(broken)) {
-            BlockState replacement = blaze ? Blocks.AIR.defaultBlockState() : Blocks.LAVA.defaultBlockState();
-            level.setBlock(core, replacement, Block.UPDATE_ALL);
-        }
+        BlockState replacement = blaze ? Blocks.AIR.defaultBlockState() : Blocks.LAVA.defaultBlockState();
+        level.setBlock(core, replacement, Block.UPDATE_ALL);
         if (coreState.hasProperty(FACING)) {
             restoreBars(level, core.relative(coreState.getValue(FACING).getOpposite()));
         }
@@ -178,11 +168,11 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
 
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
-        pullToCentre(entity, pos);
-        if (level instanceof ServerLevel serverLevel && entity.tickCount % BURN_INTERVAL == 0) {
+        nudgeFromEdges(entity, pos);
+        if (level instanceof ServerLevel serverLevel) {
             if (entity instanceof ItemEntity item) {
                 takeItem(serverLevel, pos, item);
-            } else if (entity instanceof LivingEntity creature && !creature.fireImmune()) {
+            } else if (entity instanceof LivingEntity creature && entity.tickCount % BURN_INTERVAL == 0 && !creature.fireImmune()) {
                 creature.hurtServer(serverLevel, serverLevel.damageSources().lava(), CONTACT_DAMAGE);
                 creature.igniteForSeconds(CONTACT_BURN_SECONDS);
             }
@@ -190,26 +180,33 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
         super.entityInside(state, level, pos, entity, effectApplier, isPrecise);
     }
 
-    private static void pullToCentre(Entity entity, BlockPos pos) {
+    private static void nudgeFromEdges(Entity entity, BlockPos pos) {
         Vec3 motion = entity.getDeltaMovement();
-        double pullX = (pos.getX() + BLOCK_CENTRE - entity.getX()) * CENTRE_PULL;
-        double pullZ = (pos.getZ() + BLOCK_CENTRE - entity.getZ()) * CENTRE_PULL;
-        entity.setDeltaMovement(motion.x + pullX, motion.y, motion.z + pullZ);
+        double nudgeX = edgeNudge(entity.getX() - pos.getX());
+        double nudgeZ = edgeNudge(entity.getZ() - pos.getZ());
+        entity.setDeltaMovement(motion.x + nudgeX, motion.y, motion.z + nudgeZ);
+    }
+
+    private static double edgeNudge(double offset) {
+        if (offset < EDGE_NEAR) {
+            return EDGE_NUDGE;
+        }
+        if (offset > EDGE_FAR) {
+            return -EDGE_NUDGE;
+        }
+        return 0.0;
     }
 
     private static void takeItem(ServerLevel level, BlockPos pos, ItemEntity item) {
-        if (!item.isAlive()) {
+        if (!item.isAlive() || !(level.getBlockEntity(pos) instanceof BlockEntityInfernalFurnace furnace) || furnace.isOwnThrow(item)) {
             return;
         }
-        if (item.onGround() && level.getBlockEntity(pos) instanceof BlockEntityInfernalFurnace furnace) {
-            ItemStack rest = furnace.feed(item.getItem());
-            if (rest.isEmpty()) {
-                item.discard();
-                return;
-            }
-            item.setItem(rest);
+        ItemStack rest = furnace.feed(item.getItem());
+        if (rest.isEmpty()) {
+            item.discard();
+            return;
         }
-        item.setDeltaMovement(item.getDeltaMovement().add(0.0, ITEM_HOP, 0.0));
+        item.setItem(rest);
     }
 
     private static void spawnBlaze(ServerLevelAccessor level, BlockPos furnacePos) {

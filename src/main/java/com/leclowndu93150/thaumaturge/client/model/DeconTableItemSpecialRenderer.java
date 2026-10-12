@@ -1,36 +1,23 @@
 package com.leclowndu93150.thaumaturge.client.model;
 
-import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.entity.DeconTableModel;
+import com.leclowndu93150.thaumaturge.client.render.blockentity.DeconstructionTableRenderer;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
 import com.mojang.serialization.MapCodec;
 import java.util.function.Consumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.special.NoDataSpecialModelRenderer;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 public final class DeconTableItemSpecialRenderer implements NoDataSpecialModelRenderer {
-    private static final Identifier TEXTURE = TTIds.rl("textures/entity/decontable.png");
-    private static final float CENTER = 0.5F;
-    private static final float BODY_Y = 1.0F;
-    private static final float BOOK_Y = 1.02F;
-    private static final float FLIP_DEGREES = 180.0F;
-    private static final float BOOK_PITCH_DEGREES = -90.0F;
-    private static final float BOOK_YAW_DEGREES = 180.0F;
-    private static final float BOOK_SCALE = 0.8F * 0.5128205F;
-    private static final int NO_OUTLINE = 0;
     private static final int BOOK_SEED = 0;
 
     private final DeconTableModel model;
@@ -41,11 +28,7 @@ public final class DeconTableItemSpecialRenderer implements NoDataSpecialModelRe
 
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor) {
-        poseStack.pushPose();
-        poseStack.translate(CENTER, BODY_Y, CENTER);
-        poseStack.mulPose(Axis.XP.rotationDegrees(FLIP_DEGREES));
-        collector.submitModelPart(model.root, poseStack, RenderTypes.entityCutout(TEXTURE), lightCoords, OverlayTexture.NO_OVERLAY, null);
-        poseStack.popPose();
+        DeconstructionTableRenderer.submitTable(model, poseStack, collector, lightCoords);
         submitBook(poseStack, collector, lightCoords);
     }
 
@@ -53,13 +36,7 @@ public final class DeconTableItemSpecialRenderer implements NoDataSpecialModelRe
         Minecraft minecraft = Minecraft.getInstance();
         ItemStackRenderState bookState = new ItemStackRenderState();
         minecraft.getItemModelResolver().updateForTopItem(bookState, new ItemStack(TTItems.THAUMOMETER.get()), ItemDisplayContext.FIXED, minecraft.level, null, BOOK_SEED);
-        poseStack.pushPose();
-        poseStack.translate(CENTER, BOOK_Y, CENTER);
-        poseStack.mulPose(Axis.XP.rotationDegrees(BOOK_PITCH_DEGREES));
-        poseStack.mulPose(Axis.YP.rotationDegrees(BOOK_YAW_DEGREES));
-        poseStack.scale(BOOK_SCALE, BOOK_SCALE, BOOK_SCALE);
-        bookState.submit(poseStack, collector, lightCoords, OverlayTexture.NO_OVERLAY, NO_OUTLINE);
-        poseStack.popPose();
+        DeconstructionTableRenderer.submitThaumometer(bookState, poseStack, collector, lightCoords);
     }
 
     @Override

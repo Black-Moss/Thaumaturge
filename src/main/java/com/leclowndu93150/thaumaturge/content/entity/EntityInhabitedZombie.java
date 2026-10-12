@@ -40,6 +40,7 @@ public class EntityInhabitedZombie extends Zombie {
     private static final int DEATH_PARTICLES = 20;
     private static final double HALF = 0.5;
     private static final double DEATH_PARTICLE_SPEED = 0.02;
+    private static final double DEATH_PARTICLE_HEIGHT_SPREAD = 0.25;
 
     public EntityInhabitedZombie(EntityType<? extends EntityInhabitedZombie> type, Level level) {
         super(type, level);
@@ -80,9 +81,6 @@ public class EntityInhabitedZombie extends Zombie {
     }
 
     @Override
-    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {}
-
-    @Override
     protected void tickDeath() {
         if (level() instanceof ServerLevel server && !isRemoved()) {
             releaseCrab(server);
@@ -98,7 +96,6 @@ public class EntityInhabitedZombie extends Zombie {
         }
         crab.snapTo(getX(), getEyeY(), getZ(), getYRot(), getXRot());
         crab.setYHeadRot(getYHeadRot());
-        crab.finalizeSpawn(level, level.getCurrentDifficultyAt(blockPosition()), EntitySpawnReason.CONVERSION, null);
         crab.setHelm(true);
         level.addFreshEntity(crab);
     }
@@ -106,7 +103,8 @@ public class EntityInhabitedZombie extends Zombie {
     private void puffOfSmoke(ServerLevel level) {
         double halfWidth = getBbWidth() * HALF;
         double halfHeight = getBbHeight() * HALF;
-        level.sendParticles(ParticleTypes.POOF, getX(), getY() + halfHeight, getZ(), DEATH_PARTICLES, halfWidth, halfHeight, halfWidth, DEATH_PARTICLE_SPEED);
+        double heightSpread = getBbHeight() * DEATH_PARTICLE_HEIGHT_SPREAD;
+        level.sendParticles(ParticleTypes.POOF, getX(), getY() + halfHeight, getZ(), DEATH_PARTICLES, halfWidth, heightSpread, halfWidth, DEATH_PARTICLE_SPEED);
     }
 
     @Override

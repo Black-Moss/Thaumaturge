@@ -69,16 +69,16 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
     private static final int FALLBACK_FACING = 1;
     private static final byte OPEN_BYTE = 1;
     private static final byte CLOSED_BYTE = 0;
-    private static final int VENT_PAUSE_TICKS = 40;
+    private static final int VENT_PAUSE_TICKS = 50;
     private static final int VENT_JET_TICKS = 50;
-    private static final int DEFAULT_VENT_COLOR = 0xCDD2D6;
+    private static final int DEFAULT_VENT_COLOR = 0xAAAAAA;
     private static final float JET_PUFF_SCALE = 1.5F;
     private static final int HEADING_BITS = 16;
     private static final long HEADING_MASK = (1L << HEADING_BITS) - 1L;
     private static final double HEADING_STEPS = HEADING_MASK + 1.0;
     private static final float TOOL_VOLUME = 0.5F;
-    private static final float TOOL_PITCH_BASE = 0.95F;
-    private static final float TOOL_PITCH_SPREAD = 0.15F;
+    private static final float TOOL_PITCH_BASE = 0.9F;
+    private static final float TOOL_PITCH_SPREAD = 0.2F;
 
     protected Direction flowSide = Direction.NORTH;
     protected final boolean[] sideOpen = new boolean[DIRECTIONS.length];
@@ -117,8 +117,8 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
         if (cadence.isDue(SUCTION_REFRESH)) {
             refreshSuction(level, pos);
         }
-        if (cadence.isDue(VENT_CHECK) && inspectPressure(level, pos)) {
-            return;
+        if (cadence.isDue(VENT_CHECK)) {
+            inspectPressure(level, pos);
         }
         if (cadence.isDue(EQUALISE)) {
             EssentiaFlowHandler.equalizeWithNeighbours(level, pos, this, directionalEqualize());
@@ -146,16 +146,15 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
         return jetHeading;
     }
 
-    private boolean inspectPressure(Level level, BlockPos pos) {
+    private void inspectPressure(Level level, BlockPos pos) {
         EssentiaPull own = pull(null);
         Holder<IAspect> wanted = own.aspect();
         if (!PressureClash.assess(level, pos, this, own.strength(), wanted).isClash()) {
-            return false;
+            return;
         }
         ventPauseLeft = VENT_PAUSE_TICKS;
         ventTint = wanted != null ? wanted.value().color() : DEFAULT_VENT_COLOR;
         broadcastVent(level, pos, ventTint);
-        return true;
     }
 
     public void playToolSound(Level level, BlockPos pos) {

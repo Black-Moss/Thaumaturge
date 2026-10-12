@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.registry.TTBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.mojang.serialization.MapCodec;
-import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -27,7 +26,6 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
@@ -37,12 +35,10 @@ public final class BlockManaPod extends BaseEntityBlock {
     private static final int SUPPORT_LOSS_TICK_DELAY = 1;
     private static final int GROWTH_CHANCE_BOUND = 30;
     private static final int BREAK_SPEED_BASE = BlockEntityManaPod.MAX_AGE + 1;
-    private static final int SPROUT_AGE = 0;
-    private static final int SHOOT_AGE = 1;
-    private static final VoxelShape SPROUT = Block.box(5.0, 11.0, 5.0, 11.0, 16.0, 11.0);
-    private static final VoxelShape SHOOT = Block.box(4.0, 9.0, 4.0, 12.0, 16.0, 12.0);
-    private static final VoxelShape POD = Shapes.or(Block.box(5.0, 12.0, 5.0, 11.0, 16.0, 11.0), Block.box(6.5, 11.0, 6.5, 9.5, 12.0, 9.5), Block.box(5.5, 10.0, 5.5, 10.5, 11.0, 10.5),
-            Block.box(4.5, 6.0, 4.5, 11.5, 10.0, 11.5), Block.box(5.5, 4.0, 5.5, 10.5, 6.0, 10.5), Block.box(6.5, 3.0, 6.5, 9.5, 4.0, 9.5), Block.box(7.5, 2.0, 7.5, 8.5, 3.0, 8.5)).optimize();
+    private static final double SHAPE_MIN_XZ = 4.0;
+    private static final double SHAPE_MAX_XZ = 12.0;
+    private static final double SHAPE_TOP = 16.0;
+    private static final double[] SHAPE_BOTTOMS = {12.0, 10.0, 8.0, 6.0, 5.0, 4.0, 3.0, 2.0};
     private static final VoxelShape[] SHAPES = buildShapes();
 
     public BlockManaPod(Properties properties) {
@@ -51,10 +47,10 @@ public final class BlockManaPod extends BaseEntityBlock {
     }
 
     private static VoxelShape[] buildShapes() {
-        VoxelShape[] shapes = new VoxelShape[BlockEntityManaPod.MAX_AGE + 1];
-        Arrays.fill(shapes, POD);
-        shapes[SPROUT_AGE] = SPROUT;
-        shapes[SHOOT_AGE] = SHOOT;
+        VoxelShape[] shapes = new VoxelShape[SHAPE_BOTTOMS.length];
+        for (int age = 0; age < SHAPE_BOTTOMS.length; age++) {
+            shapes[age] = Block.box(SHAPE_MIN_XZ, SHAPE_BOTTOMS[age], SHAPE_MIN_XZ, SHAPE_MAX_XZ, SHAPE_TOP, SHAPE_MAX_XZ);
+        }
         return shapes;
     }
 

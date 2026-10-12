@@ -2,6 +2,8 @@ package com.leclowndu93150.thaumaturge.client.effect.instance;
 
 import com.leclowndu93150.thaumaturge.client.effect.ClientEffects;
 import com.leclowndu93150.thaumaturge.client.effect.manager.IFXInstance;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.ARGB;
@@ -14,18 +16,18 @@ public final class ArcInstance implements IFXInstance {
 
     private static final float CHANNEL_SCALE = 255.0F;
     private static final float MIN_ARC_HEIGHT = 0.1F;
-    private static final double FALL_RATE = 1.0;
-    private static final double POINTS_PER_BLOCK = 2.5;
-    private static final int MIN_INTERIOR_POINTS = 4;
-    private static final int MAX_INTERIOR_POINTS = 32;
-    private static final double SCATTER = 0.07;
-    private static final float CRACKLE_PEAK = 0.95F;
-    private static final float MIN_CHANNEL = 1.0E-3F;
+    private static final double ARC_ENERGY = 0.115;
+    private static final double RISE_DECAY_DIVISOR = 1.9;
+    private static final double NEGLIGIBLE_RUN = 1.0E-9;
+    private static final int MAX_STEPS = 50;
+    private static final double JITTER = 0.25;
     private static final float CRACKLE_SCALE = 0.5F;
-    private static final int CRACKLE_DELAY_RANGE = 5;
-    private static final float CRACKLE_DRAG = 0.9F;
-    private static final float CRACKLE_SINK = 0.05F;
-    private static final int CRACKLE_BASE_AGE = 13;
+    private static final float CRACKLE_CHANNEL_BOOST = 3.0F;
+    private static final int CRACKLE_DELAY_BASE = 2;
+    private static final int CRACKLE_DELAY_RANGE = 3;
+    private static final float CRACKLE_DRAG = 0.995F;
+    private static final float CRACKLE_SINK = 0.1F;
+    private static final int CRACKLE_BASE_AGE = 8;
 
     private final Vec3 origin;
     private final double[][] points;
@@ -51,25 +53,37 @@ public final class ArcInstance implements IFXInstance {
     }
 
     private static double[][] trace(RandomSource random, double dx, double dy, double dz, float height) {
-        double peak = Math.max(0.0, dy) + height;
-        double rise = Math.sqrt(2.0 * FALL_RATE * peak);
-        double timeUp = rise / FALL_RATE;
-        double timeDown = Math.sqrt(2.0 * (peak - dy) / FALL_RATE);
-        double flight = timeUp + timeDown;
-        double travel = Math.sqrt(dx * dx + dz * dz) + peak + (peak - dy);
-        int interior = Mth.clamp(Mth.ceil(travel * POINTS_PER_BLOCK), MIN_INTERIOR_POINTS, MAX_INTERIOR_POINTS);
-        double[][] path = new double[interior + 2][];
-        path[0] = new double[]{0.0, 0.0, 0.0};
-        for (int i = 1; i <= interior; i++) {
-            double t = flight * i / (interior + 1);
-            double fraction = t / flight;
-            double x = dx * fraction + random.triangle(0.0, SCATTER);
-            double y = rise * t - 0.5 * FALL_RATE * t * t + random.triangle(0.0, SCATTER);
-            double z = dz * fraction + random.triangle(0.0, SCATTER);
-            path[i] = new double[]{x, y, z};
+        double apex = Math.max(height, dy + height);
+        double launch = Math.sqrt(apex * ARC_ENERGY);
+        double run = Math.sqrt(dx * dx + dz * dz);
+        double stepX = 0.0;
+        double stepZ = 0.0;
+        if (run >= NEGLIGIBLE_RUN) {
+            double reach = launch * run / (2.0 * (apex + Math.sqrt(apex * (apex - dy))));
+            stepX = reach * dx / run;
+            stepZ = reach * dz / run;
         }
-        path[interior + 1] = new double[]{dx, dy, dz};
-        return path;
+        double firstLengthSq = stepX * stepX + launch * launch + stepZ * stepZ;
+        double riseDecay = ARC_ENERGY / RISE_DECAY_DIVISOR;
+        List<double[]> path = new ArrayList<>();
+        path.add(new double[]{0.0, 0.0, 0.0});
+        double x = 0.0;
+        double y = 0.0;
+        double z = 0.0;
+        for (int step = 0; step < MAX_STEPS; step++) {
+            double remainingX = dx - x;
+            double remainingY = dy - y;
+            double remainingZ = dz - z;
+            if (remainingX * remainingX + remainingY * remainingY + remainingZ * remainingZ <= firstLengthSq) {
+                break;
+            }
+            x += stepX;
+            y += launch - step * riseDecay;
+            z += stepZ;
+            path.add(new double[]{x + random.triangle(0.0, JITTER), y + random.triangle(0.0, JITTER), z + random.triangle(0.0, JITTER)});
+        }
+        path.add(new double[]{dx, dy, dz});
+        return path.toArray(new double[0][]);
     }
 
     @Override
@@ -90,15 +104,13 @@ public final class ArcInstance implements IFXInstance {
             return;
         }
         RandomSource random = level.getRandom();
-        float strongest = Math.max(MIN_CHANNEL, Math.max(this.red, Math.max(this.green, this.blue)));
-        float boost = CRACKLE_PEAK / strongest;
-        float r = Math.min(1.0F, this.red * boost);
-        float g = Math.min(1.0F, this.green * boost);
-        float b = Math.min(1.0F, this.blue * boost);
+        float r = Math.min(1.0F, CRACKLE_CHANNEL_BOOST * this.red);
+        float g = Math.min(1.0F, CRACKLE_CHANNEL_BOOST * this.green);
+        float b = Math.min(1.0F, CRACKLE_CHANNEL_BOOST * this.blue);
         for (int i = 1; i < this.points.length - 1; i++) {
             double[] point = this.points[i];
             ClientEffects.sparkle(level, random, this.origin.x + point[0], this.origin.y + point[1], this.origin.z + point[2], 0.0, 0.0, 0.0, r, g, b, CRACKLE_SCALE,
-                    random.nextInt(CRACKLE_DELAY_RANGE), CRACKLE_DRAG, CRACKLE_SINK, CRACKLE_BASE_AGE);
+                    CRACKLE_DELAY_BASE + random.nextInt(CRACKLE_DELAY_RANGE), CRACKLE_DRAG, CRACKLE_SINK, CRACKLE_BASE_AGE);
         }
     }
 

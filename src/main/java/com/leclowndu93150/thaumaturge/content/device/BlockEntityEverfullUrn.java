@@ -40,13 +40,13 @@ public final class BlockEntityEverfullUrn extends AbstractSyncedBlockEntity {
     private static final int PROBE_SIDE = PROBE_REACH * 2 + 1;
     private static final int PROBE_LAYERS = 3;
     private static final int PROBE_LAYER_AREA = PROBE_SIDE * PROBE_SIDE;
+    private static final int PROBE_CENTER_LAYER = PROBE_LAYERS / 2;
     private static final int CELL_COUNT = PROBE_LAYERS * PROBE_LAYER_AREA;
     private static final int OWN_CELL = (PROBE_LAYERS / 2) * PROBE_LAYER_AREA + (PROBE_SIDE / 2) * PROBE_SIDE + PROBE_SIDE / 2;
-    private static final int FIRST_CELL = 0;
+    private static final int FIRST_CELL = 1;
     private static final int FIRST_CAULDRON_LEVEL = 1;
-    private static final int STREAM_COLOR = 0x4AB8FF;
+    private static final int STREAM_COLOR = 0x286FF6;
     private static final int STREAM_TYPE = 0;
-    private static final int STREAM_COUNT = 4;
     private static final float STREAM_SCALE = 0.1F;
     private static final int STREAM_EXTEND = 0;
     private static final double STREAM_LIFT = 0.2;
@@ -118,17 +118,17 @@ public final class BlockEntityEverfullUrn extends AbstractSyncedBlockEntity {
     }
 
     private BlockPos positionOf(int cell) {
-        int layer = cell / PROBE_LAYER_AREA;
-        int row = cell % PROBE_LAYER_AREA / PROBE_SIDE;
-        int column = cell % PROBE_SIDE;
-        return worldPosition.offset(column - PROBE_REACH, layer - PROBE_LAYERS / 2, row - PROBE_REACH);
+        int column = cell / PROBE_SIDE % PROBE_SIDE;
+        int layer = cell / PROBE_LAYER_AREA % PROBE_LAYERS;
+        int row = cell % PROBE_SIDE;
+        return worldPosition.offset(column - PROBE_REACH, layer - PROBE_CENTER_LAYER, row - PROBE_REACH);
     }
 
     private int cellOf(BlockPos target) {
         int column = target.getX() - worldPosition.getX() + PROBE_REACH;
-        int layer = target.getY() - worldPosition.getY() + PROBE_LAYERS / 2;
+        int layer = target.getY() - worldPosition.getY() + PROBE_CENTER_LAYER;
         int row = target.getZ() - worldPosition.getZ() + PROBE_REACH;
-        return layer * PROBE_LAYER_AREA + row * PROBE_SIDE + column;
+        return layer * PROBE_LAYER_AREA + column * PROBE_SIDE + row;
     }
 
     private void distribute(ServerLevel level) {
@@ -202,9 +202,9 @@ public final class BlockEntityEverfullUrn extends AbstractSyncedBlockEntity {
 
     private void pour(ServerLevel level, BlockPos target) {
         Vec3 mouth = new Vec3(worldPosition.getX() + BLOCK_CENTER, worldPosition.getY() + SOURCE_HEIGHT, worldPosition.getZ() + BLOCK_CENTER);
-        Vec3 inlet = new Vec3(target.getX() + BLOCK_CENTER, target.getY() + 1.0, target.getZ() + BLOCK_CENTER);
-        EffectDispatch.spawnEssentiaStream(level, mouth, inlet, STREAM_COLOR, STREAM_TYPE, STREAM_COUNT, STREAM_SCALE, STREAM_EXTEND, STREAM_LIFT);
-        level.sendParticles(ParticleTypes.SPLASH, inlet.x, inlet.y, inlet.z, SPLASH_COUNT, SPLASH_SPREAD_HORIZONTAL, SPLASH_SPREAD_VERTICAL, SPLASH_SPREAD_HORIZONTAL, 0.0);
+        Vec3 inlet = new Vec3(target.getX() + BLOCK_CENTER, target.getY() + BLOCK_CENTER, target.getZ() + BLOCK_CENTER);
+        EffectDispatch.spawnEssentiaStream(level, mouth, inlet, STREAM_COLOR, STREAM_TYPE, ticks, STREAM_SCALE, STREAM_EXTEND, STREAM_LIFT);
+        level.sendParticles(ParticleTypes.SPLASH, target.getX() + BLOCK_CENTER, target.getY() + 1.0, target.getZ() + BLOCK_CENTER, SPLASH_COUNT, SPLASH_SPREAD_HORIZONTAL, SPLASH_SPREAD_VERTICAL, SPLASH_SPREAD_HORIZONTAL, 0.0);
     }
 
     @Override

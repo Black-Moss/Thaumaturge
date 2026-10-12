@@ -9,7 +9,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 
 public final class InfectiousVisExhaustEffect extends MobEffect {
-    private static final int COLOR = 0x6A3D7A;
+    private static final int COLOR = 0x60306F;
     private static final int SPREAD_PERIOD = 40;
     private static final double SPREAD_RADIUS = 4.0;
     private static final int PASSED_DURATION = 6000;

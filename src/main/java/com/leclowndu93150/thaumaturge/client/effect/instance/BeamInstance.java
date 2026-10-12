@@ -7,20 +7,20 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 public final class BeamInstance implements IFXInstance {
     private static final float CHANNEL_SCALE = 255.0F;
     private static final int SPIN_DEGREES_PER_TICK = 5;
     private static final float FULL_CIRCLE_DEGREES = 360.0F;
-    private static final float SCROLL_RATE = 0.06F;
+    private static final float SCROLL_RATE = 0.2F;
     private static final long SCROLL_PERIOD_TICKS = 1000L;
     private static final float GROW_DURATION = 4.0F;
-    private static final float FADE_DURATION = 5.0F;
-    private static final float PEAK_OPACITY = 0.38F;
-    private static final double SAME_SOURCE_DISTANCE_SQR = 0.01;
-    private static final int HIT_DURATION = 6;
+    private static final float TRUNK_FADE_STEP = 0.1F;
+    private static final float GLOW_FADE_STEP = 0.2F;
+    private static final float PEAK_OPACITY = 0.4F;
+    private static final float GLOW_PEAK_OPACITY = 0.8F;
 
     private final float[] tint;
     private final int beamType;
@@ -28,17 +28,15 @@ public final class BeamInstance implements IFXInstance {
     private final boolean reverse;
     private final int sourceEntityId;
     private final boolean withSource;
-    private final Vec3 requestedSource;
+    private final Vec3 target;
+    private final int maxAge;
 
-    private Vec3 target;
-    private int maxAge;
     private BeamPose latest;
     private BeamPose earlier;
     private int age;
-    private int hitTicks;
     private boolean expired;
 
-    public BeamInstance(double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, int color, int maxAge, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource, boolean hit) {
+    public BeamInstance(double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, int color, int maxAge, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource) {
         this.target = new Vec3(targetX, targetY, targetZ);
         this.tint = new float[]{ARGB.red(color) / CHANNEL_SCALE, ARGB.green(color) / CHANNEL_SCALE, ARGB.blue(color) / CHANNEL_SCALE};
         this.maxAge = maxAge;
@@ -47,23 +45,17 @@ public final class BeamInstance implements IFXInstance {
         this.reverse = reverse;
         this.sourceEntityId = sourceEntityId;
         this.withSource = withSource;
-        this.requestedSource = new Vec3(sourceX, sourceY, sourceZ);
-        this.latest = BeamPose.between(this.requestedSource, this.target);
+        this.latest = BeamPose.between(new Vec3(sourceX, sourceY, sourceZ), this.target);
         this.earlier = this.latest;
-        this.hitTicks = hit ? HIT_DURATION : 0;
     }
 
     @Override
     public void tick() {
-        LivingEntity anchor = BeamAnchor.find(this.sourceEntityId);
+        Entity anchor = BeamAnchor.find(this.sourceEntityId);
         this.earlier = this.latest;
         this.latest = BeamPose.between(anchor != null ? BeamAnchor.castPoint(anchor, 1.0F) : this.earlier.source(), this.target);
-        if (this.hitTicks > 0) {
-            this.hitTicks--;
-        }
-        boolean finished = this.age >= this.maxAge;
-        this.expired = finished && this.hitTicks <= 0;
-        if (!finished) {
+        this.expired = this.age >= this.maxAge;
+        if (this.age < this.maxAge) {
             this.age++;
         }
     }
@@ -73,42 +65,20 @@ public final class BeamInstance implements IFXInstance {
         return this.expired;
     }
 
-    public boolean sameSourceAs(BeamInstance other) {
-        if (this.beamType != other.beamType || this.withSource != other.withSource) {
-            return false;
-        }
-        if (entityAnchored() || other.entityAnchored()) {
-            return this.sourceEntityId == other.sourceEntityId;
-        }
-        return this.requestedSource.distanceToSqr(other.requestedSource) < SAME_SOURCE_DISTANCE_SQR;
-    }
-
-    public void refresh(BeamInstance newer) {
-        this.target = newer.target;
-        this.maxAge = Math.max(this.maxAge, this.age + newer.maxAge);
-        this.hitTicks = Math.max(this.hitTicks, newer.hitTicks);
-        this.expired = false;
-    }
-
     public float computeSize(float partialTick) {
         return ramp((this.age + partialTick) / GROW_DURATION);
     }
 
-    public float computeOpacity(float partialTick) {
-        return PEAK_OPACITY * fadeFactor(partialTick);
+    public float computeOpacity() {
+        return Math.min(PEAK_OPACITY, TRUNK_FADE_STEP * remaining());
     }
 
-    public float fadeFactor(float partialTick) {
-        float remaining = this.maxAge - (this.age + partialTick);
-        return ramp(remaining / FADE_DURATION);
+    public float computeGlowAlpha() {
+        return Math.min(GLOW_PEAK_OPACITY, GLOW_FADE_STEP * remaining());
     }
 
-    public float hitFactor(float partialTick) {
-        return ramp((this.hitTicks - partialTick) / (float) HIT_DURATION);
-    }
-
-    public boolean hit() {
-        return this.hitTicks > 0;
+    private int remaining() {
+        return Math.max(0, this.maxAge - this.age);
     }
 
     public float texScroll(float partialTick) {
@@ -181,7 +151,7 @@ public final class BeamInstance implements IFXInstance {
     }
 
     public Vec3 sourcePos(float partialTick) {
-        LivingEntity anchor = BeamAnchor.find(this.sourceEntityId);
+        Entity anchor = BeamAnchor.find(this.sourceEntityId);
         return anchor != null ? BeamAnchor.castPoint(anchor, partialTick) : this.earlier.source().lerp(this.latest.source(), partialTick);
     }
 

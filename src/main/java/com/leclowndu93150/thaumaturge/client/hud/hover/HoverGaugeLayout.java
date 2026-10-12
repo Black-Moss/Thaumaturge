@@ -13,10 +13,10 @@ public record HoverGaugeLayout(GaugePart fill, GaugePart frame, GaugePart spark,
         static final int MAX_HEIGHT = 48;
         static final int X = 6;
         static final int BOTTOM_OFFSET = 24;
-        static final int U = 200;
-        static final int V = 0;
+        static final int U = 0;
+        static final int V = 72;
         static final int WIDTH = 8;
-        static final int TINT = 0xFF5CF2C8;
+        static final int TINT = 0xFF00FFBF;
 
         static GaugePart part() {
             return new GaugePart(TTScreenTextures.HUD, new SourceRect(U, V, WIDTH, MAX_HEIGHT), new Anchor(X, BOTTOM_OFFSET), SHEET, SHEET, TINT);
@@ -40,7 +40,7 @@ public record HoverGaugeLayout(GaugePart fill, GaugePart frame, GaugePart spark,
         static final int FRAMES = 14;
         static final int FRAME_SIZE = 16;
         static final int STRIP_WIDTH = FRAME_SIZE * FRAMES;
-        static final float ALPHA = 0.6F;
+        static final float ALPHA = 0.66F;
 
         static GaugePart part() {
             return new GaugePart(TTScreenTextures.HUD_HOVER_SPARK, new SourceRect(0, 0, FRAME_SIZE, FRAME_SIZE), Icon.ANCHOR, STRIP_WIDTH, FRAME_SIZE, ARGB.white(ALPHA));

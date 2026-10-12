@@ -180,7 +180,7 @@ public final class TTEnglishProvider extends LanguageProvider {
         add("research.thaumaturge.research_mastery.stage.1",
                 "My expertise has grown, but true mastery of the research process still eludes me. More theory work should get me there, though I fear what prolonged exposure to these mysteries is doing to my mind.");
         add("research.thaumaturge.research_mastery.stage.2",
-                "My grasp of the research process is as complete as a mortal mind can manage. When I erase an aspect from a note I get its research point back half the time, and about one time in ten an aspect I write costs me nothing at all.");
+                "My grasp of the research process is as complete as a mortal mind can manage. When I erase an aspect from a note I get its research point back half the time, and about one time in ten an aspect I write costs me nothing at all. Holding shift while I click a compound aspect in the palette fills in its two component aspects for me when I have enough of both, and the two are combined into the aspect I clicked.");
         add("research.thaumaturge.research_duplication.title", "Research Duplication");
         add("research.thaumaturge.research_duplication.stage.1",
                 "A completed discovery holds its pattern permanently. Surely I could copy one onto fresh paper for a colleague, given enough research points and one more theory to work out the method.");

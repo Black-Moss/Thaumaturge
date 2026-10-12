@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
@@ -24,8 +23,9 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
     private static final String TIP_PART = "Tip";
     private static final long PHASE_RANGE = 1000L;
     private static final int WHITE = 0xFFFFFFFF;
-    private static final float PULSE_PERIOD = 140.0F;
-    private static final float PULSE_DEPTH = 0.055F;
+    private static final double BOB_MIDPOINT = 0.075;
+    private static final double BOB_AMPLITUDE = 0.075;
+    private static final double BOB_TIME_DIVISOR = 8.0;
 
     public FluxScrubberRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -39,14 +39,10 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
         BlockEntityRenderer.super.extractRenderState(scrubber, state, partialTicks, cameraPosition, breakProgress);
         state.facing = scrubber.getBlockState().getValue(BlockStateProperties.FACING);
         Level level = scrubber.getLevel();
-        if (level == null) {
-            state.bob = 0.0F;
-            return;
-        }
-        long phase = Math.floorMod(Mth.getSeed(scrubber.getBlockPos()), PHASE_RANGE);
-        float cycle = Mth.frac(((level.getGameTime() + phase) % (long) PULSE_PERIOD + partialTicks) / PULSE_PERIOD);
-        float swing = 1.0F - Math.abs(2.0F * cycle - 1.0F);
-        state.bob = (float) Mth.smoothstep(swing) * PULSE_DEPTH;
+        long gameTime = level == null ? 0L : level.getGameTime();
+        long phase = Math.floorMod(scrubber.getBlockPos().asLong(), PHASE_RANGE);
+        double time = (double) gameTime + partialTicks + phase;
+        state.bob = (float) (BOB_MIDPOINT + BOB_AMPLITUDE * Math.sin(time / BOB_TIME_DIVISOR));
     }
 
     @Override

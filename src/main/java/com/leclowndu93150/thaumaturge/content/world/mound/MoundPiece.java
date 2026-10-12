@@ -29,6 +29,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.ScatteredFeaturePiece;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.neoforged.neoforge.event.EventHooks;
 
 public class MoundPiece extends ScatteredFeaturePiece {
     private static final String PORTAL_KEY = "Portal";
@@ -184,7 +185,7 @@ public class MoundPiece extends ScatteredFeaturePiece {
         }
         portal.setPersistenceRequired();
         portal.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5, 0.0F, 0.0F);
-        portal.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.STRUCTURE, null);
+        EventHooks.finalizeMobSpawn(portal, level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.STRUCTURE, null);
         level.addFreshEntityWithPassengers(portal);
     }
 

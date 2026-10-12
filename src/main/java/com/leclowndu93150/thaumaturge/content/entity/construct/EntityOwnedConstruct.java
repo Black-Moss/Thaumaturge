@@ -47,6 +47,8 @@ public abstract class EntityOwnedConstruct extends PathfinderMob implements Owna
     private static final float DISMANTLE_PITCH = 1.0F;
 
     private boolean commissioned;
+    private boolean joltPending;
+    private float joltRestorePitch;
 
     protected EntityOwnedConstruct(EntityType<? extends EntityOwnedConstruct> type, Level level) {
         super(type, level);
@@ -88,6 +90,7 @@ public abstract class EntityOwnedConstruct extends PathfinderMob implements Owna
 
     @Override
     public void tick() {
+        restoreJoltPitch();
         super.tick();
         releaseAlliedTarget();
         discardUnlessCommissioned();
@@ -214,11 +217,19 @@ public abstract class EntityOwnedConstruct extends PathfinderMob implements Owna
     }
 
     final void jolt() {
-        float newYaw = perturb(getYHeadRot(), JOLT_YAW_SCALE);
-        float newPitch = perturb(getXRot(), JOLT_PITCH_SCALE);
-        setXRot(newPitch);
-        setYHeadRot(newYaw);
-        swivelWithHead();
+        if (!joltPending) {
+            joltPending = true;
+            joltRestorePitch = getXRot();
+        }
+        setYRot(perturb(getYRot(), JOLT_YAW_SCALE));
+        setXRot(perturb(getXRot(), JOLT_PITCH_SCALE));
+    }
+
+    private void restoreJoltPitch() {
+        if (joltPending) {
+            joltPending = false;
+            setXRot(joltRestorePitch);
+        }
     }
 
     final void swivelWithHead() {

@@ -22,7 +22,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -45,14 +45,15 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     private static final float INSTANT_EFFECT_SCALE = 1.0F;
     private static final float DURATION_SCALE = 1.0F;
     private static final float FIZZ_VOLUME = 0.25F;
-    private static final float FIZZ_PITCH = 2.0F;
+    private static final float FIZZ_PITCH_BASE = 2.6F;
+    private static final float FIZZ_PITCH_SPREAD = 0.8F;
     private static final int MIST_DURATION = 15;
-    private static final int MIST_PEAK_PUFFS = 6;
-    private static final double MIST_FACE_OFFSET = 0.55;
-    private static final double MIST_SPEED = 0.12;
-    private static final double MIST_SPREAD = 0.05;
-    private static final double MIST_PLANE_JITTER = 0.25;
-    private static final float MIST_SCALE = 1.2F;
+    private static final int MIST_PUFF_DIVISOR = 2;
+    private static final double MIST_FACE_OFFSET = 0.5;
+    private static final double MIST_SPEED = 0.25;
+    private static final double MIST_SPREAD = 0.06;
+    private static final double MIST_JITTER = 0.1;
+    private static final float MIST_SCALE = 4.0F;
     private static final String POTION_KEY = "Potion";
     private static final String RECIPE_KEY = "Recipe";
     private static final String PROGRESS_KEY = "Progress";
@@ -76,7 +77,7 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     }
 
     public static boolean holdsPotionItem(ItemStack stack) {
-        return stack.is(Items.POTION) || stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION);
+        return !stack.isEmpty() && stack.getItem() instanceof PotionItem;
     }
 
     public ItemStack getPotion() {
@@ -165,7 +166,7 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     }
 
     private @Nullable AspectInstance firstShortfall() {
-        for (AspectInstance entry : needed.sortedByTag()) {
+        for (AspectInstance entry : needed.entries()) {
             if (stored.amountOf(entry.aspect()) < entry.amount()) {
                 return entry;
             }
@@ -190,7 +191,7 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
         }
         BlockPos above = worldPosition.above();
         for (Direction side : DIRECTIONS) {
-            if (side != Direction.DOWN && pullFrom(serverLevel, above.relative(side), side.getOpposite(), aspect)) {
+            if (side != Direction.DOWN && side != front && pullFrom(serverLevel, above.relative(side), side.getOpposite(), aspect)) {
                 return;
             }
         }
@@ -228,7 +229,9 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
         for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, area, LivingEntity::isAffectedByPotions)) {
             effects.forEachEffect(effect -> affect(serverLevel, target, effect), DURATION_SCALE);
         }
-        serverLevel.playSound(null, worldPosition, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, FIZZ_VOLUME, FIZZ_PITCH);
+        RandomSource random = serverLevel.getRandom();
+        float pitch = FIZZ_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * FIZZ_PITCH_SPREAD;
+        serverLevel.playSound(null, worldPosition, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, FIZZ_VOLUME, pitch);
         mistLeft = MIST_DURATION;
     }
 
@@ -243,25 +246,19 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
 
     private void puffMist(ServerLevel serverLevel, Direction facing) {
         RandomSource random = serverLevel.getRandom();
-        int puffs = Math.max(1, MIST_PEAK_PUFFS * mistLeft / MIST_DURATION);
         mistLeft--;
+        int puffs = mistLeft / MIST_PUFF_DIVISOR;
         Vec3 out = facing.getUnitVec3();
         Vec3 mouth = Vec3.atCenterOf(worldPosition).add(out.scale(MIST_FACE_OFFSET));
         for (int puff = 0; puff < puffs; puff++) {
-            Vec3 at = mouth.add(planeJitter(facing, random));
-            Vec3 motion = out.scale(MIST_SPEED).add(random.triangle(0.0, MIST_SPREAD), random.triangle(0.0, MIST_SPREAD), random.triangle(0.0, MIST_SPREAD));
+            Vec3 at = mouth.add(jitter(random), jitter(random), jitter(random));
+            Vec3 motion = out.scale(MIST_SPEED).add(random.nextGaussian() * MIST_SPREAD, random.nextGaussian() * MIST_SPREAD, random.nextGaussian() * MIST_SPREAD);
             Effects.vent(serverLevel, at).motion(motion.x, motion.y, motion.z).color(color).scale(MIST_SCALE).send();
         }
     }
 
-    private static Vec3 planeJitter(Direction facing, RandomSource random) {
-        double a = random.triangle(0.0, MIST_PLANE_JITTER);
-        double b = random.triangle(0.0, MIST_PLANE_JITTER);
-        return switch (facing.getAxis()) {
-            case X -> new Vec3(0.0, a, b);
-            case Y -> new Vec3(a, 0.0, b);
-            case Z -> new Vec3(a, b, 0.0);
-        };
+    private static double jitter(RandomSource random) {
+        return (random.nextDouble() * 2.0 - 1.0) * MIST_JITTER;
     }
 
     @Override

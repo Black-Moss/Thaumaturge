@@ -36,12 +36,12 @@ public final class TTGolemParts {
     private static final Registry<GolemLeg> LEG_REGISTRY = LEGS.makeRegistry(builder -> builder.sync(false));
     private static final Registry<GolemAddon> ADDON_REGISTRY = ADDONS.makeRegistry(builder -> builder.sync(false));
 
-    private static final int TINT_WOOD = 0x6B4A2E;
+    private static final int TINT_WOOD = 0x4D332A;
     private static final int TINT_IRON = 0xFFFFFF;
-    private static final int TINT_CLAY = 0xC8693F;
-    private static final int TINT_BRASS = 0xE0A23A;
-    private static final int TINT_THAUMIUM = 0x5B3A8C;
-    private static final int TINT_VOID = 0x2A1A33;
+    private static final int TINT_CLAY = 0xC77457;
+    private static final int TINT_BRASS = 0xEEA11C;
+    private static final int TINT_THAUMIUM = 0x503772;
+    private static final int TINT_VOID = 0x160D29;
 
     public static final DeferredHolder<GolemMaterial, GolemMaterial> WOOD = MATERIALS.register("wood", () -> new GolemMaterial(List.of(TTIds.rl("mat_stud_wood")),
             Identifier.parse("thaumaturge:textures/block/base_wood.png"), TINT_WOOD, 6, 2, 1, stack(TTBlocks.PLANK_GREATWOOD), stack(TTItems.MECHANISM_SIMPLE), List.of(TTGolemTraits.LIGHT)));

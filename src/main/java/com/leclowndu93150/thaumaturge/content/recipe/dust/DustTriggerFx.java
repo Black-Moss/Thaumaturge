@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.recipe.DustTrigger;
 import com.leclowndu93150.thaumaturge.api.recipe.DustTriggerPlacement;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.particle.SparkleParticleOptions;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,19 +22,20 @@ public final class DustTriggerFx {
     private static final double HAND_SIDE_OFFSET = 0.3;
     private static final double HAND_LOOK_OFFSET = 0.3;
 
-    private static final int BURST_COUNT = 36;
-    private static final int BURST_FLOATY_ODDS = 3;
-    private static final double BURST_SCATTER = 0.025;
-    private static final double BURST_FLOATY_TOSS = 0.04;
-    private static final double BURST_ARC_TOSS = 0.12;
-    private static final float BURST_FLOATY_DECAY_MIN = 0.6F;
-    private static final float BURST_FLOATY_DECAY_SPAN = 0.2F;
-    private static final float BURST_ARC_DECAY = 0.88F;
-    private static final float BURST_FLOATY_GRAVITY = 0.12F;
-    private static final float BURST_ARC_GRAVITY = 0.45F;
+    private static final int BURST_COUNT = 50;
+    private static final int BURST_FLOATY_COUNT = 16;
+    private static final double BURST_VELOCITY_DIVISOR = 6.0;
+    private static final double BURST_SCATTER = 0.05;
+    private static final double BURST_FLOATY_LIFT = 0.05;
+    private static final double BURST_ARC_LIFT = 0.15;
+    private static final float BURST_FLOATY_DECAY_MIN = 0.3F;
+    private static final float BURST_FLOATY_DECAY_SPAN = 0.5F;
+    private static final float BURST_ARC_DECAY = 0.85F;
+    private static final float BURST_FLOATY_GRAVITY = 0.2F;
+    private static final float BURST_ARC_GRAVITY = 0.5F;
     private static final float BURST_SCALE = 0.5F;
-    private static final int BURST_BASE_AGE = 10;
-    private static final int BURST_DELAY_BOUND = 4;
+    private static final int BURST_BASE_AGE = 16;
+    private static final int BURST_DELAY_BOUND = 5;
 
     private DustTriggerFx() {}
 
@@ -54,12 +56,13 @@ public final class DustTriggerFx {
         RandomSource random = level.getRandom();
         Vec3 handPos = posToHand(player, hand);
         Vec3 toBlock = Vec3.atCenterOf(pos).subtract(handPos);
+        Vec3 drift = toBlock.scale(1.0 / BURST_VELOCITY_DIVISOR);
         for (int i = 0; i < BURST_COUNT; i++) {
-            boolean floaty = random.nextInt(BURST_FLOATY_ODDS) == 0;
+            boolean floaty = i < BURST_FLOATY_COUNT;
             float decay = floaty ? BURST_FLOATY_DECAY_MIN + random.nextFloat() * BURST_FLOATY_DECAY_SPAN : BURST_ARC_DECAY;
-            double toss = floaty ? BURST_FLOATY_TOSS : BURST_ARC_TOSS;
+            double lift = floaty ? BURST_FLOATY_LIFT : BURST_ARC_LIFT;
             float gravity = floaty ? BURST_FLOATY_GRAVITY : BURST_ARC_GRAVITY;
-            Vec3 velocity = toBlock.scale(1.0 - decay).add(random.nextGaussian() * BURST_SCATTER, toss + random.nextGaussian() * BURST_SCATTER, random.nextGaussian() * BURST_SCATTER);
+            Vec3 velocity = drift.add(random.nextGaussian() * BURST_SCATTER, lift + random.nextGaussian() * BURST_SCATTER, random.nextGaussian() * BURST_SCATTER);
             int delay = random.nextInt(BURST_DELAY_BOUND);
             SparkleParticleOptions options = new SparkleParticleOptions(Effects.dustSparkleColor(random), BURST_SCALE, delay, decay, gravity, BURST_BASE_AGE, true);
             Effects.spawn(level, options, handPos.x, handPos.y, handPos.z, velocity.x, velocity.y, velocity.z);
@@ -71,10 +74,13 @@ public final class DustTriggerFx {
     }
 
     public static void emitTriggerSparkles(ServerLevel level, ServerPlayer player, BlockPos clicked, DustTrigger trigger, Vec3 start, @Nullable DustTriggerPlacement placement) {
-        if (placement == null || placement.facing() == null) {
-            emitBlockSparkles(level, clicked, start);
+        DustTriggerPlacement resolved = placement != null ? placement : DustTriggerPlacement.origin();
+        List<BlockPos> positions = trigger.sparkle(level, player, clicked, resolved);
+        if (positions == null || positions.isEmpty()) {
             return;
         }
-        trigger.sparkle(level, player, clicked, placement).forEach(position -> emitBlockSparkles(level, position, start));
+        for (BlockPos position : positions) {
+            emitBlockSparkles(level, position, start);
+        }
     }
 }

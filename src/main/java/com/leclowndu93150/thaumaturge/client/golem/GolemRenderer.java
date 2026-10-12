@@ -53,8 +53,8 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
     private static final float HELD_ITEM_FORWARD = 8.0F * PIXEL;
     private static final int GHOST_ALPHA = 40;
     private static final int GHOST_COLOR = ARGB.white(GHOST_ALPHA);
-    private static final int XRAY_CHANNEL = 70;
-    private static final int XRAY_ALPHA = 96;
+    private static final int XRAY_CHANNEL = 63;
+    private static final int XRAY_ALPHA = 63;
     private static final int XRAY_COLOR = ARGB.color(XRAY_ALPHA, XRAY_CHANNEL, XRAY_CHANNEL, XRAY_CHANNEL);
     private static final String XRAY_TYPE_PREFIX = "thaumaturge_golem_xray_";
     private static final String XRAY_SAMPLER = "Sampler0";

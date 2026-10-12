@@ -10,7 +10,6 @@ import com.leclowndu93150.thaumaturge.client.screen.research.detail.DetailFrame;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.Rect;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.BookBlit;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.BookSprites;
-import com.leclowndu93150.thaumaturge.client.screen.research.detail.page.PageTextLayout;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -29,11 +28,11 @@ import org.jspecify.annotations.Nullable;
 public final class KnowledgeGridRenderer {
     private static final int CELL = 16;
     private static final int HALF = 2;
-    private static final int BADGE_OFFSET = 6;
+    private static final float BADGE_OFFSET = 4.125F;
     private static final float BADGE_SCALE = 0.66F;
-    private static final int BADGE_TINT = 0xD2FFFFFF;
-    private static final int LEVEL_RIGHT = 17;
-    private static final int LEVEL_TOP = 9;
+    private static final int BADGE_TINT = 0xBFFFFFFF;
+    private static final int LEVEL_RIGHT = 16;
+    private static final int LEVEL_TOP = 8;
     private static final int LEVEL_COLOR = 0xFFFFFFFF;
     private static final int BAR_TOP = 17;
     private static final int BAR_WIDTH = 16;
@@ -41,17 +40,20 @@ public final class KnowledgeGridRenderer {
     private static final int BAR_U = 0;
     private static final int BAR_FILL_V = 232;
     private static final int BAR_TRACK_V = 234;
-    private static final int CELL_FOOTPRINT = BAR_TOP + BAR_HEIGHT;
 
-    private static final int INLINE_BOTTOM_INSET = 23;
-    private static final int INLINE_DIVIDER_GAP = 11;
-    private static final int INLINE_PADDING = 3;
+    private static final int INLINE_CLEARANCE = 2;
+    private static final int INLINE_DIVIDER_ALLOWANCE = 12;
+    private static final int INLINE_REQUIREMENT_DIVIDER_ALLOWANCE = 24;
+    private static final int INLINE_START_X = -10;
+    private static final int INLINE_BOTTOM_ROW_Y = 176;
+    private static final int INLINE_DIVIDER_X = 4;
+    private static final int INLINE_DIVIDER_BASE_Y = 188;
 
-    private static final int INSERT_TITLE_Y = 26;
+    private static final int INSERT_START_X = 50;
+    private static final int INSERT_BOTTOM_ROW_Y = 57;
     private static final int INSERT_TEXT_COLOR = 0xFF4A4440;
     private static final int INSERT_NONE_WIDTH = 168;
 
-    private static final String TITLE_KEY = "gui.thaumaturge.thaumonomicon.knowledge_title";
     private static final String NONE_KEY = "gui.thaumaturge.thaumonomicon.knowledge_none";
 
     private KnowledgeGridRenderer() {}
@@ -70,11 +72,12 @@ public final class KnowledgeGridRenderer {
         return activeTypeCount(player) > 0;
     }
 
-    public static int inlineReserve(int rowCount) {
+    public static int inlineReserve(int rowCount, boolean withRequirements) {
         if (rowCount <= 0) {
             return 0;
         }
-        return INLINE_BOTTOM_INSET + (rowCount - 1) * KnowledgeGridLayout.IN_PAGE.rowStride() + INLINE_DIVIDER_GAP + INLINE_PADDING;
+        int divider = withRequirements ? INLINE_REQUIREMENT_DIVIDER_ALLOWANCE : INLINE_DIVIDER_ALLOWANCE;
+        return INLINE_CLEARANCE + rowCount * KnowledgeGridLayout.IN_PAGE.rowStride() + divider;
     }
 
     public static void drawInPage(GuiGraphicsExtractor graphics, DetailFrame frame, int mouseX, int mouseY) {
@@ -83,14 +86,13 @@ public final class KnowledgeGridRenderer {
             return;
         }
         KnowledgeGridLayout layout = KnowledgeGridLayout.IN_PAGE;
-        int center = PageTextLayout.columnCenter(frame);
-        int bottomRowY = PageTextLayout.pageBottom(frame) - INLINE_BOTTOM_INSET;
-        int topRowY = bottomRowY - (rows.size() - 1) * layout.rowStride();
-        BookBlit.sprite(graphics, center - BookSprites.DIVIDER_WIDTH / HALF, topRowY - INLINE_DIVIDER_GAP, BookSprites.DIVIDER_U, BookSprites.DIVIDER_V, BookSprites.DIVIDER_WIDTH,
-                BookSprites.DIVIDER_TALL_HEIGHT);
+        BookBlit.sprite(graphics, frame.left() + INLINE_DIVIDER_X, frame.top() + INLINE_DIVIDER_BASE_Y - rows.size() * layout.rowStride(), BookSprites.DIVIDER_U, BookSprites.DIVIDER_V,
+                BookSprites.DIVIDER_WIDTH, BookSprites.DIVIDER_TALL_HEIGHT);
         int pitch = layout.columnStride(categoryCount(frame.player()));
+        int startX = frame.left() + INLINE_START_X;
+        int bottomRowY = frame.top() + INLINE_BOTTOM_ROW_Y;
         for (int index = 0; index < rows.size(); index++) {
-            drawRow(graphics, frame.font(), rows.get(index), center, bottomRowY - index * layout.rowStride(), pitch, mouseX, mouseY);
+            drawRow(graphics, frame.font(), rows.get(index), startX, bottomRowY - index * layout.rowStride(), pitch, mouseX, mouseY);
         }
     }
 
@@ -99,21 +101,19 @@ public final class KnowledgeGridRenderer {
         int paperTop = frame.paperTop();
         BookBlit.paper(graphics, paperLeft, paperTop);
         Font font = frame.font();
-        int centerX = paperLeft + BookSprites.PAPER_LAYOUT_SPAN / HALF;
-        int centerY = paperTop + BookSprites.PAPER_LAYOUT_SPAN / HALF;
-        Component title = Component.translatable(TITLE_KEY);
-        graphics.text(font, title, centerX - font.width(title) / HALF, paperTop + INSERT_TITLE_Y, INSERT_TEXT_COLOR, false);
         List<Row> rows = rows(frame.player());
         if (rows.isEmpty()) {
+            int centerX = paperLeft + BookSprites.PAPER_LAYOUT_SPAN / HALF;
+            int centerY = paperTop + BookSprites.PAPER_LAYOUT_SPAN / HALF;
             drawNothingYet(graphics, font, centerX, centerY);
             return;
         }
         KnowledgeGridLayout layout = KnowledgeGridLayout.INSERT;
-        int gridHeight = (rows.size() - 1) * layout.rowStride() + CELL_FOOTPRINT;
-        int bottomRowY = centerY + gridHeight / HALF - CELL_FOOTPRINT;
+        int startX = paperLeft + INSERT_START_X;
+        int bottomRowY = frame.top() + INSERT_BOTTOM_ROW_Y;
         int pitch = layout.columnStride(categoryCount(frame.player()));
         for (int index = 0; index < rows.size(); index++) {
-            drawRow(graphics, font, rows.get(index), centerX, bottomRowY - index * layout.rowStride(), pitch, mouseX, mouseY);
+            drawRow(graphics, font, rows.get(index), startX, bottomRowY - index * layout.rowStride(), pitch, mouseX, mouseY);
         }
     }
 
@@ -149,9 +149,8 @@ public final class KnowledgeGridRenderer {
         return rows;
     }
 
-    private static void drawRow(GuiGraphicsExtractor graphics, Font font, Row row, int centerX, int y, int pitch, int mouseX, int mouseY) {
-        int rowWidth = (row.cells().size() - 1) * pitch + CELL;
-        int x = centerX - rowWidth / HALF;
+    private static void drawRow(GuiGraphicsExtractor graphics, Font font, Row row, int startX, int y, int pitch, int mouseX, int mouseY) {
+        int x = startX;
         for (Cell cell : row.cells()) {
             drawCell(graphics, font, row.type(), cell, x, y);
             if (Rect.inside(x, y, CELL, CELL, mouseX, mouseY)) {
@@ -164,7 +163,7 @@ public final class KnowledgeGridRenderer {
     private static void drawCell(GuiGraphicsExtractor graphics, Font font, KnowledgeType type, Cell cell, int x, int y) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, kindIcon(type), x, y, 0.0F, 0.0F, CELL, CELL, CELL, CELL);
         graphics.pose().pushMatrix();
-        graphics.pose().translate((float) (x + BADGE_OFFSET), (float) (y + BADGE_OFFSET));
+        graphics.pose().translate(x + BADGE_OFFSET, y + BADGE_OFFSET);
         graphics.pose().scale(BADGE_SCALE, BADGE_SCALE);
         graphics.blit(RenderPipelines.GUI_TEXTURED, cell.icon(), 0, 0, 0.0F, 0.0F, CELL, CELL, CELL, CELL, BADGE_TINT);
         graphics.pose().popMatrix();

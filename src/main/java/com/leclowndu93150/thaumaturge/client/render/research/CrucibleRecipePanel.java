@@ -35,6 +35,7 @@ final class CrucibleRecipePanel implements RecipePanel {
     private static final int RESULT_Y = -50;
     private static final int CATALYST_X = -64;
     private static final int CATALYST_Y = -56;
+    private static final int CATALYST_COUNTER = 0;
 
     private final SlotDisplay catalyst;
     private final AspectList aspects;
@@ -64,7 +65,7 @@ final class CrucibleRecipePanel implements RecipePanel {
     public List<RecipeDisplayWidget.ItemHit> hits(PanelContext context) {
         List<RecipeDisplayWidget.ItemHit> hits = new ArrayList<>();
         context.collect(hits, context.first(result), RESULT_X, RESULT_Y);
-        context.collect(hits, context.pickFirst(catalyst), CATALYST_X, CATALYST_Y);
+        context.collect(hits, context.pick(catalyst, CATALYST_COUNTER), CATALYST_X, CATALYST_Y);
         return hits;
     }
 

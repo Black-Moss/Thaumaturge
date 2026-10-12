@@ -21,8 +21,8 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockNitor extends BaseEntityBlock {
     private static final String DYE_FIELD = "dye";
-    private static final double SHAPE_MIN = 5.0;
-    private static final double SHAPE_MAX = 11.0;
+    private static final double SHAPE_MIN = 5.28;
+    private static final double SHAPE_MAX = 10.56;
     private static final VoxelShape SHAPE = Block.box(SHAPE_MIN, SHAPE_MIN, SHAPE_MIN, SHAPE_MAX, SHAPE_MAX, SHAPE_MAX);
 
     public static final MapCodec<BlockNitor> CODEC = RecordCodecBuilder

@@ -51,10 +51,9 @@ public class BlockCrucible extends BaseEntityBlock {
     private static final List<InsideBlockEffectType> CONTACT_EFFECTS = List.of(InsideBlockEffectType.EXTINGUISH, InsideBlockEffectType.CLEAR_FREEZE);
     private static final int TANK_SLOT = 0;
     private static final int SCALD_INTERVAL = 10;
-    private static final float SCALD_DAMAGE = 1.0F;
-    private static final float HISS_VOLUME = 0.4F;
-    private static final float HISS_PITCH = 1.7F;
-    private static final float HISS_PITCH_JITTER = 0.3F;
+    private static final float SCALD_VOLUME = 0.4F;
+    private static final float SCALD_PITCH = 2.0F;
+    private static final float SCALD_PITCH_JITTER = 0.4F;
     private static final int SIGNAL_STEPS = 14;
     private static final int MAX_SIGNAL = 15;
     private static final int AMBIENT_POP_ODDS = 8;
@@ -172,10 +171,12 @@ public class BlockCrucible extends BaseEntityBlock {
     }
 
     private static void scaldCreature(ServerLevel level, BlockPos pos, LivingEntity creature) {
-        if (creature.hurtServer(level, level.damageSources().inFire(), SCALD_DAMAGE)) {
-            float pitch = HISS_PITCH + level.getRandom().nextFloat() * HISS_PITCH_JITTER;
-            level.playSound(null, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, HISS_VOLUME, pitch);
+        if (creature.isInvulnerableTo(level, level.damageSources().lava())) {
+            return;
         }
+        creature.lavaHurt();
+        float pitch = SCALD_PITCH + level.getRandom().nextFloat() * SCALD_PITCH_JITTER;
+        level.playSound(null, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, SCALD_VOLUME, pitch);
     }
 
     @Override

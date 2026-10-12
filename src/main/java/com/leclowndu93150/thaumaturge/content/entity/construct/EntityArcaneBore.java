@@ -16,7 +16,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -33,7 +32,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -57,9 +55,8 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
     private static final int SMOOTHING_TICKS = 4;
     private static final double OUTPUT_BACK_OFFSET = 0.75;
     private static final double OUTPUT_HEIGHT = 0.5;
-    private static final double MOVE_DAMPING = 4.0;
-    private static final double KNOCKBACK_SHARE = 0.3;
-    private static final int HEAD_TURN_SPEED = 6;
+    private static final double MOVE_DAMPING = 5.0;
+    private static final int HEAD_TURN_SPEED = 10;
     private static final byte EVENT_DIG_START = 82;
     private static final byte EVENT_DIG_STOP = 83;
     private static final double OWNER_NEAR_RANGE = 2.0;
@@ -75,7 +72,6 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
 
     public EntityArcaneBore(EntityType<? extends EntityArcaneBore> type, Level level) {
         super(type, level);
-        this.lookControl = new ConstructLookControl(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -111,7 +107,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
 
     private void serverUpdate(ServerLevel server) {
         regenerate(HEAL_INTERVAL, HEAL_AMOUNT);
-        if (!followRailSignal(server) && !isOnPlainRail(server) && !isPassenger()) {
+        if (!followRailSignal(server) && !isPassenger()) {
             followBlockBelow(server);
         }
         engine.serverTick(this, server, tickCount);
@@ -125,11 +121,6 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
         }
         setActive(!ActivatorRails.powered(rail));
         return true;
-    }
-
-    private boolean isOnPlainRail(ServerLevel server) {
-        BlockPos pos = blockPosition();
-        return BaseRailBlock.isRail(server, pos) || BaseRailBlock.isRail(server, scratchPos.setWithOffset(pos, Direction.DOWN));
     }
 
     private void followBlockBelow(ServerLevel server) {
@@ -198,7 +189,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
 
     @Override
     public void knockback(double power, double xd, double zd) {
-        super.knockback(power * KNOCKBACK_SHARE, xd, zd);
+        super.knockback(power, xd, zd);
         capRise();
     }
 
@@ -336,7 +327,7 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
 
     @Override
     public void playBoreSound(SoundEvent sound, float volume, float pitch) {
-        level().playSound(null, getX(), getY(), getZ(), sound, SoundSource.BLOCKS, volume, pitch);
+        playSound(sound, volume, pitch);
     }
 
     @Override

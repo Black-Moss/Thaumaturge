@@ -7,7 +7,6 @@ import com.leclowndu93150.thaumaturge.client.effect.instance.BoltInstance;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.ArcRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BeamRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BoltRenderType;
-import com.leclowndu93150.thaumaturge.client.particle.support.ParticleCulling;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import java.util.ArrayList;
@@ -36,21 +35,17 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     private static final int TRUNK_SLOTS = 4;
     private static final int STRIPS = 3;
     private static final float STRIP_STEP_DEGREES = 60.0F;
-    private static final float STRIP_HALF_WIDTH = 0.14F;
-    private static final float STRIP_V_PER_BLOCK = 0.5F;
+    private static final float STRIP_HALF_WIDTH = 0.15F;
     private static final double MIN_BEAM_LENGTH = 1.0E-3;
     private static final double PARALLEL_LIMIT = 0.99;
-    private static final double BEAM_VIEW_RANGE = 50.0;
-    private static final double BEAM_VIEW_RANGE_FAST = 25.0;
-    private static final int GLOW_FRAMES = 16;
-    private static final int GLOW_ROW = 25;
+    private static final int GLOW_FRAMES = 32;
+    private static final int GLOW_ROW = 3;
     private static final float GLOW_SHEET_CELLS = 32.0F;
-    private static final float GLOW_HALF_SIZE = 0.4F;
-    private static final float GLOW_OPACITY = 0.8F;
-    private static final float FLARE_HALF_SIZE = 0.3F;
-    private static final float FLARE_OPACITY = 1.0F;
-    private static final float FLARE_WHITE_MIX = 0.5F;
-    private static final float ARC_HALF_WIDTH = 0.045F;
+    private static final float GLOW_HALF_SIZE = 0.33F;
+    private static final float ARC_VERTICAL_HALF_WIDTH = 0.125F;
+    private static final float ARC_CROSS_HALF_WIDTH = ARC_VERTICAL_HALF_WIDTH * Mth.SQRT_OF_TWO;
+    private static final float RIBBON_MINUS_V = 1.0F;
+    private static final float RIBBON_PLUS_V = 0.0F;
 
     private BeamManager() {}
 
@@ -67,12 +62,6 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     }
 
     public static void addBeam(BeamInstance beam) {
-        for (BeamInstance existing : BEAMS) {
-            if (existing.sameSourceAs(beam)) {
-                existing.refresh(beam);
-                return;
-            }
-        }
         BEAMS.add(beam);
     }
 
@@ -145,6 +134,10 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             return;
         }
         double[] last = points[count - 1];
+        double span = Math.sqrt(last[0] * last[0] + last[1] * last[1] + last[2] * last[2]);
+        if (span < MIN_BEAM_LENGTH) {
+            return;
+        }
         double sideX = -last[2];
         double sideZ = last[0];
         double flat = Math.sqrt(sideX * sideX + sideZ * sideZ);
@@ -158,21 +151,21 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         float red = Mth.clamp(arc.red(), 0.0F, 1.0F);
         float green = Mth.clamp(arc.green(), 0.0F, 1.0F);
         float blue = Mth.clamp(arc.blue(), 0.0F, 1.0F);
-        double sx = sideX * ARC_HALF_WIDTH;
-        double sz = sideZ * ARC_HALF_WIDTH;
+        double sx = sideX * ARC_CROSS_HALF_WIDTH;
+        double sz = sideZ * ARC_CROSS_HALF_WIDTH;
         for (int i = 0; i < count - 1; i++) {
             double[] a = points[i];
             double[] b = points[i + 1];
-            float v0 = (float) i / (count - 1);
-            float v1 = (float) (i + 1) / (count - 1);
-            vertex(consumer, matrix, a[0], a[1] - ARC_HALF_WIDTH, a[2], 0.0F, v0, red, green, blue, alpha);
-            vertex(consumer, matrix, a[0], a[1] + ARC_HALF_WIDTH, a[2], 1.0F, v0, red, green, blue, alpha);
-            vertex(consumer, matrix, b[0], b[1] + ARC_HALF_WIDTH, b[2], 1.0F, v1, red, green, blue, alpha);
-            vertex(consumer, matrix, b[0], b[1] - ARC_HALF_WIDTH, b[2], 0.0F, v1, red, green, blue, alpha);
-            vertex(consumer, matrix, a[0] - sx, a[1], a[2] - sz, 0.0F, v0, red, green, blue, alpha);
-            vertex(consumer, matrix, a[0] + sx, a[1], a[2] + sz, 1.0F, v0, red, green, blue, alpha);
-            vertex(consumer, matrix, b[0] + sx, b[1], b[2] + sz, 1.0F, v1, red, green, blue, alpha);
-            vertex(consumer, matrix, b[0] - sx, b[1], b[2] - sz, 0.0F, v1, red, green, blue, alpha);
+            float ua = (float) (i / span);
+            float ub = (float) ((i + 1) / span);
+            vertex(consumer, matrix, a[0], a[1] - ARC_VERTICAL_HALF_WIDTH, a[2], ua, RIBBON_MINUS_V, red, green, blue, alpha);
+            vertex(consumer, matrix, a[0], a[1] + ARC_VERTICAL_HALF_WIDTH, a[2], ua, RIBBON_PLUS_V, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0], b[1] + ARC_VERTICAL_HALF_WIDTH, b[2], ub, RIBBON_PLUS_V, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0], b[1] - ARC_VERTICAL_HALF_WIDTH, b[2], ub, RIBBON_MINUS_V, red, green, blue, alpha);
+            vertex(consumer, matrix, a[0] - sx, a[1], a[2] - sz, ua, RIBBON_MINUS_V, red, green, blue, alpha);
+            vertex(consumer, matrix, a[0] + sx, a[1], a[2] + sz, ua, RIBBON_PLUS_V, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0] + sx, b[1], b[2] + sz, ub, RIBBON_PLUS_V, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0] - sx, b[1], b[2] - sz, ub, RIBBON_MINUS_V, red, green, blue, alpha);
         }
     }
 
@@ -215,23 +208,13 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             if (beam.withSource()) {
                 drawGlow(poseStack, nodeConsumer, camera, beam, partialTick);
             }
-            if (beam.hit()) {
-                drawFlare(poseStack, nodeConsumer, camera, beam, partialTick);
-            }
         }
         buffers.endBatch(nodeType);
     }
 
-    private static boolean outOfView(Vec3 source) {
-        return ParticleCulling.beyondSpawnRange(source.x, source.y, source.z, BEAM_VIEW_RANGE, BEAM_VIEW_RANGE_FAST);
-    }
-
     private static void drawTrunk(PoseStack poseStack, VertexConsumer consumer, Vec3 cameraPos, BeamInstance beam, float partialTick) {
         Vec3 source = beam.sourcePos(partialTick);
-        if (outOfView(source)) {
-            return;
-        }
-        float opacity = beam.computeOpacity(partialTick);
+        float opacity = beam.computeOpacity();
         float size = beam.computeSize(partialTick);
         if (opacity <= 0.0F || size <= 0.0F) {
             return;
@@ -272,7 +255,7 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         float farWidth = nearWidth * beam.endMod();
         float scroll = beam.texScroll(partialTick);
         float spin = beam.worldRotation(partialTick);
-        float vLength = (float) reach * STRIP_V_PER_BLOCK;
+        float vLength = (float) reach;
         float red = Mth.clamp(beam.colorR(), 0.0F, 1.0F);
         float green = Mth.clamp(beam.colorG(), 0.0F, 1.0F);
         float blue = Mth.clamp(beam.colorB(), 0.0F, 1.0F);
@@ -281,7 +264,7 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         poseStack.translate(source.x - cameraPos.x, source.y - cameraPos.y, source.z - cameraPos.z);
         Matrix4f matrix = poseStack.last().pose();
         for (int strip = 0; strip < STRIPS; strip++) {
-            double angle = (spin + strip * STRIP_STEP_DEGREES) * Mth.DEG_TO_RAD;
+            double angle = (spin + (strip + 1) * STRIP_STEP_DEGREES) * Mth.DEG_TO_RAD;
             double cos = Math.cos(angle);
             double sin = Math.sin(angle);
             double ex = cos * px + sin * qx;
@@ -289,58 +272,43 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             double ez = cos * pz + sin * qz;
             float v0 = scroll + (float) strip / STRIPS;
             float v1 = v0 + vLength;
-            vertex(consumer, matrix, -ex * nearWidth, -ey * nearWidth, -ez * nearWidth, 0.0F, v0, red, green, blue, alpha);
-            vertex(consumer, matrix, ex * nearWidth, ey * nearWidth, ez * nearWidth, 1.0F, v0, red, green, blue, alpha);
-            vertex(consumer, matrix, endX + ex * farWidth, endY + ey * farWidth, endZ + ez * farWidth, 1.0F, v1, red, green, blue, alpha);
-            vertex(consumer, matrix, endX - ex * farWidth, endY - ey * farWidth, endZ - ez * farWidth, 0.0F, v1, red, green, blue, alpha);
+            vertex(consumer, matrix, -ex * nearWidth, -ey * nearWidth, -ez * nearWidth, 1.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, ex * nearWidth, ey * nearWidth, ez * nearWidth, 0.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, endX + ex * farWidth, endY + ey * farWidth, endZ + ez * farWidth, 0.0F, v1, red, green, blue, alpha);
+            vertex(consumer, matrix, endX - ex * farWidth, endY - ey * farWidth, endZ - ez * farWidth, 1.0F, v1, red, green, blue, alpha);
         }
         poseStack.popPose();
     }
 
     private static void drawGlow(PoseStack poseStack, VertexConsumer consumer, Camera camera, BeamInstance beam, float partialTick) {
         Vec3 source = beam.sourcePos(partialTick);
-        if (outOfView(source)) {
-            return;
-        }
-        float alpha = Mth.clamp(GLOW_OPACITY * beam.fadeFactor(partialTick), 0.0F, 1.0F);
+        float alpha = Mth.clamp(beam.computeGlowAlpha(), 0.0F, 1.0F);
         if (alpha <= 0.0F) {
             return;
         }
         float red = Mth.clamp(beam.colorR(), 0.0F, 1.0F);
         float green = Mth.clamp(beam.colorG(), 0.0F, 1.0F);
         float blue = Mth.clamp(beam.colorB(), 0.0F, 1.0F);
-        drawGlowFrame(poseStack, consumer, camera, source, beam.age(), GLOW_HALF_SIZE, red, green, blue, alpha);
+        drawSheetFrame(poseStack, consumer, camera, source, beam.age(), GLOW_ROW, GLOW_FRAMES, true, GLOW_HALF_SIZE, red, green, blue, alpha);
     }
 
-    private static void drawFlare(PoseStack poseStack, VertexConsumer consumer, Camera camera, BeamInstance beam, float partialTick) {
-        if (outOfView(beam.sourcePos(partialTick))) {
-            return;
-        }
-        float halfSize = FLARE_HALF_SIZE * beam.hitFactor(partialTick);
-        if (halfSize <= 0.0F) {
-            return;
-        }
-        float red = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorR(), 1.0F), 0.0F, 1.0F);
-        float green = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorG(), 1.0F), 0.0F, 1.0F);
-        float blue = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorB(), 1.0F), 0.0F, 1.0F);
-        drawGlowFrame(poseStack, consumer, camera, beam.targetPos(partialTick), beam.age(), halfSize, red, green, blue, FLARE_OPACITY);
-    }
-
-    private static void drawGlowFrame(PoseStack poseStack, VertexConsumer consumer, Camera camera, Vec3 at, int tick, float halfSize, float red, float green, float blue, float alpha) {
+    private static void drawSheetFrame(PoseStack poseStack, VertexConsumer consumer, Camera camera, Vec3 at, int tick, int row, int frames, boolean mirrored, float halfSize, float red, float green, float blue, float alpha) {
         Vec3 cameraPos = camera.position();
-        int frame = Math.floorMod(tick, GLOW_FRAMES);
-        float u0 = frame / GLOW_SHEET_CELLS;
-        float u1 = (frame + 1) / GLOW_SHEET_CELLS;
-        float v0 = GLOW_ROW / GLOW_SHEET_CELLS;
-        float v1 = (GLOW_ROW + 1) / GLOW_SHEET_CELLS;
+        int frame = Math.floorMod(tick, frames);
+        float uLow = frame / GLOW_SHEET_CELLS;
+        float uHigh = (frame + 1) / GLOW_SHEET_CELLS;
+        float uLeft = mirrored ? uHigh : uLow;
+        float uRight = mirrored ? uLow : uHigh;
+        float v0 = row / GLOW_SHEET_CELLS;
+        float v1 = (row + 1) / GLOW_SHEET_CELLS;
         poseStack.pushPose();
         poseStack.translate(at.x - cameraPos.x, at.y - cameraPos.y, at.z - cameraPos.z);
         poseStack.mulPose(camera.rotation());
         Matrix4f matrix = poseStack.last().pose();
-        vertex(consumer, matrix, -halfSize, -halfSize, 0.0, u0, v1, red, green, blue, alpha);
-        vertex(consumer, matrix, halfSize, -halfSize, 0.0, u1, v1, red, green, blue, alpha);
-        vertex(consumer, matrix, halfSize, halfSize, 0.0, u1, v0, red, green, blue, alpha);
-        vertex(consumer, matrix, -halfSize, halfSize, 0.0, u0, v0, red, green, blue, alpha);
+        vertex(consumer, matrix, -halfSize, -halfSize, 0.0, uLeft, v1, red, green, blue, alpha);
+        vertex(consumer, matrix, halfSize, -halfSize, 0.0, uRight, v1, red, green, blue, alpha);
+        vertex(consumer, matrix, halfSize, halfSize, 0.0, uRight, v0, red, green, blue, alpha);
+        vertex(consumer, matrix, -halfSize, halfSize, 0.0, uLeft, v0, red, green, blue, alpha);
         poseStack.popPose();
     }
 

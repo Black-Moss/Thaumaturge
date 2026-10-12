@@ -55,13 +55,13 @@ public class EntityCultistCleric extends EntityCultist implements RangedAttackMo
     private static final double TARGET_BODY_MIDDLE = 0.5;
     private static final double FIREBALL_CHEST_HEIGHT = 0.6;
     private static final double FIREBALL_LIFT = 0.4;
-    private static final double FIREBALL_FAN_WIDTH = 2.5;
+    private static final double FIREBALL_FAN_WIDTH = 0.5;
     private static final float FIREBALL_SOUND_VOLUME = 1.0F;
     private static final float FIREBALL_SOUND_PITCH_BASE = 1.0F;
     private static final float FIREBALL_SOUND_PITCH_SPREAD = 0.2F;
     private static final double ALTAR_FOCUS_CENTER = 0.5;
     private static final double ALTAR_FOCUS_HEIGHT = 1.5;
-    private static final float RITUAL_HEAD_TURN = 10.0F;
+    private static final float RITUAL_HEAD_TURN = 40.0F;
     private static final float RITUAL_PITCH_TURN = 10.0F;
 
     private static final List<WeightedAttack> ATTACKS = List.of(new WeightedAttack(ORB_WEIGHT, new CrimsonOrbSpell()), new WeightedAttack(VOLLEY_WEIGHT, new FireballFan()));

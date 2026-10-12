@@ -21,6 +21,8 @@ public final class PechBarter {
     private static final int RISKY_TIER = 4;
     private static final float RISKY_MISS_CHANCE = 0.5F;
     private static final int HOARD_TAKE = 1;
+    private static final float SOUR_VOLUME = 0.4F;
+    private static final float SOUR_PITCH = 1.0F;
 
     private PechBarter() {}
 
@@ -47,7 +49,7 @@ public final class PechBarter {
             return;
         }
         pech.setDomesticated(false);
-        pech.level().playSound(null, pech.getX(), pech.getY(), pech.getZ(), TTSounds.PECH_TRADE.get(), pech.getSoundSource(), pech.getSoundVolume(), pech.getVoicePitch());
+        pech.playSound(TTSounds.PECH_TRADE.get(), SOUR_VOLUME, SOUR_PITCH);
     }
 
     private static int swing(RandomSource random) {

@@ -16,13 +16,13 @@ public final class BlockRunesParticle extends TTParticle {
     private static final float QUARTER_TURN = (float) (Math.PI / 2.0);
     private static final int LIFETIME_FACTOR = 3;
     private static final float HITBOX = 0.01F;
-    private static final float BASE_SIZE = 0.17F;
+    private static final float BASE_SIZE = 0.3F;
     private static final float NORMAL_SIZE_MEAN = 1.0F;
     private static final float VARIANT_SIZE_MEAN = 0.5F;
-    private static final float SIZE_DEVIATION = 0.08F;
+    private static final float SIZE_DEVIATION = 0.1F;
     private static final float SIDE_RANGE = 0.3F;
     private static final float LIFT_RANGE = 0.2F;
-    private static final float FACE_DISTANCE = 0.505F;
+    private static final float FACE_DISTANCE = 0.51F;
     private static final float PEAK_ALPHA = 0.5F;
     private static final float PEAK_PROGRESS = 0.2F;
 
@@ -48,16 +48,16 @@ public final class BlockRunesParticle extends TTParticle {
         float sin = (float) Math.sin(angle);
         float cos = (float) Math.cos(angle);
         this.orientation = new Quaternionf().rotationY(angle);
-        this.offsetX = sin * FACE_DISTANCE + cos * sideways;
+        this.offsetX = cos * sideways - sin * FACE_DISTANCE;
         this.offsetY = lift;
-        this.offsetZ = cos * FACE_DISTANCE - sin * sideways;
+        this.offsetZ = -cos * FACE_DISTANCE - sin * sideways;
     }
 
     @Override
     protected void update() {
         float t = progress();
         float rising = PEAK_ALPHA * t / PEAK_PROGRESS;
-        float falling = PEAK_ALPHA * (1.0F - t) / (1.0F - PEAK_PROGRESS);
+        float falling = PEAK_ALPHA * (1.0F - t);
         this.alpha = t < PEAK_PROGRESS ? rising : falling;
     }
 

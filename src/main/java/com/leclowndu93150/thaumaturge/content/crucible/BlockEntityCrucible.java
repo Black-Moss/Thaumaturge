@@ -71,34 +71,35 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
     private static final double BLOCK_CENTER = 0.5;
 
     private static final int LEAK_RESTART = 0;
+    private static final int LEAK_INITIAL = -100;
     private static final int LEAK_DELAY_AFTER_DISSOLVE = 250;
     private static final int LEAK_DELAY_AFTER_CRAFT = 350;
     private static final int DISSOLVE_LEAK_RESET = LEAK_THRESHOLD - LEAK_DELAY_AFTER_DISSOLVE;
     private static final int CRAFT_LEAK_RESET = LEAK_THRESHOLD - LEAK_DELAY_AFTER_CRAFT;
 
-    private static final float SURFACE_FLOOR = 0.25F;
+    private static final float SURFACE_FLOOR = 0.3F;
     private static final float SURFACE_WATER_RISE = 0.5F;
-    private static final float SURFACE_ESSENTIA_RISE = 0.2F;
-    private static final float SURFACE_OVERFULL = 1.01F;
+    private static final float SURFACE_OVERFULL = 1.001F;
+    private static final float SURFACE_EXACT_FULL = 0.9999F;
+    private static final float SURFACE_RIM = 1.0F;
 
-    private static final double RESULT_SPAWN_HEIGHT = 0.8;
-    private static final double RESULT_HOP = 0.15;
-    private static final double RESULT_DRIFT = 0.03;
+    private static final double RESULT_SPAWN_HEIGHT = 0.71;
+    private static final double RESULT_HOP = 0.075;
+    private static final double RESULT_DRIFT = 0.01;
 
     private static final int THROWN_SHARE_DIVISOR = 2;
 
-    private static final float DISSOLVE_SOUND_VOLUME = 0.25F;
-    private static final float DISSOLVE_SOUND_PITCH = 0.9F;
-    private static final float DISSOLVE_SOUND_PITCH_JITTER = 0.2F;
-    private static final float SPILL_SOUND_VOLUME = 0.3F;
-    private static final float SPILL_SOUND_PITCH = 1.1F;
-    private static final float SPILL_SOUND_PITCH_JITTER = 0.15F;
+    private static final float DISSOLVE_SOUND_VOLUME = 0.2F;
+    private static final float DISSOLVE_SOUND_PITCH = 1.0F;
+    private static final float DISSOLVE_SOUND_PITCH_JITTER = 0.4F;
+    private static final float SPILL_SOUND_VOLUME = 0.2F;
+    private static final float SPILL_SOUND_PITCH = 1.0F;
 
     private final FluidStacksResourceHandler tank = new CrucibleTank();
     private final BlockPos.MutableBlockPos belowPos = new BlockPos.MutableBlockPos();
     private AspectList aspects = AspectList.EMPTY;
     private int heat;
-    private int leakCounter = LEAK_RESTART;
+    private int leakCounter = LEAK_INITIAL;
 
     public BlockEntityCrucible(BlockPos pos, BlockState state) {
         super(TTBlockEntities.CRUCIBLE.get(), pos, state);
@@ -200,7 +201,9 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
         }
         float water = (float) tank.getAmountAsInt(TANK_SLOT) / TANK_CAPACITY;
         float essentia = (float) aspects.totalAmount() / MAX_ASPECT;
-        return SURFACE_FLOOR + water * SURFACE_WATER_RISE + essentia * SURFACE_ESSENTIA_RISE;
+        float base = SURFACE_FLOOR + water * SURFACE_WATER_RISE;
+        float surface = base + essentia * (SURFACE_RIM - base);
+        return aspects.totalAmount() == MAX_ASPECT || surface >= SURFACE_RIM ? SURFACE_EXACT_FULL : surface;
     }
 
     private boolean hasWater() {
@@ -335,18 +338,20 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
         int share = Mth.positiveCeilDiv(stack.getCount(), THROWN_SHARE_DIVISOR);
         int taken = 0;
         boolean dissolvedAny = false;
+        boolean craftedAny = false;
         while (taken < share && isBoiling()) {
             Intake intake = takeIn(serverLevel, stack.copyWithCount(1), player);
             if (intake == Intake.REJECTED) {
                 break;
             }
             dissolvedAny |= intake == Intake.DISSOLVED;
+            craftedAny |= intake == Intake.CRAFTED;
             taken++;
         }
         if (taken == 0) {
             return stack;
         }
-        afterBatch(serverLevel, dissolvedAny);
+        afterBatch(serverLevel, dissolvedAny, craftedAny);
         int left = stack.getCount() - taken;
         return left > 0 ? stack.copyWithCount(left) : null;
     }
@@ -365,11 +370,14 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
         return Intake.DISSOLVED;
     }
 
-    private void afterBatch(ServerLevel serverLevel, boolean dissolvedAny) {
+    private void afterBatch(ServerLevel serverLevel, boolean dissolvedAny, boolean craftedAny) {
         if (dissolvedAny) {
             float pitch = DISSOLVE_SOUND_PITCH + serverLevel.getRandom().nextFloat() * DISSOLVE_SOUND_PITCH_JITTER;
             serverLevel.playSound(null, worldPosition, TTSounds.BUBBLE.get(), SoundSource.BLOCKS, DISSOLVE_SOUND_VOLUME, pitch);
             serverLevel.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_BOIL_BURST, DISSOLVE_BURST_INTENSITY);
+        }
+        if (craftedAny) {
+            serverLevel.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_CRAFT_COMPLETE, 0);
         }
         setChangedAndSync();
     }
@@ -399,8 +407,7 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
         if (level == null) {
             return;
         }
-        float pitch = SPILL_SOUND_PITCH + level.getRandom().nextFloat() * SPILL_SOUND_PITCH_JITTER;
-        level.playLocalSound(worldPosition, TTSounds.SPILL.get(), SoundSource.BLOCKS, SPILL_SOUND_VOLUME, pitch, false);
+        level.playLocalSound(worldPosition, TTSounds.SPILL.get(), SoundSource.BLOCKS, SPILL_SOUND_VOLUME, SPILL_SOUND_PITCH, false);
     }
 
     private boolean craft(ServerLevel serverLevel, CrucibleRecipe recipe, ItemStack single, Player player) {
@@ -410,7 +417,6 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
         drawWater();
         NeoForge.EVENT_BUS.post(new CrucibleEvent.Crafted(player, worldPosition, getBlockState(), this, result.copy(), recipe.aspects()));
         leakCounter = CRAFT_LEAK_RESET;
-        serverLevel.blockEvent(worldPosition, getBlockState().getBlock(), EVENT_CRAFT_COMPLETE, 0);
         return true;
     }
 

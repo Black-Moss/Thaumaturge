@@ -27,7 +27,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -54,11 +53,13 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
     private static final int TOP_SEGMENT = 0;
     private static final float CENTER = 0.5F;
     private static final float STANDING_LIFT = 1.5F;
-    private static final float WALL_LIFT = 0.4375F;
+    private static final float WALL_LIFT = 0.5F;
     private static final float STANDING_SETBACK = -0.1875F;
-    private static final float WALL_SETBACK = 0.25F;
-    private static final float SWAY_PERIOD_TICKS = 90.0F;
-    private static final int PHASE_STEPS = 360;
+    private static final float WALL_SETBACK = 0.21875F;
+    private static final int PHASE_WEIGHT_X = 7;
+    private static final int PHASE_WEIGHT_Y = 9;
+    private static final int PHASE_WEIGHT_Z = 13;
+    private static final float PHASE_DIVISOR = 11.0F;
 
     private final TTBannerModel frame;
     private final TTBannerModel cloth;
@@ -117,12 +118,8 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
     }
 
     private static float swayPhase(BlockPos pos, float partialTicks) {
-        float cycle = (localPlayerTicks() % SWAY_PERIOD_TICKS + partialTicks) / SWAY_PERIOD_TICKS;
-        return cycle * Mth.TWO_PI + positionOffset(pos);
-    }
-
-    private static float positionOffset(BlockPos pos) {
-        return (float) Math.floorMod(Mth.getSeed(pos), PHASE_STEPS) / PHASE_STEPS * Mth.TWO_PI;
+        int position = PHASE_WEIGHT_X * pos.getX() + PHASE_WEIGHT_Y * pos.getY() + PHASE_WEIGHT_Z * pos.getZ();
+        return (position + localPlayerTicks() + partialTicks) / PHASE_DIVISOR;
     }
 
     private static int tintOf(@Nullable DyeColor dye) {

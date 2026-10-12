@@ -12,6 +12,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.FormattedText;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import org.jspecify.annotations.Nullable;
@@ -21,20 +22,26 @@ public final class PageParser {
     public static final int PAGE_HEIGHT = 210;
     public static final int LINE_HEIGHT = 9;
 
-    private static final int PARAGRAPH_GAP = LINE_HEIGHT * 2 / 3;
+    private static final int BREAK_GAP_DRAWN = 5;
+    private static final int BREAK_GAP_BUDGET = 6;
     private static final int IMAGE_GAP = 2;
     private static final int IMAGE_MAX_HEIGHT = PAGE_HEIGHT - IMAGE_GAP;
     private static final int IMAGE_SHEET_SIZE = 256;
-    private static final int RULE_SPACE = LINE_HEIGHT;
-    private static final int DIVIDER_SPACE = 13;
+    private static final int ORNAMENT_SPACE = 8;
+    private static final int ORNAMENT_DRAW_Y = 1;
+    private static final int IMAGE_DRAW_Y = 1;
     private static final int HALF = 2;
+    private static final int MAX_WHITESPACE = 0x20;
 
-    private static final int RULE_U = 28;
-    private static final int RULE_V = 192;
-    private static final int RULE_WIDTH = 56;
-    private static final int RULE_HEIGHT = 4;
-    private static final int RULE_DRAW_Y = 3;
-    private static final int DIVIDER_DRAW_Y = 2;
+    private static final int BODY_RULE_U = 24;
+    private static final int BODY_RULE_V = 184;
+    private static final int BODY_RULE_WIDTH = 95;
+    private static final int BODY_RULE_HEIGHT = 6;
+    private static final int BODY_RULE_OFFSET_X = 22;
+    private static final int DIVIDER_U = 28;
+    private static final int DIVIDER_V = 192;
+    private static final int DIVIDER_WIDTH = 140;
+    private static final int DIVIDER_HEIGHT = 6;
 
     private static final String BREAK_TAG = "<BR>";
     private static final String PAGE_TAG = "<PAGE>";
@@ -77,8 +84,10 @@ public final class PageParser {
             } else if (text.startsWith(BREAK_TAG, cursor)) {
                 if (run.isEmpty()) {
                     blocks.add(Blank.INSTANCE);
+                } else {
+                    blocks.add(new Paragraph(run.toString(), true));
+                    run.setLength(0);
                 }
-                closeRun(blocks, run);
                 cursor += BREAK_TAG.length();
             } else if (text.startsWith(PAGE_TAG, cursor)) {
                 closeRun(blocks, run);
@@ -104,21 +113,16 @@ public final class PageParser {
         return blocks;
     }
 
-    public static void drawRule(GuiGraphicsExtractor graphics, int centerX, int y) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, centerX - RULE_WIDTH / HALF, y, (float) RULE_U, (float) RULE_V, RULE_WIDTH, RULE_HEIGHT, TTScreenTextures.TEX_SIZE,
-                TTScreenTextures.TEX_SIZE);
-    }
-
     private static void closeRun(List<Block> blocks, StringBuilder run) {
         if (!run.isEmpty()) {
-            blocks.add(new Paragraph(run.toString()));
+            blocks.add(new Paragraph(run.toString(), false));
             run.setLength(0);
         }
     }
 
     private static Block imageBlock(String descriptor) {
         PageImage image = PageImage.parse(descriptor);
-        return image != null && image.fitsPage() ? new Picture(image) : Blank.INSTANCE;
+        return image != null && image.fitsPage() ? new Picture(image) : Skipped.INSTANCE;
     }
 
     public interface PageElement {
@@ -152,11 +156,11 @@ public final class PageParser {
         }
 
         public int renderedWidth() {
-            return Math.round(width * scale);
+            return (int) (width * scale);
         }
 
         public int renderedHeight() {
-            return Math.round(height * scale);
+            return (int) (height * scale);
         }
 
         boolean fitsPage() {
@@ -170,6 +174,8 @@ public final class PageParser {
         }
     }
 
+    private record StyledChar(Style style, int codePoint) {}
+
     private record TextLine(FormattedCharSequence text, int y) implements PageElement {
         @Override
         public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
@@ -180,24 +186,25 @@ public final class PageParser {
     private record RuleMark(int y) implements PageElement {
         @Override
         public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
-            drawRule(graphics, columnLeft + PAGE_WIDTH / HALF, pageTop + y + RULE_DRAW_Y);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, columnLeft + BODY_RULE_OFFSET_X, pageTop + y + ORNAMENT_DRAW_Y, (float) BODY_RULE_U, (float) BODY_RULE_V,
+                    BODY_RULE_WIDTH, BODY_RULE_HEIGHT, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
         }
     }
 
     private record DividerMark(int y) implements PageElement {
         @Override
         public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, columnLeft + (PAGE_WIDTH - BookSprites.DIVIDER_WIDTH) / HALF, pageTop + y + DIVIDER_DRAW_Y,
-                    (float) BookSprites.DIVIDER_U, (float) BookSprites.DIVIDER_V, BookSprites.DIVIDER_WIDTH, BookSprites.DIVIDER_TALL_HEIGHT, TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.RESEARCH_BOOK, columnLeft, pageTop + y + ORNAMENT_DRAW_Y, (float) DIVIDER_U, (float) DIVIDER_V, DIVIDER_WIDTH, DIVIDER_HEIGHT,
+                    TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE);
         }
     }
 
     private record ImageMark(PageImage image, int y) implements PageElement {
         @Override
         public void draw(GuiGraphicsExtractor graphics, Font font, int columnLeft, int pageTop) {
-            float left = columnLeft + (PAGE_WIDTH - image.width() * image.scale()) / HALF;
+            int left = columnLeft + (PAGE_WIDTH - image.renderedWidth()) / HALF;
             graphics.pose().pushMatrix();
-            graphics.pose().translate(left, (float) (pageTop + y));
+            graphics.pose().translate((float) left, (float) (pageTop + y + IMAGE_DRAW_Y));
             graphics.pose().scale(image.scale(), image.scale());
             graphics.blit(RenderPipelines.GUI_TEXTURED, image.texture(), 0, 0, (float) image.u(), (float) image.v(), image.width(), image.height(), IMAGE_SHEET_SIZE, IMAGE_SHEET_SIZE);
             graphics.pose().popMatrix();
@@ -212,10 +219,10 @@ public final class PageParser {
         }
     }
 
-    private record Paragraph(String text) implements Block {
+    private record Paragraph(String text, boolean closedByBreak) implements Block {
         @Override
         public void layout(Paginator paginator) {
-            paginator.paragraph(text);
+            paginator.paragraph(text, closedByBreak);
         }
     }
 
@@ -226,6 +233,13 @@ public final class PageParser {
         public void layout(Paginator paginator) {
             paginator.blankLine();
         }
+    }
+
+    private enum Skipped implements Block {
+        INSTANCE;
+
+        @Override
+        public void layout(Paginator paginator) {}
     }
 
     private enum PageBreak implements Block {
@@ -242,7 +256,7 @@ public final class PageParser {
 
         @Override
         public void layout(Paginator paginator) {
-            paginator.ornament(new RuleMark(paginator.cursorAfterRoom(RULE_SPACE)), RULE_SPACE);
+            paginator.ornament(new RuleMark(paginator.cursorAfterRoom(ORNAMENT_SPACE)), ORNAMENT_SPACE);
         }
 
         @Override
@@ -256,7 +270,7 @@ public final class PageParser {
 
         @Override
         public void layout(Paginator paginator) {
-            paginator.ornament(new DividerMark(paginator.cursorAfterRoom(DIVIDER_SPACE)), DIVIDER_SPACE);
+            paginator.ornament(new DividerMark(paginator.cursorAfterRoom(ORNAMENT_SPACE)), ORNAMENT_SPACE);
         }
 
         @Override
@@ -287,22 +301,27 @@ public final class PageParser {
             this.remaining = firstPageBudget;
         }
 
-        void paragraph(String text) {
-            List<FormattedCharSequence> lines = font.split(FormattedText.of(text), PAGE_WIDTH);
+        void paragraph(String text, boolean closedByBreak) {
+            List<FormattedCharSequence> lines = trimmed(font.split(FormattedText.of(text), PAGE_WIDTH));
             if (lines.isEmpty()) {
+                if (closedByBreak) {
+                    blankLine();
+                }
                 return;
             }
             for (FormattedCharSequence line : lines) {
                 makeRoom(LINE_HEIGHT);
                 current.add(new TextLine(line, cursor));
-                advance(LINE_HEIGHT);
+                advance(LINE_HEIGHT, LINE_HEIGHT);
             }
-            advance(PARAGRAPH_GAP);
+            if (closedByBreak) {
+                advance(BREAK_GAP_DRAWN, BREAK_GAP_BUDGET);
+            }
         }
 
         void blankLine() {
             makeRoom(LINE_HEIGHT);
-            advance(LINE_HEIGHT);
+            advance(LINE_HEIGHT + BREAK_GAP_DRAWN, LINE_HEIGHT + BREAK_GAP_BUDGET);
         }
 
         int cursorAfterRoom(int space) {
@@ -312,7 +331,7 @@ public final class PageParser {
 
         void ornament(PageElement mark, int space) {
             current.add(mark);
-            advance(space);
+            advance(space, space);
         }
 
         void image(PageImage image) {
@@ -347,13 +366,38 @@ public final class PageParser {
 
         private void place(PageImage image) {
             current.add(new ImageMark(image, cursor));
-            advance(image.footprint());
+            advance(image.footprint(), image.footprint());
         }
 
-        private void advance(int space) {
-            cursor += space;
-            remaining -= space;
+        private void advance(int drawn, int charged) {
+            cursor += drawn;
+            remaining -= charged;
             bodyEmpty = false;
+        }
+
+        private static List<FormattedCharSequence> trimmed(List<FormattedCharSequence> lines) {
+            List<FormattedCharSequence> result = new ArrayList<>(lines.size());
+            for (FormattedCharSequence line : lines) {
+                List<StyledChar> chars = new ArrayList<>();
+                line.accept((index, style, codePoint) -> chars.add(new StyledChar(style, codePoint)));
+                int start = 0;
+                int end = chars.size();
+                while (start < end && chars.get(start).codePoint() <= MAX_WHITESPACE) {
+                    start++;
+                }
+                while (end > start && chars.get(end - 1).codePoint() <= MAX_WHITESPACE) {
+                    end--;
+                }
+                if (start == end) {
+                    continue;
+                }
+                List<FormattedCharSequence> parts = new ArrayList<>(end - start);
+                for (StyledChar styled : chars.subList(start, end)) {
+                    parts.add(FormattedCharSequence.codepoint(styled.codePoint(), styled.style()));
+                }
+                result.add(FormattedCharSequence.composite(parts));
+            }
+            return result;
         }
 
         private void turnPage() {

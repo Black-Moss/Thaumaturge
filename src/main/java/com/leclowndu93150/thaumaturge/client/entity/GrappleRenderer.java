@@ -21,7 +21,6 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -33,31 +32,30 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
     private static final Identifier ROPE_TEXTURE = TTIds.rl("textures/misc/rope.png");
     private static final float SHADOW_RADIUS = 0.0F;
     private static final float GLOW_HALF = 0.5F;
-    private static final int MIN_SEGMENTS = 2;
+    private static final int MIN_ROPE_POINTS = 2;
     private static final float ROPE_V_STEP = 0.5F;
     private static final int ROPE_TINT = ARGB.white(1.0F);
     private static final float VERTICAL_THRESHOLD = 0.9F;
     private static final int COMPONENTS = 3;
     private static final float MODEL_YAW_OFFSET = 90.0F;
     private static final float SAMPLES_PER_BLOCK = 5.0F;
-    private static final double WAVE_BLOCKS_PER_AMPLITUDE = 0.9;
-    private static final double WAVE_LENGTH_X = 1.3;
-    private static final double WAVE_LENGTH_Y = 1.75;
-    private static final double WAVE_LENGTH_Z = 2.2;
-    private static final double WAVE_DRIFT = 0.35;
-    private static final double HOOK_RAMP = 8.0;
-    private static final double THROWER_FADE_POWER = 1.5;
+    private static final int MIN_ROPE_SAMPLES = 2;
+    private static final double WAVE_DIVISOR_X = 10.0;
+    private static final double WAVE_DIVISOR_Y = 8.0;
+    private static final double WAVE_DIVISOR_Z = 6.0;
+    private static final double DAMP_FACTOR = 1.25;
     private static final float ROPE_RADIUS = 0.022F;
     private static final int ROPE_SIDES = 6;
     private static final int RING_STRIDE = ROPE_SIDES * COMPONENTS;
-    private static final float GLOW_PULSE_TICKS = 24.0F;
-    private static final float GLOW_BASE_SCALE = 0.45F;
-    private static final float GLOW_PULSE_SCALE = 0.08F;
-    private static final int GLOW_TINT = ARGB.colorFromFloat(0.35F, 0.94F, 0.94F, 1.0F);
-    private static final int GLOW_LIGHT = LightCoordsUtil.FULL_BRIGHT;
-    private static final double HAND_SIDE = 0.32;
-    private static final double HAND_FORWARD = 0.55;
-    private static final double HAND_DROP = 0.28;
+    private static final float GLOW_SCALE_BASE = 1.2F;
+    private static final float GLOW_PULSE_SCALE = 0.2F;
+    private static final float GLOW_PULSE_DIVISOR = 5.0F;
+    private static final int GLOW_TINT = ARGB.colorFromFloat(0.21F, 1.0F, 1.0F, 1.0F);
+    private static final int GLOW_LIGHT = 0x00F000DC;
+    private static final double HAND_SIDE = 0.1;
+    private static final float HAND_YAW_BIAS = 0.5F;
+    private static final double HAND_LOOK_DIVISOR = 5.0;
+    private static final double HAND_EYE_DIVISOR = 2.6;
     private static final double BODY_MIDDLE = 0.5;
     private static final double TANGENT_EPSILON = 1.0E-8;
 
@@ -86,7 +84,7 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
             return;
         }
         Vec3 end = ropeEnd(entity, owner, partialTicks).subtract(state.x, state.y, state.z);
-        fillRope(state.points, end, entity.ampl, state.ageInTicks);
+        fillRope(state.points, end, entity.ampl);
     }
 
     @Override
@@ -98,7 +96,7 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
         collector.submitModelPart(model.root, poseStack, RenderTypes.entityCutout(MODEL_TEXTURE), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
         poseStack.popPose();
         submitGlow(state, poseStack, collector, camera);
-        if (state.points.size() > MIN_SEGMENTS) {
+        if (state.points.size() > MIN_ROPE_POINTS) {
             submitRope(state, poseStack, collector);
         }
     }
@@ -106,43 +104,43 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
     private static Vec3 ropeEnd(EntityGrapple grapple, Entity owner, float partialTicks) {
         Minecraft minecraft = Minecraft.getInstance();
         if (owner == minecraft.getCameraEntity() && minecraft.options.getCameraType().isFirstPerson()) {
-            Vec3 eye = owner.getEyePosition(partialTicks);
-            Vec3 look = owner.getViewVector(partialTicks);
-            Vec3 right = new Vec3(-look.z, 0.0, look.x);
-            double rightLength = right.length();
-            right = rightLength > TANGENT_EPSILON ? right.scale(1.0 / rightLength) : new Vec3(1.0, 0.0, 0.0);
-            Vec3 down = look.cross(right);
+            Vec3 feet = owner.getPosition(partialTicks);
+            Vec3 look = owner.getLookAngle();
+            double theta = Math.toRadians(Mth.rotLerp(partialTicks, owner.yRotO, owner.getYRot()) - HAND_YAW_BIAS);
             double side = grapple.getHand() == InteractionHand.MAIN_HAND ? HAND_SIDE : -HAND_SIDE;
-            return eye.add(look.scale(HAND_FORWARD)).add(right.scale(side)).add(down.scale(HAND_DROP));
+            return new Vec3(
+                    feet.x - Math.cos(theta) * side + look.x / HAND_LOOK_DIVISOR,
+                    feet.y + owner.getEyeHeight() / HAND_EYE_DIVISOR + owner.getBbHeight() * BODY_MIDDLE + look.y / HAND_LOOK_DIVISOR,
+                    feet.z - Math.sin(theta) * side + look.z / HAND_LOOK_DIVISOR);
         }
         return owner.getPosition(partialTicks).add(0.0, owner.getBbHeight() * BODY_MIDDLE, 0.0);
     }
 
-    private static void fillRope(List<Vec3> points, Vec3 end, float amplitude, float time) {
-        double span = end.length();
-        int samples = Math.max(MIN_SEGMENTS + 1, Mth.ceil(span * SAMPLES_PER_BLOCK));
-        double wave = amplitude * WAVE_BLOCKS_PER_AMPLITUDE;
-        double drift = time * WAVE_DRIFT;
-        for (int i = 0; i <= samples; i++) {
-            double along = i / (double) samples;
-            double distance = along * span;
-            double envelope = wave * Math.min(1.0, along * HOOK_RAMP) * Math.pow(1.0 - along, THROWER_FADE_POWER);
-            double x = envelope * Math.sin(distance / WAVE_LENGTH_X * Mth.TWO_PI - drift);
-            double y = envelope * Math.sin(distance / WAVE_LENGTH_Y * Mth.TWO_PI - drift);
-            double z = envelope * Math.sin(distance / WAVE_LENGTH_Z * Mth.TWO_PI - drift);
+    private static void fillRope(List<Vec3> points, Vec3 end, float amplitude) {
+        float length = (float) end.length() * SAMPLES_PER_BLOCK;
+        int count = (int) length;
+        points.add(Vec3.ZERO);
+        for (int k = 1; k <= count - MIN_ROPE_SAMPLES; k++) {
+            double distance = k * (length / count);
+            double damp = 1.0 - k / (DAMP_FACTOR * count);
+            double along = k / (double) count;
+            double x = Math.sin(distance / WAVE_DIVISOR_X) * amplitude * damp;
+            double y = Math.sin(distance / WAVE_DIVISOR_Y) * amplitude * damp;
+            double z = Math.sin(distance / WAVE_DIVISOR_Z) * amplitude * damp;
             points.add(new Vec3(end.x * along + x, end.y * along + y, end.z * along + z));
         }
+        points.add(end);
     }
 
     private static void submitGlow(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        int frame = Math.floorMod(state.ticks, ParticleTextures.ORB_GLOW_FRAMES);
-        float u0 = StripUv.u0(frame, ParticleTextures.ORB_GLOW_FRAMES);
-        float u1 = StripUv.u1(frame, ParticleTextures.ORB_GLOW_FRAMES);
-        float scale = GLOW_BASE_SCALE + GLOW_PULSE_SCALE * Mth.sin(state.ageInTicks / GLOW_PULSE_TICKS * Mth.TWO_PI);
+        int frame = Math.floorMod(state.ticks, ParticleTextures.GOLEM_ORB_FRAMES);
+        float u0 = StripUv.u0(frame, ParticleTextures.GOLEM_ORB_FRAMES);
+        float u1 = StripUv.u1(frame, ParticleTextures.GOLEM_ORB_FRAMES);
+        float scale = GLOW_SCALE_BASE + GLOW_PULSE_SCALE * Mth.sin(state.ticks / GLOW_PULSE_DIVISOR);
         poseStack.pushPose();
         poseStack.mulPose(camera.orientation);
         poseStack.scale(scale, scale, scale);
-        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.ORB_GLOW), (pose, buffer) -> writeGlow(buffer, pose.pose(), u0, u1));
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.GOLEM_ORB_BLUE), (pose, buffer) -> writeGlow(buffer, pose.pose(), u0, u1));
         poseStack.popPose();
     }
 

@@ -50,20 +50,21 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
     private static final float FIRST_CUBE_REACH = CENTER + CUBE_SIZE / 2.0F;
     private static final int[][] ARM_STEPS = {{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 
-    private static final int BREATH_PERIOD_TICKS = 70;
-    private static final float WAVE_STEP_RADIANS = 0.9F;
-    private static final float ARM_PHASE_RADIANS = Mth.HALF_PI;
-    private static final float MIDDLE_WIDTH = 0.72F;
-    private static final float MIDDLE_SWELL = 0.16F;
-    private static final float END_WIDTH = 0.94F;
-    private static final float END_SWELL = 0.05F;
+    private static final float PHASE_DIVISOR_TICKS = 20.0F;
+    private static final float CUBE_PHASE_TICKS = 10.0F;
+    private static final float ARM_PHASE_TICKS = 20.0F;
+    private static final double BREATH_PERIOD_TICKS = Math.PI * 2.0 * PHASE_DIVISOR_TICKS;
+    private static final float MIDDLE_WIDTH = 1.0F;
+    private static final float MIDDLE_SWELL = 0.2F;
+    private static final float END_WIDTH = 1.4F;
+    private static final float END_SWELL = 0.1F;
 
     private static final int RETRACT_INTERVAL_TICKS = 20;
     private static final int ARM_STAGGER_TICKS = 5;
 
-    private static final float TABLET_DROP = 0.16F;
-    private static final float TABLET_STANDOFF = 0.02F;
-    private static final float TABLET_SCALE = 0.5F;
+    private static final float TABLET_DROP = 0.09F;
+    private static final float TABLET_STANDOFF = 0.025F;
+    private static final float TABLET_SCALE = 1.025641F;
 
     private static final int OUTLINE_NONE = 0;
     private static final int DISPLAY_SEED = 0;
@@ -92,7 +93,7 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
         state.count = lock.getCount();
         Level level = lock.getLevel();
         long gameTime = level == null ? 0L : level.getGameTime();
-        state.animationTime = Math.floorMod(gameTime, BREATH_PERIOD_TICKS) + partialTicks;
+        state.animationTime = (float) (gameTime % BREATH_PERIOD_TICKS) + partialTicks;
         if (level != null) {
             state.lightCoords = LevelRenderer.getLightCoords(level, lock.getBlockPos().relative(state.facing));
         }
@@ -130,14 +131,13 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
 
     private void submitArms(EldritchLockRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
         RenderType type = RenderTypes.entitySolid(CUBE_TEXTURE);
-        float cycle = state.animationTime / BREATH_PERIOD_TICKS * Mth.TWO_PI;
         for (int arm = 0; arm < ARM_STEPS.length; arm++) {
             int stepX = ARM_STEPS[arm][0];
             int stepY = ARM_STEPS[arm][1];
             int remaining = cubesLeft(state.count, arm);
             for (int index = 0; index < remaining; index++) {
                 float reach = FIRST_CUBE_REACH + index * CUBE_SIZE;
-                float across = CUBE_SIZE * width(index, cycle - index * WAVE_STEP_RADIANS - arm * ARM_PHASE_RADIANS);
+                float across = CUBE_SIZE * width(index, (state.animationTime + (index + 1) * CUBE_PHASE_TICKS + arm * ARM_PHASE_TICKS) / PHASE_DIVISOR_TICKS);
                 poseStack.pushPose();
                 poseStack.translate(stepX * reach, stepY * reach, 0.0F);
                 poseStack.scale(stepX != 0 ? CUBE_SIZE : across, stepY != 0 ? CUBE_SIZE : across, across);
@@ -151,7 +151,7 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
         if (count < 0) {
             return CUBES_PER_ARM;
         }
-        return Mth.clamp(CUBES_PER_ARM - Math.floorDiv(count - arm * ARM_STAGGER_TICKS, RETRACT_INTERVAL_TICKS), 0, CUBES_PER_ARM);
+        return Mth.clamp(CUBES_PER_ARM - Math.floorDiv(count + arm * ARM_STAGGER_TICKS, RETRACT_INTERVAL_TICKS), 0, CUBES_PER_ARM);
     }
 
     private static float width(int index, float phase) {

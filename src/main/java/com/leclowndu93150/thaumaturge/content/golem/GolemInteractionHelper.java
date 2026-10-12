@@ -8,6 +8,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -20,6 +21,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 public final class GolemInteractionHelper {
     private static final int CLICK_RANK_XP = 1;
     private static final double FACE_OFFSET = 0.5D;
+    private static final double HALF = 0.5D;
 
     private GolemInteractionHelper() {}
 
@@ -64,7 +66,7 @@ public final class GolemInteractionHelper {
             }
             ItemStack overflow = golem.hands().hold(remaining.copy());
             if (!overflow.isEmpty()) {
-                entity.spawnAtLocation(level, overflow);
+                level.addFreshEntity(new ItemEntity(level, entity.getX(), entity.getY() + entity.getEyeHeight() * HALF, entity.getZ(), overflow));
             }
         }
         inventory.clearContent();

@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.world.tree.silverwood;
 
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
-import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
+import com.leclowndu93150.thaumaturge.content.world.tree.TreeLeafUpdater;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTTreePlacers;
 import com.mojang.serialization.Codec;
@@ -19,7 +19,6 @@ import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.feature.TreeFeature;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacer;
@@ -35,9 +34,9 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
     private static final int CORE_DROP = 3;
     private static final int CROWN_MIN_RISE = 3;
     private static final int CROWN_RISE_SPREAD = 2;
-    private static final double CORE_RADIUS = 3.2;
-    private static final double EDGE_JITTER = 0.9;
-    private static final int CROWN_SCAN_RADIUS = 4;
+    private static final int CROWN_SCAN_RADIUS = 5;
+    private static final int CROWN_THRESHOLD_BASE = 10;
+    private static final int CROWN_THRESHOLD_SPREAD = 8;
     private static final int NARROW_ROOM_RADIUS = 1;
     private static final int WIDE_ROOM_RADIUS = 3;
     private static final int WIDE_ROOM_LAYERS = 3;
@@ -47,7 +46,13 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
     private static final int BOUGH_DROOP_ODDS = 3;
     private static final double FIRST_NODE_ODDS = 1.5;
     private static final double NODE_ODDS_STEP = 1.0;
-    private static final int KEEP_APART_RADIUS = 8;
+    private static final int KEEP_APART_RADIUS = 12;
+    private static final int KEEP_APART_REACH = 8;
+    private static final int CROWDING_RADIUS = 5;
+    private static final int CROWDING_BELOW_ORIGIN = 1;
+    private static final int CROWDING_ABOVE_TOP = 5;
+    private static final int CROWDING_CANOPY_DEPTH = 5;
+    private static final int CROWDING_TRUNK_RADIUS_SQUARED = 4;
 
     private final boolean growNodes;
     private final boolean keepApart;
@@ -71,8 +76,8 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
     @Override
     public List<FoliagePlacer.FoliageAttachment> placeTrunk(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, int treeHeight, BlockPos origin, TreeConfiguration config) {
         int rise = CROWN_MIN_RISE + random.nextInt(CROWN_RISE_SPREAD + 1);
-        if (!fitsBuildHeight(level, origin, treeHeight, rise) || !standsOnSoil(level, origin) || !hasRoom(level, origin, treeHeight)
-                || (keepApart && nearAnotherSilverwood(level, origin, treeHeight))) {
+        if (!fitsBuildHeight(level, origin, treeHeight, rise) || !standsOnSoil(level, origin) || !level.getFluidState(origin).isEmpty()
+                || !hasRoom(level, origin, treeHeight) || (keepApart && (nearAnotherSilverwood(level, origin, treeHeight) || crowdedByOtherTrees(level, origin, treeHeight)))) {
             return List.of();
         }
         List<FoliagePlacer.FoliageAttachment> crown = growCrown(level, random, config, origin, treeHeight, rise);
@@ -96,16 +101,7 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
     }
 
     private static boolean standsOnSoil(WorldGenLevel level, BlockPos origin) {
-        BlockPos ground = origin.below();
-        if (!level.isStateAtPosition(ground, SilverwoodTrunkPlacer::isSoil)) {
-            return false;
-        }
-        for (Direction side : Direction.Plane.HORIZONTAL) {
-            if (!level.isStateAtPosition(ground.relative(side), SilverwoodTrunkPlacer::isSoil)) {
-                return false;
-            }
-        }
-        return true;
+        return level.isStateAtPosition(origin.below(), SilverwoodTrunkPlacer::isSoil);
     }
 
     private static boolean hasRoom(WorldGenLevel level, BlockPos origin, int treeHeight) {
@@ -126,12 +122,37 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
     }
 
     private static boolean nearAnotherSilverwood(WorldGenLevel level, BlockPos origin, int treeHeight) {
+        Block silverwoodLog = TTBlocks.LOG_SILVERWOOD.get();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (int dy = 0; dy <= treeHeight; dy++) {
+        for (int dy = -KEEP_APART_REACH; dy <= treeHeight + KEEP_APART_REACH; dy++) {
             for (int dx = -KEEP_APART_RADIUS; dx <= KEEP_APART_RADIUS; dx++) {
                 for (int dz = -KEEP_APART_RADIUS; dz <= KEEP_APART_RADIUS; dz++) {
+                    if (dx == 0 && dz == 0) {
+                        continue;
+                    }
                     cursor.setWithOffset(origin, dx, dy, dz);
-                    if (level.getBlockState(cursor).is(TTBlockTags.SILVERWOOD_LOGS)) {
+                    if (level.getBlockState(cursor).is(silverwoodLog)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean crowdedByOtherTrees(WorldGenLevel level, BlockPos origin, int treeHeight) {
+        int canopyStart = treeHeight - CROWDING_CANOPY_DEPTH;
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int dy = -CROWDING_BELOW_ORIGIN; dy <= treeHeight + CROWDING_ABOVE_TOP; dy++) {
+            boolean canopy = dy >= canopyStart;
+            for (int dx = -CROWDING_RADIUS; dx <= CROWDING_RADIUS; dx++) {
+                for (int dz = -CROWDING_RADIUS; dz <= CROWDING_RADIUS; dz++) {
+                    if (!canopy && dx * dx + dz * dz > CROWDING_TRUNK_RADIUS_SQUARED) {
+                        continue;
+                    }
+                    cursor.setWithOffset(origin, dx, dy, dz);
+                    BlockState state = level.getBlockState(cursor);
+                    if (state.is(BlockTags.LOGS) || state.is(BlockTags.LEAVES)) {
                         return true;
                     }
                 }
@@ -144,18 +165,16 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
         List<FoliagePlacer.FoliageAttachment> leaves = new ArrayList<>();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int fromTop = -CROWN_DROP; fromTop <= rise; fromTop++) {
-            double radius = layerRadius(fromTop, rise);
+            int vertical = verticalOffset(fromTop);
             for (int dx = -CROWN_SCAN_RADIUS; dx <= CROWN_SCAN_RADIUS; dx++) {
                 for (int dz = -CROWN_SCAN_RADIUS; dz <= CROWN_SCAN_RADIUS; dz++) {
-                    double cutOff = radius + random.nextDouble() * EDGE_JITTER;
-                    if (dx * dx + dz * dz > cutOff * cutOff) {
+                    int threshold = CROWN_THRESHOLD_BASE + random.nextInt(CROWN_THRESHOLD_SPREAD);
+                    if (dx * dx + vertical * vertical + dz * dz >= threshold) {
                         continue;
                     }
                     cursor.setWithOffset(origin, dx, treeHeight + fromTop, dz);
-                    if (TreeFeature.validTreePos(level, cursor)) {
-                        BlockPos leaf = cursor.immutable();
-                        level.setBlock(leaf, config.foliageProvider.getState(level, random, leaf), PLACE_FLAGS);
-                        leaves.add(new FoliagePlacer.FoliageAttachment(leaf, 0, false));
+                    if (fillLeaf(level, random, config, cursor)) {
+                        leaves.add(new FoliagePlacer.FoliageAttachment(cursor.immutable(), 0, false));
                     }
                 }
             }
@@ -163,19 +182,31 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
         return leaves;
     }
 
-    private static double layerRadius(int fromTop, int rise) {
+    private static int verticalOffset(int fromTop) {
         if (fromTop > 0) {
-            return capRadius(fromTop, rise);
+            return fromTop;
         }
         if (fromTop < -CORE_DROP) {
-            return capRadius(-CORE_DROP - fromTop, CROWN_DROP - CORE_DROP);
+            return -CORE_DROP - fromTop;
         }
-        return CORE_RADIUS;
+        return 0;
     }
 
-    private static double capRadius(int depth, int capHeight) {
-        double share = depth / (capHeight + 1.0);
-        return CORE_RADIUS * Math.sqrt(1.0 - share * share);
+    private static boolean fillLeaf(WorldGenLevel level, RandomSource random, TreeConfiguration config, BlockPos.MutableBlockPos cursor) {
+        BlockState existing = level.getBlockState(cursor);
+        BlockState leaf = config.foliageProvider.getState(level, random, cursor);
+        if (existing.is(leaf.getBlock())) {
+            return false;
+        }
+        if (existing.is(BlockTags.LEAVES)) {
+            level.setBlock(cursor, TreeLeafUpdater.carryDistance(leaf, existing), PLACE_FLAGS);
+            return true;
+        }
+        if (existing.isAir() || existing.canBeReplaced()) {
+            level.setBlock(cursor, leaf, PLACE_FLAGS);
+            return true;
+        }
+        return false;
     }
 
     private static void raiseTrunk(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, BlockPos origin, int treeHeight) {
@@ -191,7 +222,7 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
     private void raiseCore(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, BlockPos origin, int treeHeight) {
         int nodesGrown = 0;
         boolean lastWasNode = false;
-        for (int dy = 1; dy <= treeHeight; dy++) {
+        for (int dy = 1; dy < treeHeight; dy++) {
             BlockPos pos = origin.above(dy);
             if (growNodes && !lastWasNode && rollsNode(random, treeHeight, nodesGrown)) {
                 lastWasNode = plantNode(level, trunkSetter, random, config, pos);
@@ -203,6 +234,7 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
                 setLog(level, trunkSetter, random, config, pos, Direction.Axis.Y);
             }
         }
+        setLog(level, trunkSetter, random, config, origin.above(treeHeight), Direction.Axis.Y);
     }
 
     private static boolean rollsNode(RandomSource random, int treeHeight, int nodesGrown) {
@@ -232,7 +264,7 @@ public final class SilverwoodTrunkPlacer extends TrunkPlacer {
             BlockPos root = origin.relative(side, SIDE_LOG_REACH);
             setLog(level, trunkSetter, random, config, root, side.getAxis());
             BlockPos anchor = root.below();
-            if (level.isStateAtPosition(anchor, state -> isRoom(state) || isSoil(state))) {
+            if (level.isStateAtPosition(anchor, SilverwoodTrunkPlacer::isRoom)) {
                 trunkSetter.accept(anchor, logState(level, random, config, anchor, Direction.Axis.Y));
             }
         }

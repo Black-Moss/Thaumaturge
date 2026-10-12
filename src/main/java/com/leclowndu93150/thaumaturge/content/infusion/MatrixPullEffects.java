@@ -19,17 +19,17 @@ final class MatrixPullEffects {
     private static final double TARGET_XZ_OFFSET = 0.5;
     private static final double TARGET_Y_OFFSET = -0.5;
 
-    private static final int CLIENT_SOURCE_BASE_COUNT = 3;
+    private static final int CLIENT_SOURCE_BASE_COUNT = 4;
     private static final int CLIENT_SPARKLE_ODDS = 3;
-    private static final float SPARKLE_VIOLET_RED = 0.62F;
-    private static final float SPARKLE_PURPLE_RED = 0.45F;
-    private static final float SPARKLE_GREEN = 0.18F;
-    private static final float SPARKLE_BLUE_MIN = 0.75F;
-    private static final float SPARKLE_BLUE_SPAN = 0.25F;
-    private static final double PEDESTAL_CENTRE = 0.5;
-    private static final double CRUMB_ITEM_SPOT_LIFT = 0.3;
-    private static final double CRUMB_ITEM_SPOT_RADIUS = 0.08;
-    private static final double CRUMB_ITEM_KICK = 0.02;
+    private static final float SPARKLE_VIOLET_RED = 0.6F;
+    private static final float SPARKLE_PURPLE_RED = 0.4F;
+    private static final float SPARKLE_GREEN = 0.2F;
+    private static final float SPARKLE_BLUE_MIN = 0.6F;
+    private static final float SPARKLE_BLUE_SPAN = 0.3F;
+    private static final double CRUMB_BOX_OFFSET_XZ = 0.4;
+    private static final double CRUMB_BOX_OFFSET_Y = 1.23;
+    private static final double CRUMB_BOX_SPAN = 0.2;
+    private static final double CRUMB_ITEM_KICK = 0.03;
 
     private MatrixPullEffects() {}
 
@@ -67,9 +67,9 @@ final class MatrixPullEffects {
                 Vec3 start = randomAbove(source, random);
                 level.addParticle(new InfusionCrumbsParticleOptions(template, goal.x, goal.y, goal.z, 0.0, 0.0, 0.0), start.x, start.y, start.z, 0.0, 0.0, 0.0);
             } else {
-                double x = source.getX() + PEDESTAL_CENTRE + random.nextGaussian() * CRUMB_ITEM_SPOT_RADIUS;
-                double y = source.getY() + SPAWN_LIFT + CRUMB_ITEM_SPOT_LIFT + random.nextGaussian() * CRUMB_ITEM_SPOT_RADIUS;
-                double z = source.getZ() + PEDESTAL_CENTRE + random.nextGaussian() * CRUMB_ITEM_SPOT_RADIUS;
+                double x = source.getX() + CRUMB_BOX_OFFSET_XZ + CRUMB_BOX_SPAN * random.nextDouble();
+                double y = source.getY() + CRUMB_BOX_OFFSET_Y + CRUMB_BOX_SPAN * random.nextDouble();
+                double z = source.getZ() + CRUMB_BOX_OFFSET_XZ + CRUMB_BOX_SPAN * random.nextDouble();
                 InfusionCrumbsParticleOptions options = new InfusionCrumbsParticleOptions(template, goal.x, goal.y, goal.z, random.nextGaussian() * CRUMB_ITEM_KICK,
                         random.nextGaussian() * CRUMB_ITEM_KICK, random.nextGaussian() * CRUMB_ITEM_KICK);
                 level.addParticle(options, x, y, z, 0.0, 0.0, 0.0);

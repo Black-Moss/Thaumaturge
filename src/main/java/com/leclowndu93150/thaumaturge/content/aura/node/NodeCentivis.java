@@ -23,11 +23,6 @@ final class NodeCentivis {
         this.node = node;
     }
 
-    void clear() {
-        allowance.clear();
-        credit.clear();
-    }
-
     void accrue() {
         List<AspectInstance> base = node.aspectsBase.entries();
         for (int i = 0; i < base.size(); i++) {

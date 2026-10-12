@@ -8,8 +8,10 @@ import com.leclowndu93150.thaumaturge.content.particle.SparkleParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.WispFlameParticleOptions;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -25,33 +27,39 @@ public final class ClientEffects {
 
     private static final float SCAN_DECAY = 1.0F;
     private static final float SCAN_GRAVITY = 0.0F;
-    private static final ColorRange SCAN_RED = new ColorRange(70, 110);
-    private static final ColorRange SCAN_GREEN = new ColorRange(165, 205);
-    private static final ColorRange SCAN_BLUE = new ColorRange(235, 255);
-    private static final float SCAN_SCALE_BASE = 0.55F;
-    private static final float SCAN_SCALE_DEVIATION = 0.08F;
+    private static final ColorRange SCAN_RED = new ColorRange(16, 32);
+    private static final ColorRange SCAN_GREEN = new ColorRange(132, 165);
+    private static final ColorRange SCAN_BLUE = new ColorRange(223, 239);
+    private static final float SCAN_SCALE_BASE = 0.4F;
+    private static final float SCAN_SCALE_DEVIATION = 0.1F;
     private static final int SCAN_DELAY_RANGE = 10;
     private static final int SCAN_BASE_AGE = 4;
+    private static final double SCAN_FACE_CENTRE = 0.5;
+    private static final double SCAN_FACE_REACH = 0.51;
+    private static final double SCAN_HALF = 0.5;
+    private static final int SCAN_PER_FACE_FACTOR = 2;
+    private static final double SCAN_EDGE_FACTOR = 2.0;
+    private static final Direction[] SCAN_FACES = Direction.values();
 
     private static final float DROP_SCALE_BASE = 0.4F;
-    private static final float DROP_SCALE_SPREAD = 0.3F;
+    private static final float DROP_SCALE_SPREAD = 0.2F;
     private static final int DROP_AGE_BASE = 20;
-    private static final int DROP_AGE_RANGE = 11;
-    private static final float DROP_BUOYANCY = 0.15F;
-    private static final double DROP_DRIFT = 0.004;
+    private static final int DROP_AGE_RANGE = 10;
+    private static final float DROP_BUOYANCY = 0.01F;
+    private static final double DROP_DRIFT = 0.005;
 
-    private static final float FOLLOW_RED = 0.68F;
-    private static final float FOLLOW_GREEN = 0.74F;
+    private static final float FOLLOW_RED = 0.33F;
+    private static final float FOLLOW_GREEN = 0.33F;
     private static final float FOLLOW_BLUE = 1.0F;
-    private static final float FOLLOW_SCALE_BASE = 0.6F;
-    private static final float FOLLOW_SCALE_SPREAD = 0.4F;
-    private static final int FOLLOW_AGE_BASE = 16;
-    private static final int FOLLOW_AGE_RANGE = 9;
-    private static final float FOLLOW_BUOYANCY = -0.02F;
-    private static final double FOLLOW_SPREAD = 0.15;
+    private static final float FOLLOW_SCALE_BASE = 0.3F;
+    private static final float FOLLOW_SCALE_SPREAD = 0.3F;
+    private static final int FOLLOW_AGE_BASE = 15;
+    private static final int FOLLOW_AGE_RANGE = 10;
+    private static final float FOLLOW_BUOYANCY = -0.001F;
+    private static final double FOLLOW_SPREAD = 0.2;
 
-    private static final float FLAME_ALPHA = 0.75F;
-    private static final float FLAME_SCALE_BASE = 1.2F;
+    private static final float FLAME_ALPHA = 0.66F;
+    private static final float FLAME_SCALE_BASE = 3.0F;
     private static final float FLAME_END_SCALE = 0.05F;
 
     private static final int RED_SHIFT = 16;
@@ -141,16 +149,30 @@ public final class ClientEffects {
 
     public static void scanSparkles(Level level, AABB box) {
         RandomSource random = level.getRandom();
-        BoxSurfaceSampler sampler = new BoxSurfaceSampler(box);
-        for (int left = sampler.pointCount(); left > 0; left--) {
-            Vec3 spot = sampler.sample(random);
-            float red = SCAN_RED.roll(random);
-            float green = SCAN_GREEN.roll(random);
-            float blue = SCAN_BLUE.roll(random);
-            float jitter = (float) random.nextGaussian() * SCAN_SCALE_DEVIATION;
-            int delay = random.nextInt(SCAN_DELAY_RANGE);
-            sparkle(level, random, spot.x, spot.y, spot.z, 0.0, 0.0, 0.0, red, green, blue, SCAN_SCALE_BASE + jitter, delay, SCAN_DECAY, SCAN_GRAVITY, SCAN_BASE_AGE);
+        Vec3 centre = box.getCenter();
+        double edgeX = box.getXsize();
+        double edgeY = box.getYsize();
+        double edgeZ = box.getZsize();
+        int perFace = SCAN_PER_FACE_FACTOR * Mth.ceil(SCAN_EDGE_FACTOR * box.getSize());
+        for (Direction face : SCAN_FACES) {
+            for (int left = perFace; left > 0; left--) {
+                double x = centre.x + scanOffset(random, face.getStepX(), edgeX);
+                double y = centre.y + scanOffset(random, face.getStepY(), edgeY);
+                double z = centre.z + scanOffset(random, face.getStepZ(), edgeZ);
+                float red = SCAN_RED.roll(random);
+                float green = SCAN_GREEN.roll(random);
+                float blue = SCAN_BLUE.roll(random);
+                float jitter = (float) random.nextGaussian() * SCAN_SCALE_DEVIATION;
+                int delay = random.nextInt(SCAN_DELAY_RANGE);
+                sparkle(level, random, x, y, z, 0.0, 0.0, 0.0, red, green, blue, SCAN_SCALE_BASE + jitter, delay, SCAN_DECAY, SCAN_GRAVITY, SCAN_BASE_AGE);
+            }
         }
+    }
+
+    private static double scanOffset(RandomSource random, int step, double edge) {
+        double offset = SCAN_FACE_CENTRE + SCAN_FACE_REACH * step + random.nextGaussian() * edge;
+        double half = edge * SCAN_HALF;
+        return Mth.clamp(offset, -half, half);
     }
 
     public static void sparkle(Level level, RandomSource random, double x, double y, double z, double vx, double vy, double vz, float r, float g, float b, float scale, int delay, float decay, float gravity, int baseAge) {

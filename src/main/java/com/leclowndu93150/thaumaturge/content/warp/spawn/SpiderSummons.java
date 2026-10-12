@@ -9,6 +9,9 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 
 public final class SpiderSummons {
+    private static final int HORIZONTAL_BOUND = 15;
+    private static final int VERTICAL_BOUND = 5;
+
     private SpiderSummons() {}
 
     public static boolean summon(ServerLevel level, ServerPlayer player, RandomSource random, boolean illusory) {
@@ -16,13 +19,15 @@ public final class SpiderSummons {
         if (spider == null) {
             return false;
         }
-        BlockPos origin = player.blockPosition();
         for (int attempt = 0; attempt < SpawnSpots.PLACEMENT_ATTEMPTS; attempt++) {
-            BlockPos cell = SpawnSpots.ringCell(origin, random);
-            if (!SpawnSpots.standsOnFullBlock(level, cell)) {
+            double x = player.getX() + (random.nextInt(HORIZONTAL_BOUND) - random.nextInt(HORIZONTAL_BOUND));
+            double y = player.getY() + (random.nextInt(VERTICAL_BOUND) - random.nextInt(VERTICAL_BOUND));
+            double z = player.getZ() + (random.nextInt(HORIZONTAL_BOUND) - random.nextInt(HORIZONTAL_BOUND));
+            float yaw = random.nextFloat() * SpawnSpots.FULL_TURN_DEGREES;
+            if (!SpawnSpots.standsOnFullBlock(level, BlockPos.containing(x, y, z))) {
                 continue;
             }
-            spider.snapTo(cell.getX() + SpawnSpots.CELL_CENTER, cell.getY(), cell.getZ() + SpawnSpots.CELL_CENTER, random.nextFloat() * SpawnSpots.FULL_TURN_DEGREES, 0.0F);
+            spider.snapTo(x, y, z, yaw, 0.0F);
             if (!SpawnSpots.hasFreeSpace(level, spider)) {
                 continue;
             }

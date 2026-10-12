@@ -23,6 +23,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
@@ -36,15 +37,16 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import org.jspecify.annotations.Nullable;
 
 public final class HarvestBehavior implements ISealBehavior {
-    public static final SealSetting REPLANT = new SealSetting("replant_crops", "gui.thaumaturge.seal.setting.replant", true);
-    public static final SealSetting REQUEST_SEEDS = new SealSetting("request_seeds", "gui.thaumaturge.seal.setting.provision", false);
-    public static final MapCodec<HarvestBehavior> CODEC = ReplantSite.CODEC.codec().listOf().optionalFieldOf("replant_sites", List.of()).xmap(HarvestBehavior::new, HarvestBehavior::savedSites);
+    public static final SealSetting REPLANT = new SealSetting("prep", "gui.thaumaturge.seal.setting.replant", true);
+    public static final SealSetting REQUEST_SEEDS = new SealSetting("ppro", "gui.thaumaturge.seal.setting.provision", false);
+    public static final MapCodec<HarvestBehavior> CODEC = ReplantSite.CODEC.codec().listOf().optionalFieldOf("replant", List.of()).xmap(HarvestBehavior::new, HarvestBehavior::savedSites);
 
     private static final int STAGGER = 41;
     private static final int SCAN_PERIOD = 5;
     private static final int UPKEEP_PERIOD = 100;
     private static final int REPLANT_LIFE = 300;
     private static final int BREAK_XP = 1;
+    private static final int REPLANT_XP = 1;
     private static final int NO_FORTUNE = 0;
     private static final int HARVEST_JOB = 0;
     private static final int REPLANT_JOB = 1;
@@ -214,30 +216,29 @@ public final class HarvestBehavior implements ISealBehavior {
         if (!level.getBlockState(pos).isAir() || !golem.hands().holds(site.seed())) {
             return;
         }
-        Direction support = supportOf(level, site);
+        Direction support = site.face();
         BlockPos ground = pos.relative(support);
         if (site.tilled() && support == Direction.DOWN && !isFarmland(level.getBlockState(ground))) {
             till(level, golem, ground);
         }
-        ItemStack seed = golem.hands().release(site.seed().copyWithCount(1));
-        if (seed.isEmpty()) {
-            return;
-        }
-        GolemInteractionHelper.golemClick(level, golem, ground, support.getOpposite(), seed, false, false);
-        BlockState planted = level.getBlockState(pos);
-        if (!planted.isAir()) {
-            level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, pos, Block.getId(planted));
+        InteractionResult result = plant(level, golem, site.seed().copyWithCount(1), ground, support);
+        if (result instanceof InteractionResult.Success) {
+            level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, pos, Block.getId(level.getBlockState(pos)));
+            golem.hands().release(site.seed().copyWithCount(1));
+            golem.grantRankExperience(REPLANT_XP);
+            golem.animateSwing();
         }
     }
 
-    private static Direction supportOf(ServerLevel level, ReplantSite site) {
-        Direction stored = site.face();
-        if (stored.getAxis().isVertical()) {
-            return Direction.DOWN;
+    private static InteractionResult plant(ServerLevel level, IGolemAPI golem, ItemStack seed, BlockPos ground, Direction support) {
+        FakePlayer player = TTFakePlayer.GOLEM.at(level, golem.asEntity());
+        try {
+            player.setItemInHand(InteractionHand.MAIN_HAND, seed);
+            BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(ground), support.getOpposite(), ground, false);
+            return player.gameMode.useItemOn(player, level, seed, InteractionHand.MAIN_HAND, hit);
+        } finally {
+            player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
         }
-        BlockPos pos = site.pos();
-        boolean storedSideEmpty = level.getBlockState(pos.relative(stored)).isAir();
-        return storedSideEmpty && !level.getBlockState(pos.relative(stored.getOpposite())).isAir() ? stored.getOpposite() : stored;
     }
 
     private static void till(ServerLevel level, IGolemAPI golem, BlockPos ground) {

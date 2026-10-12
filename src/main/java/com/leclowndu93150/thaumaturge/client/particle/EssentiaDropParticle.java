@@ -24,12 +24,8 @@ public final class EssentiaDropParticle extends SingleQuadParticle {
     private final float baseSize;
 
     private EssentiaDropParticle(ClientLevel level, double x, double y, double z, EssentiaDropParticleOptions options, ParticleSheet sheet) {
-        super(level, x, y, z, null);
+        super(level, x, y, z, level.getRandom().nextGaussian() * VELOCITY_NOISE, level.getRandom().nextGaussian() * VELOCITY_NOISE, level.getRandom().nextGaussian() * VELOCITY_NOISE, null);
         this.sheet = sheet;
-        RandomSource levelRandom = level.getRandom();
-        this.xd = levelRandom.nextGaussian() * VELOCITY_NOISE;
-        this.yd = levelRandom.nextGaussian() * VELOCITY_NOISE;
-        this.zd = levelRandom.nextGaussian() * VELOCITY_NOISE;
         this.rCol = ARGB.red(options.color()) / 255.0F;
         this.gCol = ARGB.green(options.color()) / 255.0F;
         this.bCol = ARGB.blue(options.color()) / 255.0F;

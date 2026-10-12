@@ -9,7 +9,6 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -19,7 +18,6 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.Vec3;
 
 public final class ItemBlockMirror extends BlockItem {
     private static final String ALREADY_LINKED_KEY = "message.thaumaturge.mirror.already_linked";
@@ -49,22 +47,14 @@ public final class ItemBlockMirror extends BlockItem {
         }
         ItemStack linked = stack.copyWithCount(LINKED_COPY_COUNT);
         linked.set(TTDataComponents.MIRROR_LINK.get(), GlobalPos.of(level.dimension(), pos));
+        level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, LINK_VOLUME, LINK_PITCH);
+        if (!player.getInventory().add(linked)) {
+            player.drop(linked, false);
+        }
         if (!player.hasInfiniteMaterials()) {
             stack.shrink(LINKED_COPY_COUNT);
         }
-        give(player, linked);
-        level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, LINK_VOLUME, LINK_PITCH);
         return InteractionResult.SUCCESS;
-    }
-
-    private static void give(Player player, ItemStack stack) {
-        if (player.getInventory().add(stack)) {
-            return;
-        }
-        Level level = player.level();
-        ItemEntity dropped = new ItemEntity(level, player.getX(), player.getY(), player.getZ(), stack);
-        dropped.setDeltaMovement(Vec3.ZERO);
-        level.addFreshEntity(dropped);
     }
 
     @Override
@@ -73,7 +63,7 @@ public final class ItemBlockMirror extends BlockItem {
         GlobalPos link = stack.get(TTDataComponents.MIRROR_LINK.get());
         if (link != null) {
             BlockPos pos = link.pos();
-            builder.accept(Component.translatable(LINKED_TO_KEY, pos.getX(), pos.getY(), pos.getZ(), link.dimension().identifier().toString()).withStyle(ChatFormatting.DARK_PURPLE));
+            builder.accept(Component.translatable(LINKED_TO_KEY, pos.getX(), pos.getY(), pos.getZ(), link.dimension().identifier().toString()));
         }
     }
 }

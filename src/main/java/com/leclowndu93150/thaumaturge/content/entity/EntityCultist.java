@@ -3,8 +3,8 @@ package com.leclowndu93150.thaumaturge.content.entity;
 import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakTracker;
 import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakWearer;
-import com.leclowndu93150.thaumaturge.content.entity.portal.CultistPortals;
 import java.util.Map;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -83,6 +83,8 @@ public abstract class EntityCultist extends Monster implements CloakWearer {
     private static final int GUARDIAN_PRIORITY = 3;
     private static final int ILLAGER_PRIORITY = 4;
     private static final float LOOK_YAW_OFFSET = 90.0F;
+    private static final int ARRIVAL_PARTICLES = 20;
+    private static final double ARRIVAL_VELOCITY_DEVIATION = 0.05;
 
     private final CloakTracker cloak = new CloakTracker();
 
@@ -151,9 +153,23 @@ public abstract class EntityCultist extends Monster implements CloakWearer {
     @Override
     public void handleEntityEvent(byte id) {
         if (id == ARRIVAL_EVENT) {
-            CultistPortals.showArrival(this);
+            showArrival();
         } else {
             super.handleEntityEvent(id);
+        }
+    }
+
+    private void showArrival() {
+        RandomSource random = this.getRandom();
+        double width = this.getBbWidth();
+        for (int i = 0; i < ARRIVAL_PARTICLES; i++) {
+            double vx = random.nextGaussian() * ARRIVAL_VELOCITY_DEVIATION;
+            double vy = random.nextGaussian() * ARRIVAL_VELOCITY_DEVIATION;
+            double vz = random.nextGaussian() * ARRIVAL_VELOCITY_DEVIATION;
+            double x = this.getX() + (random.nextFloat() * 2.0 * width - width) + 2.0 * vx;
+            double y = this.getY() + random.nextFloat() * this.getBbHeight() + 2.0 * vy;
+            double z = this.getZ() + (random.nextFloat() * 2.0 * width - width) + 2.0 * vz;
+            this.level().addParticle(ParticleTypes.POOF, x, y, z, vx, vy, vz);
         }
     }
 

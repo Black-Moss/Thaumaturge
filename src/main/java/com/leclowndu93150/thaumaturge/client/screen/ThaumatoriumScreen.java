@@ -67,7 +67,6 @@ public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThau
     private static final int PANEL_CHIP_Y = 24;
 
     private static final long FEATURE_SECONDS = 1L;
-    private static final int STRONG_HIGHLIGHT_MIN_QUEUE = 2;
 
     private int scrollIndex;
 
@@ -110,16 +109,12 @@ public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThau
         List<Entry> recipes = menu.clientRecipes;
         clampScroll(recipes.size());
         BlockEntityThaumatorium machine = menu.blockEntity();
-        Identifier featured = machine == null || machine.queue().size() < STRONG_HIGHLIGHT_MIN_QUEUE ? null : featuredRecipe(machine);
         for (int cell = 0; cell < GRID_VISIBLE; cell++) {
             int position = scrollIndex * GRID_COLUMNS + cell;
             if (position >= recipes.size()) {
                 break;
             }
             Entry recipe = recipes.get(position);
-            if (recipe.id().equals(featured)) {
-                HIGHLIGHT.extractFull(graphics, cellX(cell), cellY(cell));
-            }
             extractCell(graphics, recipe, cellX(cell), cellY(cell), mouseX, mouseY);
         }
         if (showsScrollArrows(recipes.size())) {

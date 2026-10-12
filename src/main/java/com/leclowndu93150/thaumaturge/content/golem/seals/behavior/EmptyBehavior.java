@@ -13,6 +13,7 @@ import com.leclowndu93150.thaumaturge.api.items.ItemMatch;
 import com.leclowndu93150.thaumaturge.api.items.StackFilter;
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -21,8 +22,8 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 public final class EmptyBehavior implements ISealBehavior {
-    public static final SealSetting CYCLE = new SealSetting("cycle_whitelist", "gui.thaumaturge.seal.setting.cycle", false);
-    public static final SealSetting LEAVE_ONE = new SealSetting("leave_one", "gui.thaumaturge.seal.setting.leave", false);
+    public static final SealSetting CYCLE = new SealSetting("pcycle", "gui.thaumaturge.seal.setting.cycle", false);
+    public static final SealSetting LEAVE_ONE = new SealSetting("pleave", "gui.thaumaturge.seal.setting.leave", false);
 
     private static final int STAGGER = 43;
     private static final int SCAN_PERIOD = 20;
@@ -111,12 +112,24 @@ public final class EmptyBehavior implements ISealBehavior {
         if (taken.isEmpty()) {
             return;
         }
-        Vec3 front = LooseItems.inFrontOf(at.pos(), at.face());
         for (ItemStack stack : taken) {
-            LooseItems.spawn(level, front, golem.hands().hold(stack), Vec3.ZERO);
+            ItemStack refused = golem.hands().hold(stack);
+            if (!refused.isEmpty()) {
+                dropRemainder(level, at, InvHelper.insertStack(container, refused, false));
+            }
         }
         HandlingSound.play(golem, HandlingSound.HIGH);
         golem.animateSwing();
+    }
+
+    private static void dropRemainder(ServerLevel level, SealPos at, ItemStack remainder) {
+        if (remainder.isEmpty()) {
+            return;
+        }
+        BlockPos containerCell = at.pos();
+        boolean solid = level.getBlockState(containerCell).isCollisionShapeFullBlock(level, containerCell);
+        BlockPos cell = solid ? containerCell.relative(at.face()) : containerCell;
+        LooseItems.spawn(level, Vec3.atBottomCenterOf(cell), remainder, LooseItems.pushToward(at.face().getOpposite()));
     }
 
     private static List<ItemStack> extract(ResourceHandler<ItemResource> container, ItemStack remembered, ItemMatch match, int amount) {

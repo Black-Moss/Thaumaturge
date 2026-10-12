@@ -28,6 +28,8 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
 
     private static final int MIN_HEIGHT_LIMIT = 6;
     private static final int CLUSTER_LAYERS = 4;
+    private static final int CLUSTER_PROBE_LENGTH = 5;
+    private static final int CLUSTER_LAYER_DROP = 1;
     private static final double CROWN_FLOOR_SHARE = 0.3;
     private static final double BRANCH_FLOOR_SHARE = 0.2;
     private static final double CLUSTER_COUNT_BASE = 1.382;
@@ -36,7 +38,6 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
     private static final double PROFILE_SCALE = 0.5;
     private static final double REACH_FLOOR = 0.328;
     private static final double UPPER_CROWN_WIDTH = 1.66;
-    private static final double HALF = 0.5;
 
     private final CrownShape shape;
     private final CrownRule rule;
@@ -63,15 +64,12 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
         if (!standsOnSoil(level, origin)) {
             return List.of();
         }
+        if (baseHasFluid(level, origin)) {
+            return List.of();
+        }
         int limit = clearHeight(level, origin, treeHeight, ownLeaves);
         if (limit < MIN_HEIGHT_LIMIT) {
             return List.of();
-        }
-        int width = shape.trunkWidth();
-        for (int dx = 0; dx < width; dx++) {
-            for (int dz = 0; dz < width; dz++) {
-                placeBelowTrunkBlock(level, trunkSetter, random, origin.offset(dx, -1, dz), config);
-            }
         }
         List<FoliagePlacer.FoliageAttachment> attachments = new ArrayList<>();
         Crown lower = new Crown(origin, limit, shape.crownWidth(), ownLeaves);
@@ -95,6 +93,20 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
         return true;
     }
 
+    private boolean baseHasFluid(WorldGenLevel level, BlockPos origin) {
+        int width = shape.trunkWidth();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        for (int dx = 0; dx < width; dx++) {
+            for (int dz = 0; dz < width; dz++) {
+                cursor.setWithOffset(origin, dx, 0, dz);
+                if (!level.getFluidState(cursor).isEmpty()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private int clearHeight(WorldGenLevel level, BlockPos origin, int limit, Block ownLeaves) {
         int width = shape.trunkWidth();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
@@ -102,20 +114,13 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
             for (int dx = 0; dx < width; dx++) {
                 for (int dz = 0; dz < width; dz++) {
                     cursor.setWithOffset(origin, dx, dy, dz);
-                    if (!openForTrunk(level.getBlockState(cursor), dy, ownLeaves)) {
+                    if (!rule.isOpen(level.getBlockState(cursor), ownLeaves)) {
                         return dy;
                     }
                 }
             }
         }
         return limit;
-    }
-
-    private boolean openForTrunk(BlockState state, int dy, Block ownLeaves) {
-        if (dy == 0) {
-            return CrownRule.canHostLog(state);
-        }
-        return rule.isOpen(state, ownLeaves);
     }
 
     private static int clustersPerLayer(int limit) {
@@ -132,17 +137,13 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
         return PROFILE_SCALE * Math.sqrt(half * half - fromMiddle * fromMiddle);
     }
 
-    private static Direction.Axis dominantAxis(int dx, int dy, int dz) {
-        int absX = Math.abs(dx);
-        int absY = Math.abs(dy);
-        int absZ = Math.abs(dz);
-        if (absX >= absZ && absX > absY) {
-            return Direction.Axis.X;
+    private static Direction.Axis branchAxis(int offsetX, int offsetZ) {
+        int absX = Math.abs(offsetX);
+        int absZ = Math.abs(offsetZ);
+        if (absX == 0 && absZ == 0) {
+            return Direction.Axis.Y;
         }
-        if (absZ > absY) {
-            return Direction.Axis.Z;
-        }
-        return Direction.Axis.Y;
+        return absX >= absZ ? Direction.Axis.X : Direction.Axis.Z;
     }
 
     private static int span(int dx, int dy, int dz) {
@@ -155,7 +156,6 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
         private final double width;
         private final Block ownLeaves;
         private final int trunkTop;
-        private final double centreOffset;
 
         private Crown(BlockPos base, int limit, double width, Block ownLeaves) {
             this.base = base;
@@ -163,12 +163,11 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
             this.width = width;
             this.ownLeaves = ownLeaves;
             this.trunkTop = base.getY() + Mth.floor(limit * shape.trunkShare());
-            this.centreOffset = (shape.trunkWidth() - 1) * HALF;
         }
 
         private int grow(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, List<FoliagePlacer.FoliageAttachment> attachments) {
             List<CrownNode> nodes = new ArrayList<>();
-            BlockPos summit = new BlockPos(rule.clusterCoordinate(base.getX(), centreOffset), base.getY() + limit - CLUSTER_LAYERS, rule.clusterCoordinate(base.getZ(), centreOffset));
+            BlockPos summit = new BlockPos(base.getX(), base.getY() + limit - CLUSTER_LAYERS, base.getZ());
             nodes.add(new CrownNode(summit, trunkTop));
             int perLayer = clustersPerLayer(limit);
             int crownFloor = Mth.ceil(limit * CROWN_FLOOR_SHARE);
@@ -195,33 +194,25 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
         private @Nullable CrownNode scout(WorldGenLevel level, RandomSource random, int layer, double reach) {
             double distance = reach * (random.nextFloat() + REACH_FLOOR);
             double angle = random.nextFloat() * Mth.TWO_PI;
-            int x = rule.clusterCoordinate(base.getX(), centreOffset + distance * Math.sin(angle));
-            int z = rule.clusterCoordinate(base.getZ(), centreOffset + distance * Math.cos(angle));
-            BlockPos cluster = new BlockPos(x, base.getY() + layer, z);
+            int x = rule.clusterCoordinate(base.getX(), distance * Math.sin(angle));
+            int z = rule.clusterCoordinate(base.getZ(), distance * Math.cos(angle));
+            BlockPos cluster = new BlockPos(x, base.getY() + layer - CLUSTER_LAYER_DROP, z);
             if (!clusterHasRoom(level, cluster)) {
                 return null;
             }
-            BlockPos anchor = trunkAnchor(cluster);
-            int runX = cluster.getX() - anchor.getX();
-            int runZ = cluster.getZ() - anchor.getZ();
+            int runX = cluster.getX() - base.getX();
+            int runZ = cluster.getZ() - base.getZ();
             double run = Math.sqrt(runX * runX + runZ * runZ);
             int footY = Math.min(Mth.floor(cluster.getY() - run * shape.branchSlope()), trunkTop);
-            if (!lineIsOpen(level, anchor.atY(footY), cluster)) {
+            if (!lineIsOpen(level, new BlockPos(base.getX(), footY, base.getZ()), cluster)) {
                 return null;
             }
             return new CrownNode(cluster, footY);
         }
 
-        private BlockPos trunkAnchor(BlockPos cluster) {
-            int last = shape.trunkWidth() - 1;
-            int x = Mth.clamp(cluster.getX(), base.getX(), base.getX() + last);
-            int z = Mth.clamp(cluster.getZ(), base.getZ(), base.getZ() + last);
-            return new BlockPos(x, cluster.getY(), z);
-        }
-
         private boolean clusterHasRoom(WorldGenLevel level, BlockPos cluster) {
             BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-            for (int dy = 0; dy < CLUSTER_LAYERS; dy++) {
+            for (int dy = 0; dy < CLUSTER_PROBE_LENGTH; dy++) {
                 cursor.setWithOffset(cluster, 0, dy, 0);
                 if (!isPassable(level, cursor)) {
                     return false;
@@ -250,7 +241,7 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
                 return false;
             }
             BlockState state = level.getBlockState(pos);
-            return rule.isOpen(state, ownLeaves) || state.is(BlockTags.LOGS);
+            return rule.isOpen(state, ownLeaves);
         }
 
         private void raiseTrunk(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config) {
@@ -268,17 +259,25 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
 
         private void growBranch(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, CrownNode node) {
             BlockPos end = node.cluster();
-            BlockPos start = trunkAnchor(end).atY(node.branchFootY());
+            BlockPos start = new BlockPos(base.getX(), node.branchFootY(), base.getZ());
             int dx = end.getX() - start.getX();
             int dy = end.getY() - start.getY();
             int dz = end.getZ() - start.getZ();
             int steps = span(dx, dy, dz);
-            Direction.Axis axis = dominantAxis(dx, dy, dz);
             BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
             for (int step = 1; step <= steps; step++) {
                 pointOnLine(start, dx, dy, dz, step, steps, cursor);
-                setLog(level, trunkSetter, random, config, cursor, axis);
+                if (isTrunkCell(cursor)) {
+                    continue;
+                }
+                setLog(level, trunkSetter, random, config, cursor, branchAxis(cursor.getX() - start.getX(), cursor.getZ() - start.getZ()));
             }
+        }
+
+        private boolean isTrunkCell(BlockPos pos) {
+            int last = shape.trunkWidth() - 1;
+            return pos.getY() >= base.getY() && pos.getY() <= trunkTop && pos.getX() >= base.getX() && pos.getX() <= base.getX() + last && pos.getZ() >= base.getZ()
+                    && pos.getZ() <= base.getZ() + last;
         }
 
         private void pointOnLine(BlockPos start, int dx, int dy, int dz, int step, int steps, BlockPos.MutableBlockPos cursor) {

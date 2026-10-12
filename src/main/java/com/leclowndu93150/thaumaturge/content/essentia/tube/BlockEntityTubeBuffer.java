@@ -51,12 +51,12 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
     private static final int FIRST_SIDE = 0;
     private static final int NO_ARM = -1;
     private static final int NO_SUCTION = 0;
-    private static final float SQUEAK_VOLUME = 0.5F;
-    private static final float SQUEAK_PITCH_BASE = 1.6F;
+    private static final float SQUEAK_VOLUME = 0.6F;
+    private static final float SQUEAK_PITCH_BASE = 2.0F;
     private static final float SQUEAK_PITCH_SPREAD = 0.2F;
     private static final float TOOL_VOLUME = 0.5F;
-    private static final float TOOL_PITCH_BASE = 0.95F;
-    private static final float TOOL_PITCH_SPREAD = 0.15F;
+    private static final float TOOL_PITCH_BASE = 0.9F;
+    private static final float TOOL_PITCH_SPREAD = 0.2F;
 
     private final BufferSides sides = new BufferSides();
     private final BufferSuctionPolicy suctionPolicy = new BufferSuctionPolicy();

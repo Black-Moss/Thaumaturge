@@ -28,6 +28,7 @@ public final class CrystalClusterFeature extends Feature<CrystalClusterConfig> {
     private static final int CLUSTER_SPREAD = 6;
     private static final int CLUSTER_OFFSET = 8;
     private static final int SURFACE_MARGIN = 5;
+    private static final int MIN_HEIGHT_BOUND = 5;
     private static final int CELL_REACH = 1;
     private static final int CELL_SKIP_ONE_IN = 3;
     private static final int SIZE_VARIATION = 3;
@@ -55,9 +56,6 @@ public final class CrystalClusterFeature extends Feature<CrystalClusterConfig> {
         while (budget.canStart()) {
             budget.consumeAttempt();
             BlockPos center = centers.pick(level, random, context.origin());
-            if (center == null) {
-                continue;
-            }
             Entry entry = selector.pick(random, level.getBiome(center));
             BlockState base = entry.block().defaultBlockState();
             if (!base.hasProperty(BlockCrystal.SIZE)) {
@@ -160,11 +158,8 @@ public final class CrystalClusterFeature extends Feature<CrystalClusterConfig> {
             int z = origin.getZ() + CLUSTER_OFFSET + random.nextInt(2 * CLUSTER_SPREAD + 1) - CLUSTER_SPREAD;
             int x = origin.getX() + CLUSTER_OFFSET + random.nextInt(2 * CLUSTER_SPREAD + 1) - CLUSTER_SPREAD;
             int floor = level.getMinY();
-            int ceiling = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z) - SURFACE_MARGIN;
-            if (ceiling < floor) {
-                return null;
-            }
-            return new BlockPos(x, floor + random.nextInt(ceiling - floor + 1), z);
+            int surface = level.getHeight(Heightmap.Types.WORLD_SURFACE_WG, x, z);
+            return new BlockPos(x, floor + random.nextInt(Math.max(MIN_HEIGHT_BOUND, surface - SURFACE_MARGIN - floor)), z);
         }
     }
 

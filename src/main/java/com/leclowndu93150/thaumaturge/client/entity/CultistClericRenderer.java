@@ -14,22 +14,21 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 public final class CultistClericRenderer extends HumanoidMobRenderer<EntityCultistCleric, CultistClericRenderer.State, HumanoidModel<CultistClericRenderer.State>> {
     private static final Identifier TEXTURE = TTIds.rl("textures/entity/cultist.png");
     private static final float SHADOW_RADIUS = 0.5F;
-    private static final float HOVER_HEIGHT = 0.2F;
-    private static final float BOB_AMPLITUDE = 0.11F;
-    private static final float BOB_PERIOD_TICKS = 70.0F;
-    private static final float PHASE_SPREAD = 0.618034F;
-    private static final float HEAD_CLEARANCE = 0.2F;
+    private static final float HOVER_HEIGHT = 0.21F;
+    private static final float BOB_AMPLITUDE = 0.1F;
+    private static final float BOB_RADIAN_DIVISOR = 9.0F;
+    private static final int PHASE_MODULUS = 1000;
+    private static final float LINE_EYE_FACTOR = 1.2F;
     private static final float DRAW_OUT_TICKS = 10.0F;
-    private static final int LINE_COLOR = ARGB.color(255, 30, 10, 42);
-    private static final float LINE_SPEED = -0.025F;
-    private static final float LINE_WIDTH = 0.14F;
+    private static final int LINE_COLOR = 0x110011;
+    private static final float LINE_SPEED = -0.03F;
+    private static final float LINE_WIDTH = 0.25F;
 
     public CultistClericRenderer(EntityRendererProvider.Context context) {
         super(context, new HumanoidModel<>(context.bakeLayer(TTModelLayers.CULTIST)), SHADOW_RADIUS);
@@ -54,9 +53,9 @@ public final class CultistClericRenderer extends HumanoidMobRenderer<EntityCulti
             state.bob = 0.0F;
             return;
         }
-        float phase = Mth.frac(entity.getId() * PHASE_SPREAD) * BOB_PERIOD_TICKS;
-        state.bob = HOVER_HEIGHT + BOB_AMPLITUDE * Mth.sin((state.ageInTicks + phase) / BOB_PERIOD_TICKS * Mth.TWO_PI);
-        state.lineStartY = entity.getBbHeight() + HEAD_CLEARANCE + state.bob;
+        int phase = Math.floorMod(entity.getId(), PHASE_MODULUS);
+        state.bob = HOVER_HEIGHT + BOB_AMPLITUDE * Mth.sin((state.ageInTicks + phase) / BOB_RADIAN_DIVISOR);
+        state.lineStartY = state.bob + LINE_EYE_FACTOR * state.eyeHeight;
         Vec3 focus = entity.ritualFocus();
         state.lineTo = new Vec3(focus.x - state.x, focus.y - state.y - state.lineStartY, focus.z - state.z);
         state.time = FloatyLineRenderer.time(entity.level().getGameTime(), partialTicks);
@@ -74,7 +73,7 @@ public final class CultistClericRenderer extends HumanoidMobRenderer<EntityCulti
         }
         poseStack.pushPose();
         poseStack.translate(0.0F, state.lineStartY, 0.0F);
-        FloatyLineRenderer.submitShaded(poseStack, collector, state.lineTo, state.time, LINE_COLOR, LINE_SPEED, state.lineFade, LINE_WIDTH);
+        FloatyLineRenderer.submit(poseStack, collector, state.lineTo, state.time, LINE_COLOR, LINE_SPEED, state.lineFade, LINE_WIDTH);
         poseStack.popPose();
     }
 

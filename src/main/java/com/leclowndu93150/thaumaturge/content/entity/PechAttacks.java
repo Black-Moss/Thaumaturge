@@ -8,6 +8,8 @@ import com.leclowndu93150.thaumaturge.api.spell.TTSpellParts;
 import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import java.util.List;
+import java.util.Optional;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -20,6 +22,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -35,7 +38,7 @@ final class PechAttacks {
     private static final float SHOT_PITCH_MIN = 0.8F;
     private static final float SHOT_PITCH_RANGE = 0.4F;
 
-    private static final double SPELL_LIFT_PER_BLOCK = 0.12;
+    private static final double SPELL_LIFT_DIVISOR = 6.0;
     private static final String SPEED_SETTING = "speed";
     private static final int SPELL_SPEED = 2;
     private static final float SPELL_POWER = 1.0F;
@@ -51,11 +54,8 @@ final class PechAttacks {
             return;
         }
         RandomSource random = pech.getRandom();
-        Arrow arrow = new Arrow(level, pech, new ItemStack(Items.ARROW), heldBow(pech));
+        Arrow arrow = new Arrow(level, pech, random.nextFloat() < POISON_CHANCE ? poisonedArrowStack() : new ItemStack(Items.ARROW), heldBow(pech));
         arrow.setBaseDamageFromMob(power);
-        if (random.nextFloat() < POISON_CHANCE) {
-            arrow.addEffect(new MobEffectInstance(MobEffects.POISON, POISON_TICKS));
-        }
         double dx = target.getX() - pech.getX();
         double dz = target.getZ() - pech.getZ();
         double flat = Math.sqrt(dx * dx + dz * dz);
@@ -63,7 +63,16 @@ final class PechAttacks {
         float spread = BASE_SPREAD - level.getDifficulty().getId() * SPREAD_PER_DIFFICULTY;
         Projectile.spawnProjectileUsingShoot(arrow, level, arrow.getPickupItemStackOrigin(), dx, dy, dz, ARROW_SPEED, spread);
         float pitch = 1.0F / (random.nextFloat() * SHOT_PITCH_RANGE + SHOT_PITCH_MIN);
-        level.playSound(null, pech.getX(), pech.getY(), pech.getZ(), SoundEvents.ARROW_SHOOT, pech.getSoundSource(), SHOT_VOLUME, pitch);
+        if (!pech.isSilent()) {
+            level.playSound(null, pech.getX(), pech.getY(), pech.getZ(), SoundEvents.ARROW_SHOOT, pech.getSoundSource(), SHOT_VOLUME, pitch);
+        }
+    }
+
+    private static ItemStack poisonedArrowStack() {
+        ItemStack stack = new ItemStack(Items.TIPPED_ARROW);
+        List<MobEffectInstance> effects = List.of(new MobEffectInstance(MobEffects.POISON, POISON_TICKS));
+        stack.set(DataComponents.POTION_CONTENTS, new PotionContents(Optional.empty(), Optional.empty(), effects, Optional.empty()));
+        return stack;
     }
 
     static void castSpell(EntityPech pech, LivingEntity target) {
@@ -71,8 +80,7 @@ final class PechAttacks {
             return;
         }
         Vec3 centre = target.getBoundingBox().getCenter();
-        double flat = Math.sqrt(pech.distanceToSqr(centre.x, pech.getY(), centre.z));
-        Vec3 aim = centre.add(0.0, flat * SPELL_LIFT_PER_BLOCK, 0.0);
+        Vec3 aim = centre.add(0.0, pech.distanceTo(target) / SPELL_LIFT_DIVISOR, 0.0);
         Spell spell = spellFor(pickEffect(pech.getRandom()));
         Spells.cast(pech, ItemStack.EMPTY, spell, List.of(SpellTarget.originTowards(pech, aim)), SPELL_POWER);
         pech.swing(InteractionHand.MAIN_HAND);

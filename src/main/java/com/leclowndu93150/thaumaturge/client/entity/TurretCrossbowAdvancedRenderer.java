@@ -26,17 +26,15 @@ public final class TurretCrossbowAdvancedRenderer extends EntityRenderer<EntityT
     private static final String BOW_LEFT = "bow2";
 
     private static final float SHADOW = 0.5F;
-    private static final float MESH_SCALE = 0.9F;
-    private static final float STAND_HEIGHT = 0.765F;
-    private static final float CART_LEG_REACH = 0.65F;
-    private static final float CART_LEG_LENGTH = 0.45F;
+    private static final float LIFT = 0.75F;
+    private static final float CART_LEG_REACH = 0.66F;
+    private static final float CART_LEG_HEIGHT = 0.75F;
     private static final int WHITE = 0xFFFFFFFF;
-    private static final int HURT_TINT = 0xFFFFB0AA;
+    private static final int HURT_TINT = 0xFFFF7F7F;
     private static final float JIGGLE = 0.035F;
-    private static final float LOADER_TRAVEL = 0.14F;
-    private static final float BOW_PIVOT_Y = 0.094F;
-    private static final float BOW_PIVOT_Z = 0.06F;
-    private static final float BOW_SWING_DEGREES = 28.0F;
+    private static final float LOADER_TRAVEL_DIVISOR = 12.0F;
+    private static final float BOW_FORWARD = 0.375F;
+    private static final float BOW_SWING_DEGREES = 20.0F;
 
     public TurretCrossbowAdvancedRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -74,20 +72,19 @@ public final class TurretCrossbowAdvancedRenderer extends EntityRenderer<EntityT
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        float legLength = state.ridingMinecart ? CART_LEG_LENGTH : 1.0F;
+        float legHeight = state.ridingMinecart ? CART_LEG_HEIGHT : 1.0F;
         float legReach = state.ridingMinecart ? CART_LEG_REACH : 1.0F;
         int light = state.lightCoords;
-        int upperTint = state.hurtFade > 0.0F ? HURT_TINT : WHITE;
+        int upperTint = state.hurtTime > 0 ? HURT_TINT : WHITE;
         RenderType type = RenderTypes.entityCutout(TEXTURE);
-        float bowSwing = BOW_SWING_DEGREES * snap(state.swingAnim);
-        float loaderShift = LOADER_TRAVEL * snap(state.loadProgress);
+        float bowSwing = BOW_SWING_DEGREES * swingWave(state.swingAnim);
+        float loaderShift = swingWave(state.loadProgress) / LOADER_TRAVEL_DIVISOR;
         poseStack.pushPose();
-        poseStack.translate(0.0F, STAND_HEIGHT * MESH_SCALE * legLength, 0.0F);
-        poseStack.scale(MESH_SCALE, MESH_SCALE, MESH_SCALE);
+        poseStack.translate(0.0F, LIFT, 0.0F);
         for (TTMeshPart part : GolemMeshes.get(MESH).parts()) {
             poseStack.pushPose();
             if (LEGS.equals(part.name())) {
-                poseStack.scale(legReach, legLength, legReach);
+                poseStack.scale(legReach, legHeight, legReach);
                 submitPart(collector, poseStack, type, part, light, WHITE);
             } else {
                 poseStack.translate(state.jiggleX, state.jiggleY, state.jiggleZ);
@@ -112,17 +109,16 @@ public final class TurretCrossbowAdvancedRenderer extends EntityRenderer<EntityT
     }
 
     private static void swingBow(PoseStack poseStack, float degrees) {
-        poseStack.translate(0.0F, BOW_PIVOT_Y, BOW_PIVOT_Z);
+        poseStack.translate(0.0F, 0.0F, BOW_FORWARD);
         poseStack.mulPose(Axis.YP.rotationDegrees(degrees));
-        poseStack.translate(0.0F, -BOW_PIVOT_Y, -BOW_PIVOT_Z);
     }
 
     private static void submitPart(SubmitNodeCollector collector, PoseStack poseStack, RenderType type, TTMeshPart part, int light, int color) {
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, color));
     }
 
-    private static float snap(float progress) {
-        return progress <= 0.0F ? 0.0F : Mth.sin(Mth.PI * Mth.sqrt(Math.min(progress, 1.0F)));
+    private static float swingWave(float progress) {
+        return Mth.sin(Mth.sqrt(Math.max(progress, 0.0F)) * Mth.TWO_PI);
     }
 
     public static final class State extends TurretCrossbowRenderState {

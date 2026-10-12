@@ -46,7 +46,6 @@ public interface SpellFx {
      * @param to    the end
      * @param color the packed {@code 0xRRGGBB} tint
      * @param ticks how long the beam lingers
-     * @param hit   whether the beam struck a block or entity at {@code to}; a struck beam shows a brief flare there
      */
-    void beam(Vec3 from, Vec3 to, int color, int ticks, boolean hit);
+    void beam(Vec3 from, Vec3 to, int color, int ticks);
 }

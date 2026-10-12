@@ -5,10 +5,10 @@ import com.leclowndu93150.thaumaturge.client.hud.knowledge.entry.GlintRoll;
 import java.util.Optional;
 
 public final class GlintCalculator {
-    private static final float APPEAR_SHARE = 0.12F;
-    private static final float ARRIVAL_SHARE = 0.12F;
-    private static final float APPEAR_PEAK = 30.0F;
-    private static final float ARRIVAL_PEAK = 14.0F;
+    private static final float APPEAR_SHARE = 0.10F;
+    private static final float ARRIVAL_SHARE = 0.10F;
+    private static final float APPEAR_PEAK = 32.0F;
+    private static final float ARRIVAL_PEAK = 16.0F;
 
     private GlintCalculator() {}
 

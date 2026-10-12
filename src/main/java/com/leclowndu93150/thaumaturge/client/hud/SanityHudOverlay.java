@@ -10,8 +10,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.util.RandomSource;
-import org.joml.Matrix3x2fStack;
 import org.jspecify.annotations.Nullable;
 
 public final class SanityHudOverlay implements LeftHudStack.Gauge {
@@ -19,6 +17,8 @@ public final class SanityHudOverlay implements LeftHudStack.Gauge {
     private static final int TEX = TTScreenTextures.TEX_SIZE;
     private static final float FULL_WARP = 100.0F;
 
+    private static final int FRAME_U = 152;
+    private static final int FRAME_V = 0;
     private static final int PANEL_X = 1;
     private static final int PANEL_Y = 1;
     private static final int PANEL_U = 176;
@@ -33,24 +33,15 @@ public final class SanityHudOverlay implements LeftHudStack.Gauge {
     private static final int FILL_U = 200;
     private static final int FILL_V = 0;
 
-    private static final int TEMPORARY_TINT = 0xFFE7B5F2;
-    private static final int NORMAL_TINT = 0xFFA24BDB;
-    private static final int PERMANENT_TINT = 0xFF4B1675;
-
-    private static final int GLYPH_U = 216;
-    private static final int GLYPH_V = 0;
-    private static final int GLYPH_W = 20;
-    private static final int GLYPH_H = 16;
-    private static final float GLYPH_X = 1.0F;
-    private static final float GLYPH_Y = 3.0F;
-    private static final float GLYPH_SCALE = 0.75F;
-    private static final float GLYPH_TREMBLE = 0.6F;
+    private static final int TEMPORARY_TINT = 0xFFFF7FFF;
+    private static final int NORMAL_TINT = 0xFFBF00BF;
+    private static final int PERMANENT_TINT = 0xFF7F007F;
 
     public SanityHudOverlay() {}
 
     @Override
     public boolean visible(Minecraft mc, LocalPlayer player) {
-        return mc.screen == null && mc.mouseHandler.isMouseGrabbed() && (player.getMainHandItem().is(TTItems.SANITY_CHECKER) || player.getOffhandItem().is(TTItems.SANITY_CHECKER));
+        return player.getMainHandItem().is(TTItems.SANITY_CHECKER) || player.getOffhandItem().is(TTItems.SANITY_CHECKER);
     }
 
     @Override
@@ -74,13 +65,15 @@ public final class SanityHudOverlay implements LeftHudStack.Gauge {
         int normal = Math.max(0, warp.get(WarpType.NORMAL));
         int permanent = Math.max(0, warp.get(WarpType.PERMANENT));
         int total = temporary + normal + permanent;
+        drawFrame(graphics);
         if (total > 0) {
             drawBands(graphics, temporary, normal, permanent, total);
         }
         drawPanel(graphics);
-        if (total >= FULL_WARP) {
-            drawWarning(graphics, player.getRandom());
-        }
+    }
+
+    private static void drawFrame(GuiGraphicsExtractor graphics) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.HUD, PANEL_X, PANEL_Y, FRAME_U, FRAME_V, PANEL_W, PANEL_H, PANEL_W, PANEL_H, TEX, TEX);
     }
 
     private static void drawPanel(GuiGraphicsExtractor graphics) {
@@ -117,16 +110,5 @@ public final class SanityHudOverlay implements LeftHudStack.Gauge {
         }
         graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.HUD, WELL_X, WELL_Y + top, FILL_U, FILL_V + top, WELL_W, rows, WELL_W, rows, TEX, TEX, tint);
         return top + rows;
-    }
-
-    private static void drawWarning(GuiGraphicsExtractor graphics, RandomSource random) {
-        float jitterX = (random.nextFloat() - random.nextFloat()) * GLYPH_TREMBLE;
-        float jitterY = (random.nextFloat() - random.nextFloat()) * GLYPH_TREMBLE;
-        Matrix3x2fStack pose = graphics.pose();
-        pose.pushMatrix();
-        pose.translate(GLYPH_X + jitterX, GLYPH_Y + jitterY);
-        pose.scale(GLYPH_SCALE, GLYPH_SCALE);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.HUD, 0, 0, GLYPH_U, GLYPH_V, GLYPH_W, GLYPH_H, GLYPH_W, GLYPH_H, TEX, TEX);
-        pose.popMatrix();
     }
 }

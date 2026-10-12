@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.world.objects;
 
 import com.leclowndu93150.thaumaturge.content.aura.node.NodeGenerator;
+import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.mojang.serialization.Codec;
@@ -60,7 +61,7 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
             raisePillar(level, random, edge.relative(side.getCounterClockWise(), PILLAR_SIDE_SHIFT), snowy);
         }
         furnishCentre(level, random, centre);
-        NodeGenerator.createRandomNodeAt(level, centre.above(NODE_HEIGHT), random, false, false, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
+        NodeGenerator.createRandomNodeAt(level, centre.above(NODE_HEIGHT), random, false, true, false, NodeGenerator.DEFAULT_SPECIAL_RARITY, NodeGenerator.DEFAULT_BASE_AURA);
         return true;
     }
 
@@ -74,7 +75,8 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
     }
 
     private static boolean isCover(BlockState state) {
-        return state.is(Blocks.SNOW) || state.is(Blocks.SHORT_GRASS) || state.is(Blocks.TALL_GRASS) || state.is(Blocks.FERN) || state.is(Blocks.LARGE_FERN);
+        return state.is(Blocks.SNOW) || state.is(Blocks.SHORT_GRASS) || state.is(Blocks.TALL_GRASS) || state.is(Blocks.FERN) || state.is(Blocks.LARGE_FERN)
+                || state.is(BlockTags.SMALL_FLOWERS) || state.is(TTBlockTags.MAGICAL_PLANTS);
     }
 
     private static boolean siteIsLevel(WorldGenLevel level, BlockPos anchor) {
@@ -113,7 +115,7 @@ public final class HilltopStonesFeature extends Feature<NoneFeatureConfiguration
         for (int depth = 1; depth <= FOOTING_DEPTH; depth++) {
             BlockPos below = cell.below(depth);
             BlockState existing = level.getBlockState(below);
-            if (!existing.isAir() && !isCover(existing) && !existing.is(BlockTags.SMALL_FLOWERS)) {
+            if (!existing.isAir() && !isCover(existing)) {
                 return;
             }
             level.setBlock(below, footing, PLACE_FLAGS);

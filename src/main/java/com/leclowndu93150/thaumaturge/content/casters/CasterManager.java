@@ -24,9 +24,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.sounds.SoundSource;
@@ -100,7 +98,7 @@ public final class CasterManager {
 
     public static boolean drawVisFromPack(Player player, float cost) {
         Inventory inventory = player.getInventory();
-        return IntStream.range(0, Inventory.INVENTORY_SIZE).anyMatch(slot -> canPay(inventory.getItem(slot), player, cost));
+        return IntStream.rangeClosed(1, Inventory.INVENTORY_SIZE).map(offset -> Inventory.INVENTORY_SIZE - offset).anyMatch(slot -> canPay(inventory.getItem(slot), player, cost));
     }
 
     private static boolean canPay(ItemStack stack, Player player, float cost) {
@@ -116,16 +114,15 @@ public final class CasterManager {
             removeFocus(casterStack, caster, level, player);
             return;
         }
-        selectFocus(casterStack, caster, level, player, choose(carried, focusKey, caster.socketedFocus(casterStack)));
+        selectFocus(casterStack, caster, level, player, choose(carried, focusKey));
     }
 
-    private static FocusLocation choose(TreeMap<String, FocusLocation> carried, @Nullable String focusKey, ItemStack equipped) {
+    private static FocusLocation choose(TreeMap<String, FocusLocation> carried, @Nullable String focusKey) {
         FocusLocation exact = focusKey == null ? null : carried.get(focusKey);
         if (exact != null) {
             return exact;
         }
-        String base = focusKey != null ? focusKey : equipped.isEmpty() ? null : FocusItems.sortKey(equipped);
-        Map.Entry<String, FocusLocation> next = base == null ? null : carried.higherEntry(base);
+        Map.Entry<String, FocusLocation> next = focusKey == null ? null : carried.higherEntry(focusKey);
         return (next != null ? next : carried.firstEntry()).getValue();
     }
 
@@ -163,8 +160,20 @@ public final class CasterManager {
 
     private static TreeMap<String, FocusLocation> carriedFoci(Player player) {
         TreeMap<String, FocusLocation> carried = new TreeMap<>();
-        Stream.concat(Stream.of(new InventoryStore(player.getInventory())), pouchStores(player).stream()).forEach(store -> store.slots().forEach(slot -> register(carried, store, slot)));
+        Inventory inventory = player.getInventory();
+        InventoryStore loose = new InventoryStore(inventory);
+        wornPouchStores(player).forEach(store -> registerAll(carried, store));
+        for (int slot = 0; slot < Inventory.INVENTORY_SIZE; slot++) {
+            register(carried, loose, slot);
+            if (isPouch(inventory.getItem(slot))) {
+                registerAll(carried, pouchInInventory(inventory, slot));
+            }
+        }
         return carried;
+    }
+
+    private static void registerAll(TreeMap<String, FocusLocation> carried, FocusStore store) {
+        store.slots().forEach(slot -> register(carried, store, slot));
     }
 
     private static void register(TreeMap<String, FocusLocation> carried, FocusStore store, int slot) {
@@ -174,14 +183,19 @@ public final class CasterManager {
         }
         String key = FocusItems.sortKey(stack);
         if (key != null) {
-            carried.putIfAbsent(key, new FocusLocation(store, slot));
+            carried.put(key, new FocusLocation(store, slot));
         }
     }
 
     private static List<FocusStore> pouchStores(Player player) {
+        List<FocusStore> stores = wornPouchStores(player);
         Inventory inventory = player.getInventory();
-        List<FocusStore> stores = IntStream.range(0, Inventory.INVENTORY_SIZE).filter(slot -> isPouch(inventory.getItem(slot))).<FocusStore>mapToObj(slot -> pouchInInventory(inventory, slot))
-                .collect(Collectors.toCollection(ArrayList::new));
+        IntStream.range(0, Inventory.INVENTORY_SIZE).filter(slot -> isPouch(inventory.getItem(slot))).forEach(slot -> stores.add(pouchInInventory(inventory, slot)));
+        return stores;
+    }
+
+    private static List<FocusStore> wornPouchStores(Player player) {
+        List<FocusStore> stores = new ArrayList<>();
         if (ModList.get().isLoaded(TTIds.CURIOS)) {
             ThaumaturgeCuriosCompat.equippedPouches(player, CasterManager::isPouch).forEach(ref -> stores.add(pouchWorn(ref)));
         }

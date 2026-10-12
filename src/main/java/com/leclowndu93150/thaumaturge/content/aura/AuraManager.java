@@ -2,9 +2,8 @@ package com.leclowndu93150.thaumaturge.content.aura;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
-import com.leclowndu93150.thaumaturge.network.effect.ClientboundSpawnParticlePayload;
+import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
-import com.leclowndu93150.thaumaturge.registry.TTParticles;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.transfer.transaction.RootCommitJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jspecify.annotations.Nullable;
@@ -28,8 +26,6 @@ public final class AuraManager {
     public static final Identifier AURA_PRESERVE_RESEARCH = TTIds.rl("aura_preserve");
     private static final float PRESERVE_RATIO = 0.1F;
     private static final int CHUNK_SHIFT = 4;
-    private static final double PARTICLE_RANGE = 64.0;
-    private static final double BLOCK_CENTER = 0.5;
     private static final Map<ResourceKey<Level>, DimensionState> STATES = new ConcurrentHashMap<>();
 
     private AuraManager() {}
@@ -98,7 +94,7 @@ public final class AuraManager {
     public static void taint(Level level, BlockPos pos, float amount, boolean showEffect) {
         creditFlux(level, pos, amount);
         if (showEffect && amount > 0.0F && level instanceof ServerLevel server) {
-            emitFume(server, pos);
+            Effects.pollution(server, pos).send();
         }
     }
 
@@ -176,14 +172,6 @@ public final class AuraManager {
 
     private static ChunkPos chunkOf(BlockPos pos) {
         return new ChunkPos(pos.getX() >> CHUNK_SHIFT, pos.getZ() >> CHUNK_SHIFT);
-    }
-
-    private static void emitFume(ServerLevel level, BlockPos pos) {
-        double cx = pos.getX() + BLOCK_CENTER;
-        double cy = pos.getY() + BLOCK_CENTER;
-        double cz = pos.getZ() + BLOCK_CENTER;
-        ClientboundSpawnParticlePayload fume = new ClientboundSpawnParticlePayload(TTParticles.POLLUTION_FUME.get(), cx, cy, cz);
-        PacketDistributor.sendToPlayersNear(level, null, cx, cy, cz, PARTICLE_RANGE, fume);
     }
 
     private static final class DimensionState {

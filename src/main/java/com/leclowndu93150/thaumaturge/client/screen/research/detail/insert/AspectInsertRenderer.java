@@ -3,6 +3,7 @@ package com.leclowndu93150.thaumaturge.client.screen.research.detail.insert;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
+import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.DetailFrame;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.EntryDetailModel;
@@ -12,7 +13,6 @@ import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.AspectT
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.BookBlit;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.BookSprites;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
-import java.util.Comparator;
 import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -45,17 +45,19 @@ public final class AspectInsertRenderer {
     private static final int PRIMAL_X = 54;
     private static final int NAME_Y = 29;
     private static final float NAME_SCALE = 0.5F;
-    private static final int HOVER_SIZE = 40;
+    private static final int HOVER_SIZE = 32;
+    private static final int BACKDROP_OFFSET = -2;
+    private static final float BACKDROP_SCALE = 2.0F;
     private static final int COMPOUND_PARTS = 2;
 
     private static final int PREVIOUS_X = -20;
     private static final int NEXT_X = 144;
     private static final int PAGER_Y = 208;
 
-    private static final int NAME_COLOR = 0xFF6B6560;
-    private static final int SYMBOL_COLOR = 0xFF2E2A27;
-    private static final int PRIMAL_COLOR = 0xFF7D7772;
-    private static final float HOVER_BACKDROP_ALPHA = 0.35F;
+    private static final int NAME_COLOR = 0xFF505050;
+    private static final int SYMBOL_COLOR = 0xFF999999;
+    private static final int PRIMAL_COLOR = 0xFF777777;
+    private static final float HOVER_BACKDROP_ALPHA = 0.5F;
 
     private static final String EQUALS = "=";
     private static final String PLUS = "+";
@@ -68,9 +70,9 @@ public final class AspectInsertRenderer {
         if (player == null) {
             return AspectList.EMPTY;
         }
-        List<AspectInstance> known = player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().filter(aspect -> AspectPools.isDiscovered(player, aspect))
-                .sorted(Comparator.comparing(aspect -> AspectComponents.name(aspect).getString())).map(aspect -> new AspectInstance(aspect, LISTED_AMOUNT)).toList();
-        return AspectList.ofEntries(known);
+        List<AspectInstance> listed = player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().filter(aspect -> AspectKnowledgeAccess.of(aspect).isCompositionRevealed())
+                .map(aspect -> new AspectInstance(aspect, LISTED_AMOUNT)).toList();
+        return AspectList.ofEntries(AspectList.ofEntries(listed).sortedByTag());
     }
 
     public static int pageCount(@Nullable Player player) {
@@ -103,9 +105,13 @@ public final class AspectInsertRenderer {
 
     private static void drawRow(GuiGraphicsExtractor graphics, Font font, Player player, Holder<IAspect> aspect, int x, int y, int mouseX, int mouseY) {
         if (Rect.inside(x, y, HOVER_SIZE, HOVER_SIZE, mouseX, mouseY)) {
-            drawScaled(graphics, x + MAIN_X, y + MAIN_Y, MAIN_SCALE, () -> BookBlit.iconTile(graphics, AspectTileDrawer.BACKDROP_TILE, 0, 0, BookBlit.alphaTint(HOVER_BACKDROP_ALPHA)));
+            drawScaled(graphics, x + BACKDROP_OFFSET, y + BACKDROP_OFFSET, BACKDROP_SCALE, () -> BookBlit.iconTile(graphics, AspectTileDrawer.BACKDROP_TILE, 0, 0, BookBlit.alphaTint(HOVER_BACKDROP_ALPHA)));
         }
-        drawScaled(graphics, x + MAIN_X, y + MAIN_Y, MAIN_SCALE, () -> AspectTileDrawer.known(graphics, 0, 0, aspect));
+        if (AspectPools.isDiscovered(player, aspect)) {
+            drawScaled(graphics, x + MAIN_X, y + MAIN_Y, MAIN_SCALE, () -> AspectTileDrawer.known(graphics, 0, 0, aspect));
+        } else {
+            drawScaled(graphics, x + MAIN_X, y + MAIN_Y, MAIN_SCALE, () -> AspectTileDrawer.silhouette(graphics, aspect));
+        }
         drawSmallName(graphics, font, AspectComponents.name(aspect), x + MAIN_NAME_CENTER_X, y + NAME_Y);
         List<Holder<IAspect>> parts = aspect.value().components();
         if (aspect.value().isPrimal() || parts.size() != COMPOUND_PARTS) {

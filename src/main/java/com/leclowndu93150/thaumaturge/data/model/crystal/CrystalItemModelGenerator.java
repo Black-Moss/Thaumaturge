@@ -1,10 +1,7 @@
 package com.leclowndu93150.thaumaturge.data.model.crystal;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.content.world.crystal.BlockCrystal;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
-import java.util.List;
 import net.minecraft.client.color.item.Dye;
 import net.minecraft.client.data.models.ItemModelGenerators;
 import net.minecraft.client.data.models.model.ItemModelUtils;
@@ -12,28 +9,30 @@ import net.minecraft.client.data.models.model.ModelLocationUtils;
 import net.minecraft.client.data.models.model.ModelTemplates;
 import net.minecraft.client.data.models.model.TextureMapping;
 import net.minecraft.client.resources.model.sprite.Material;
-import net.minecraft.core.HolderGetter;
 import net.minecraft.resources.Identifier;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.registries.DeferredBlock;
 
 public final class CrystalItemModelGenerator {
     private static final Identifier PLANTER_TEXTURE = TTIds.rl("item/crystal_planter");
     private static final int OPAQUE = 0xFF000000;
-    private static final List<DeferredBlock<BlockCrystal>> PLANTED_CRYSTALS = List.of(TTBlocks.CRYSTAL_AER, TTBlocks.CRYSTAL_TERRA, TTBlocks.CRYSTAL_IGNIS, TTBlocks.CRYSTAL_AQUA,
-            TTBlocks.CRYSTAL_ORDO, TTBlocks.CRYSTAL_PERDITIO, TTBlocks.CRYSTAL_VITIUM);
+    private static final int TINT_AER = 0xFFFF7E;
+    private static final int TINT_IGNIS = 0xFF5A01;
+    private static final int TINT_AQUA = 0x3CD4FC;
+    private static final int TINT_TERRA = 0x56C000;
+    private static final int TINT_ORDO = 0xD5D4EC;
+    private static final int TINT_PERDITIO = 0x404040;
+    private static final int TINT_VITIUM = 0x800080;
 
     private CrystalItemModelGenerator() {}
 
-    public static void register(ItemModelGenerators itemModels, HolderGetter<IAspect> aspects) {
-        for (DeferredBlock<BlockCrystal> crystal : PLANTED_CRYSTALS) {
-            ResourceKey<IAspect> aspect = crystal.get().aspect();
-            if (aspect == null) {
-                throw new IllegalStateException("Crystal " + crystal.getId() + " has no aspect to take its tint from");
-            }
-            emit(itemModels, crystal.asItem(), aspects.getOrThrow(aspect).value().color());
-        }
+    public static void register(ItemModelGenerators itemModels) {
+        emit(itemModels, TTBlocks.CRYSTAL_AER.asItem(), TINT_AER);
+        emit(itemModels, TTBlocks.CRYSTAL_IGNIS.asItem(), TINT_IGNIS);
+        emit(itemModels, TTBlocks.CRYSTAL_AQUA.asItem(), TINT_AQUA);
+        emit(itemModels, TTBlocks.CRYSTAL_TERRA.asItem(), TINT_TERRA);
+        emit(itemModels, TTBlocks.CRYSTAL_ORDO.asItem(), TINT_ORDO);
+        emit(itemModels, TTBlocks.CRYSTAL_PERDITIO.asItem(), TINT_PERDITIO);
+        emit(itemModels, TTBlocks.CRYSTAL_VITIUM.asItem(), TINT_VITIUM);
     }
 
     private static void emit(ItemModelGenerators itemModels, Item item, int color) {

@@ -58,10 +58,10 @@ public final class PechWandItem extends Item {
             }
             return InteractionResult.PASS;
         }
+        player.getItemInHand(hand).consume(1, player);
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.SUCCESS;
         }
-        player.getItemInHand(hand).consume(1, player);
         RandomSource random = level.getRandom();
         float pitch = LEARN_PITCH + (random.nextFloat() - random.nextFloat()) * LEARN_PITCH_SPREAD;
         level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.LEARN.get(), SoundSource.NEUTRAL, LEARN_VOLUME, pitch);
@@ -71,6 +71,6 @@ public final class PechWandItem extends Item {
         }
         OBSERVATION_GRANT.award(serverPlayer);
         THEORY_GRANT.award(serverPlayer);
-        return InteractionResult.SUCCESS_SERVER;
+        return InteractionResult.SUCCESS;
     }
 }

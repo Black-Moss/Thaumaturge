@@ -5,21 +5,16 @@ import com.leclowndu93150.thaumaturge.content.entity.EntityCultist;
 import com.leclowndu93150.thaumaturge.content.entity.EntityGolemOrb;
 import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
-import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakTracker;
 import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakWearer;
-import com.leclowndu93150.thaumaturge.content.entity.portal.CultistPortals;
+import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitNames;
 import com.leclowndu93150.thaumaturge.registry.TTLootTables;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -43,8 +38,8 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.providers.VanillaEnchantmentProviders;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.storage.ValueInput;
@@ -88,14 +83,11 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
     private static final float ORB_VOLUME = 1.0F;
     private static final float ORB_PITCH_BASE = 1.0F;
     private static final float ORB_PITCH_SPREAD = 0.1F;
-    private static final float ORB_LAUNCH_SPEED = 0.3F;
-    private static final float ORB_LAUNCH_SCATTER = 8.0F;
-    private static final double TARGET_BODY_MIDDLE = 0.5;
-    private static final double LOB_CLEARANCE = 0.75;
-    private static final double LOB_RISE_PER_BLOCK = 0.04;
+    private static final float ORB_LAUNCH_SPEED = 0.66F;
+    private static final float ORB_LAUNCH_SCATTER = 3.0F;
+    private static final double BODY_CENTRE_FRACTION = 0.5;
+    private static final double ORB_LOB = 2.0;
     private static final float FACE_TURN = 180.0F;
-    private static final int WEAPON_ENCHANT_BASE = 7;
-    private static final int WEAPON_ENCHANT_ROLL = 21;
 
     private final CloakTracker cloak = new CloakTracker();
     private int title;
@@ -141,27 +133,20 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
         lookAt(target, FACE_TURN, FACE_TURN);
         swing(InteractionHand.MAIN_HAND);
         EntityGolemOrb orb = new EntityGolemOrb(server, this, target, true);
-        Vec3 heading = lobPoint(target).subtract(orb.position());
-        orb.shoot(heading.x, heading.y, heading.z, ORB_LAUNCH_SPEED, ORB_LAUNCH_SCATTER);
+        Vec3 bodyCentre = position().add(0.0, getBbHeight() * BODY_CENTRE_FRACTION, 0.0);
+        Vec3 heading = target.getBoundingBox().getCenter().subtract(bodyCentre);
+        orb.shoot(heading.x, heading.y + ORB_LOB, heading.z, ORB_LAUNCH_SPEED, ORB_LAUNCH_SCATTER);
         server.addFreshEntity(orb);
         playOrbSound(server);
     }
 
-    private Vec3 lobPoint(LivingEntity target) {
-        double rise = LOB_CLEARANCE + distanceTo(target) * LOB_RISE_PER_BLOCK;
-        return new Vec3(target.getX(), target.getY(TARGET_BODY_MIDDLE) + rise, target.getZ());
-    }
-
     private void enchantWeapon(ServerLevelAccessor level, DifficultyInstance difficulty) {
         ItemStack weapon = getMainHandItem();
-        float clamped = difficulty.getSpecialMultiplier();
         RandomSource random = getRandom();
-        if (weapon.isEmpty() || random.nextFloat() >= WEAPON_ENCHANT_CHANCE * clamped) {
+        if (weapon.isEmpty() || random.nextFloat() >= WEAPON_ENCHANT_CHANCE * difficulty.getSpecialMultiplier()) {
             return;
         }
-        int power = WEAPON_ENCHANT_BASE + (int) (random.nextInt(WEAPON_ENCHANT_ROLL + 1) * clamped);
-        Optional<HolderSet.Named<Enchantment>> pool = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(EnchantmentTags.ON_MOB_SPAWN_EQUIPMENT);
-        setItemSlot(EquipmentSlot.MAINHAND, EnchantmentHelper.enchantItem(random, weapon, power, level.registryAccess(), pool));
+        EnchantmentHelper.enchantItemFromProvider(weapon, level.registryAccess(), VanillaEnchantmentProviders.MOB_SPAWN_EQUIPMENT, difficulty, random);
     }
 
     @Override
@@ -173,20 +158,8 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
     }
 
     private void rally(ServerLevel level) {
-        double reachSqr = RALLY_RADIUS * RALLY_RADIUS;
         for (EntityCultist follower : level.getEntitiesOfClass(EntityCultist.class, getBoundingBox().inflate(RALLY_RADIUS), EntityCultistLeader::lacksRegeneration)) {
-            if (distanceToSqr(follower) <= reachSqr) {
-                grantRallyRegeneration(follower);
-            }
-        }
-    }
-
-    @Override
-    public void handleEntityEvent(byte id) {
-        if (id == EntityCultist.ARRIVAL_EVENT) {
-            CultistPortals.showArrival(this);
-        } else {
-            super.handleEntityEvent(id);
+            grantRallyRegeneration(follower);
         }
     }
 
@@ -232,6 +205,9 @@ public class EntityCultistLeader extends EntityThaumaturgeBoss implements Ranged
     }
 
     private void playOrbSound(ServerLevel level) {
+        if (isSilent()) {
+            return;
+        }
         float pitch = ORB_PITCH_BASE + getRandom().nextFloat() * ORB_PITCH_SPREAD;
         level.playSound(null, getX(), getY(), getZ(), TTSounds.EGATTACK.get(), SoundSource.HOSTILE, ORB_VOLUME, pitch);
     }

@@ -105,8 +105,8 @@ public class JarItem extends BlockItem {
             return;
         }
         held.shrink(1);
-        if (!player.getInventory().add(scooped) && player.level() instanceof ServerLevel server) {
-            player.spawnAtLocation(server, scooped);
+        if (!player.getInventory().add(scooped)) {
+            player.drop(scooped, false);
         }
     }
 }

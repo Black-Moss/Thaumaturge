@@ -16,9 +16,9 @@ record ReplantSite(BlockPos pos, Direction face, ItemStack seed, boolean tilled,
 
     static final MapCodec<ReplantSite> CODEC = RecordCodecBuilder
             .mapCodec(instance -> instance
-                    .group(Codec.LONG.optionalFieldOf("pos", DEFAULT_POS).forGetter(site -> site.pos().asLong()),
-                            Codec.BYTE.optionalFieldOf("face", DEFAULT_FACE).forGetter(site -> (byte) site.face().get3DDataValue()),
-                            Codec.BOOL.optionalFieldOf("tilled", false).forGetter(ReplantSite::tilled), ItemStack.OPTIONAL_CODEC.optionalFieldOf("seed", ItemStack.EMPTY).forGetter(ReplantSite::seed))
+                    .group(Codec.LONG.optionalFieldOf("taskloc", DEFAULT_POS).forGetter(site -> site.pos().asLong()),
+                            Codec.BYTE.optionalFieldOf("taskface", DEFAULT_FACE).forGetter(site -> (byte) site.face().get3DDataValue()),
+                            Codec.BOOL.optionalFieldOf("farmland", false).forGetter(ReplantSite::tilled), ItemStack.OPTIONAL_CODEC.optionalFieldOf("seed", ItemStack.EMPTY).forGetter(ReplantSite::seed))
                     .apply(instance, ReplantSite::restore));
 
     private static ReplantSite restore(long pos, byte face, boolean tilled, ItemStack seed) {

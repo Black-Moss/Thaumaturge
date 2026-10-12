@@ -83,7 +83,15 @@ public final class TaintHelper {
         }
         double inner = fringeDistance();
         double outer = spreadArea();
-        return TaintSeedRegistry.get(server).isAtEdge(pos, inner * inner, outer * outer);
+        double innerSq = inner * inner;
+        double outerSq = outer * outer;
+        for (BlockPos seed : TaintSeedRegistry.get(server).all()) {
+            double distance = seed.distSqr(pos);
+            if (distance > innerSq && distance < outerSq) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isTaintBlock(BlockState state) {

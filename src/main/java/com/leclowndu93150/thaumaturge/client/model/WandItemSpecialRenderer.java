@@ -64,89 +64,78 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
     private static final float STAFF_FOCUS_Y_SCALE = 0.5525F;
     private static final float WAND_FOCUS_SCALE = 0.5F;
     private static final int FOCUS_ALPHA = (int) (0.95F * 255.0F);
+    private static final int FOCUS_LIGHT_BASE = 195;
     private static final int FOCUS_LIGHT_AMPLITUDE = 10;
+    private static final int FOCUS_LIGHT_OFFSET = 10;
     private static final float FOCUS_LIGHT_PERIOD = 3.0F;
+    private static final int GLOW_LIGHT_BASE = 200;
     private static final int GLOW_LIGHT_AMPLITUDE = 5;
+    private static final int GLOW_LIGHT_OFFSET = 5;
+    private static final int SKY_LIGHT_NONE = 0;
 
     private static final Fit GROUP_FIT = new Fit(STAFF_GROUP_Y, 1.0F, 1.0F);
     private static final Fit ROD_FIT = new Fit(STAFF_ROD_Y, STAFF_ROD_WIDTH, STAFF_ROD_LENGTH);
     private static final Fit FOCUS_STAFF_FIT = new Fit(STAFF_FOCUS_Y, STAFF_FOCUS_XZ, STAFF_FOCUS_Y_SCALE);
     private static final Fit FOCUS_PLAIN_FIT = new Fit(0.0F, WAND_FOCUS_SCALE, WAND_FOCUS_SCALE);
 
-    private static final BoxSpec ROD_BOX = BoxSpec.sized(2, 18, 2).at(-1, 0, -1).uv(0, 8);
+    private static final BoxSpec ROD_BOX = BoxSpec.sized(2, 18, 2).at(-1, 1, -1).uv(0, 8);
     private static final BoxSpec CAP_BOX = BoxSpec.sized(2, 2, 2).at(-1, -1, -1).uv(0, 0);
     private static final BoxSpec FOCUS_BOX = BoxSpec.sized(6, 6, 6).at(-3, -6, -3).uv(0, 0);
 
-    private static final float WAND_CAP_OUTER_XZ = 1.0F;
+    private static final float WAND_CAP_OUTER_XZ = 1.2F;
     private static final float WAND_CAP_OUTER_Y = 1.0F;
-    private static final float STAFF_CAP_OUTER_XZ = 1.2F;
+    private static final float STAFF_CAP_OUTER_XZ = 1.3F;
     private static final float STAFF_CAP_OUTER_Y = 1.1F;
-    private static final float CAP_PIVOT = 1.0F;
-    private static final float COLLAR_XZ = 1.3F;
-    private static final float COLLAR_Y = 1.5F;
-    private static final float WAND_TOP_CAP_Y = -1.0F * PIXEL;
-    private static final float WAND_BOTTOM_CAP_Y = 16.0F * PIXEL;
-    private static final float SCEPTRE_HEAD_Y = -1.3F * PIXEL;
-    private static final float SCEPTRE_HEAD_XZ = 1.75F;
-    private static final float SCEPTRE_HEAD_HEIGHT = 1.8F;
-    private static final float SCEPTRE_COLLAR_Y = 2.8F * PIXEL;
-    private static final float SCEPTRE_COLLAR_XZ = 1.55F;
-    private static final float SCEPTRE_COLLAR_HEIGHT = 0.45F;
-    private static final float STAFF_COLLAR_Y = 4.4F * PIXEL / STAFF_CAP_OUTER_Y;
-    private static final float STAFF_COLLAR_XZ = 1.1F;
-    private static final float STAFF_COLLAR_HEIGHT = 0.5F;
-    private static final float STAFF_BOTTOM_CAP_Y = 32.6F * PIXEL / STAFF_CAP_OUTER_Y;
-    private static final List<CapSlot> CAP_SLOTS = List.of(new CapSlot(Presence.NOT_SCEPTRE, WAND_TOP_CAP_Y, COLLAR_XZ, COLLAR_Y, CAP_PIVOT),
-            new CapSlot(Presence.SCEPTRE, SCEPTRE_HEAD_Y, SCEPTRE_HEAD_XZ, SCEPTRE_HEAD_HEIGHT, CAP_PIVOT),
-            new CapSlot(Presence.SCEPTRE, SCEPTRE_COLLAR_Y, SCEPTRE_COLLAR_XZ, SCEPTRE_COLLAR_HEIGHT, CAP_PIVOT),
-            new CapSlot(Presence.STAFF, STAFF_COLLAR_Y, STAFF_COLLAR_XZ, STAFF_COLLAR_HEIGHT, CAP_PIVOT), new CapSlot(Presence.NOT_STAFF, WAND_BOTTOM_CAP_Y, COLLAR_XZ, COLLAR_Y, CAP_PIVOT),
-            new CapSlot(Presence.STAFF, STAFF_BOTTOM_CAP_Y, COLLAR_XZ, COLLAR_Y, CAP_PIVOT));
+    private static final float PLAIN_CAP_SCALE = 1.0F;
+    private static final float COLLAR_Y_SCALE = 0.66F;
+    private static final float WAND_TOP_CAP_Y = 0.0F;
+    private static final float WAND_BOTTOM_CAP_Y = 20.0F * PIXEL;
+    private static final float SCEPTRE_HEAD_Y = 0.0F;
+    private static final float SCEPTRE_HEAD_SCALE = 1.3F;
+    private static final float SCEPTRE_COLLAR_Y = 0.3F;
+    private static final float STAFF_COLLAR_Y = 0.225F;
+    private static final float STAFF_BOTTOM_CAP_Y = 0.875F + 20.0F * PIXEL;
+    private static final List<CapSlot> CAP_SLOTS = List.of(new CapSlot(Presence.NOT_SCEPTRE, WAND_TOP_CAP_Y, PLAIN_CAP_SCALE, PLAIN_CAP_SCALE),
+            new CapSlot(Presence.SCEPTRE, SCEPTRE_HEAD_Y, SCEPTRE_HEAD_SCALE, SCEPTRE_HEAD_SCALE),
+            new CapSlot(Presence.SCEPTRE, SCEPTRE_COLLAR_Y, PLAIN_CAP_SCALE, COLLAR_Y_SCALE),
+            new CapSlot(Presence.STAFF, STAFF_COLLAR_Y, PLAIN_CAP_SCALE, COLLAR_Y_SCALE), new CapSlot(Presence.NOT_STAFF, WAND_BOTTOM_CAP_Y, PLAIN_CAP_SCALE, PLAIN_CAP_SCALE),
+            new CapSlot(Presence.STAFF, STAFF_BOTTOM_CAP_Y, PLAIN_CAP_SCALE, PLAIN_CAP_SCALE));
 
-    private static final int FOCUS_LIGHT_BASE = 218;
-    private static final int GLOW_LIGHT_BASE = 226;
-    private static final int MAX_SMOOTH_LIGHT = 240;
-    private static final float GLOW_FLICKER_RATE = 2.7F;
-    private static final float GLOW_FLICKER_DRIFT_RATE = 1.13F;
-
-    private static final float RING_DISTANCE = 0.16F;
-    private static final float RING_Y = 5.6F * PIXEL;
+    private static final float RING_AXIAL = 0.16F;
+    private static final float RING_DEPTH_Z = -0.125F;
     private static final int RING_RUNES = 10;
     private static final float RING_YAW_STEP = 360.0F / RING_RUNES;
-    private static final float RING_SPIN_PER_TICK = 1.2F;
-    private static final float RING_HALF_SIZE = 0.8F * PIXEL;
-    private static final int RING_GLYPH_STRIDE = 7;
+    private static final float RING_SPIN_PER_TICK = 1.0F;
     private static final int SIDE_COUNT = 4;
+    private static final int SIDE_RUNES = 14;
     private static final float SIDE_YAW_STEP = 90.0F;
-    private static final int SIDE_RUNES = 4;
-    private static final int STAFF_SIDE_RUNES = 8;
-    private static final float SIDE_DISTANCE_BASE = 1.05F * PIXEL;
-    private static final float STAFF_SIDE_DISTANCE_BASE = 1.3F * PIXEL;
-    private static final float SIDE_START_Y = 4.0F * PIXEL;
-    private static final float STAFF_SIDE_START_Y = 7.6F * PIXEL;
-    private static final float SIDE_DISTANCE_STEP = 2.8F * PIXEL;
-    private static final float STAFF_SIDE_STEP = 3.1F * PIXEL;
-    private static final float SIDE_HALF_SIZE = 0.85F * PIXEL;
-    private static final float STAFF_SIDE_HALF_SIZE = 1.05F * PIXEL;
-    private static final int SIDE_GLYPH_STEP = 5;
+    private static final float SIDE_AXIAL_BASE = 0.36F;
+    private static final float SIDE_AXIAL_STEP = 0.14F;
+    private static final float SIDE_DEPTH_Z = -0.08F;
     private static final int SIDE_GLYPH_STRIDE = 3;
     private static final int GLYPH_COUNT = 16;
-    private static final float UV_HALF = 0.5F;
     private static final float GLYPH_WIDTH = 1.0F / GLYPH_COUNT;
-    private static final int RUNE_LIGHT_LEVEL = 236;
-    private static final int RUNE_LIGHT = LightCoordsUtil.smoothPack(RUNE_LIGHT_LEVEL, RUNE_LIGHT_LEVEL);
-    private static final float RUNE_PHASE_PER_SLOT = 2.39F;
-    private static final float RUNE_RED_BASE = 1.0F;
-    private static final float RUNE_GREEN_BASE = 0.66F;
-    private static final float RUNE_GREEN_SHIMMER = 0.08F;
-    private static final float RUNE_BLUE = 0.18F;
-    private static final float RUNE_PULSE_RATE = 0.11F;
-    private static final float RUNE_ALPHA_BASE = 0.62F;
-    private static final float RUNE_ALPHA_PULSE = 0.3F;
-    private static final float RUNE_HALF_SIZE_BASE = 1.0F;
-    private static final float RUNE_SIZE_PULSE = 0.14F;
-    private static final float RUNE_SIZE_RATE = 0.073F;
-    private static final float[] RUNE_CORNER_X = {-1.0F, 1.0F, 1.0F, -1.0F};
-    private static final float[] RUNE_CORNER_Y = {-1.0F, -1.0F, 1.0F, 1.0F};
+    private static final int RUNE_LIGHT_LEVEL = 200;
+    private static final int RUNE_LIGHT = LightCoordsUtil.smoothPack(RUNE_LIGHT_LEVEL, SKY_LIGHT_NONE);
+    private static final float RUNE_GLYPH_PHASE = 5.0F;
+    private static final float RUNE_SHIFT_X = 0.01F;
+    private static final float RUNE_HALF_BASE = 0.06F;
+    private static final float RUNE_HALF_WOBBLE = 0.005F;
+    private static final float RUNE_SIZE_PERIOD = 10.0F;
+    private static final float RUNE_RED_BASE = 0.88F;
+    private static final float RUNE_RED_PULSE = 0.1F;
+    private static final float RUNE_RED_PERIOD = 5.0F;
+    private static final float RUNE_GREEN_BASE = 0.63F;
+    private static final float RUNE_GREEN_PULSE = 0.1F;
+    private static final float RUNE_GREEN_PERIOD = 7.0F;
+    private static final float RUNE_BLUE = 0.2F;
+    private static final float RUNE_ALPHA_BASE = 0.6F;
+    private static final float RUNE_ALPHA_PULSE = 0.2F;
+    private static final float RUNE_ALPHA_PERIOD = 10.0F;
+    private static final float[] RUNE_CORNER_X = {-1.0F, -1.0F, 1.0F, 1.0F};
+    private static final float[] RUNE_CORNER_Y = {-1.0F, 1.0F, 1.0F, -1.0F};
+    private static final float[] RUNE_CORNER_U = {1.0F, 1.0F, 0.0F, 0.0F};
+    private static final float[] RUNE_CORNER_V = {1.0F, 0.0F, 0.0F, 1.0F};
 
     private static final float TIP_PLAIN = -PIXEL;
     private static final float TIP_SCEPTRE = -PIXEL * 1.3F;
@@ -184,23 +173,24 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
 
     public static void submitParts(WandArg arg, PoseStack poseStack, SubmitNodeCollector collector, int light, int rodTint, int capTint) {
         float ticks = clientTicks();
+        int wholeTicks = clientWholeTicks();
         boolean isStaff = arg.rod().staff();
         poseStack.pushPose();
         Fit.of(isStaff, GROUP_FIT, Fit.NONE).apply(poseStack);
         OrderedSubmitNodeCollector solid = collector.order(ORDER_SOLID);
-        submitRod(arg.rod(), isStaff, poseStack, solid, light, rodTint, ticks);
+        submitRod(arg.rod(), isStaff, poseStack, solid, light, rodTint, wholeTicks);
         submitCaps(arg, isStaff, poseStack, solid, light, capTint);
         if (arg.hasFocus()) {
             submitFocus(arg.focusColor(), isStaff, poseStack, collector.order(ORDER_FOCUS), ticks);
         }
-        submitRunes(arg.sceptre(), arg.rod().runes(), isStaff, ticks, poseStack, collector.order(ORDER_RUNES));
+        submitRunes(arg.sceptre(), arg.rod().runes(), ticks, poseStack, collector.order(ORDER_RUNES));
         poseStack.popPose();
     }
 
-    private static void submitRod(WandRod rod, boolean isStaff, PoseStack poseStack, OrderedSubmitNodeCollector collector, int light, int tint, float ticks) {
+    private static void submitRod(WandRod rod, boolean isStaff, PoseStack poseStack, OrderedSubmitNodeCollector collector, int light, int tint, int wholeTicks) {
         poseStack.pushPose();
         Fit.of(isStaff, ROD_FIT, Fit.NONE).apply(poseStack);
-        int rodLight = rod.glow() ? glowLight(ticks) : light;
+        int rodLight = rod.glow() ? glowLight(wholeTicks) : light;
         submitBox(collector, poseStack, TTFlatRenderTypes.entityCutoutFlat(rod.texture()), ROD_BOX, tint, rodLight);
         poseStack.popPose();
     }
@@ -224,76 +214,67 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
     private static void submitFocus(int focusColor, boolean isStaff, PoseStack poseStack, OrderedSubmitNodeCollector collector, float ticks) {
         poseStack.pushPose();
         Fit.of(isStaff, FOCUS_STAFF_FIT, FOCUS_PLAIN_FIT).apply(poseStack);
-        int level = Math.min(MAX_SMOOTH_LIGHT, FOCUS_LIGHT_BASE + Math.round(Mth.sin(ticks / FOCUS_LIGHT_PERIOD) * FOCUS_LIGHT_AMPLITUDE));
-        int light = LightCoordsUtil.smoothPack(level, level);
+        int level = (int) (FOCUS_LIGHT_BASE + Mth.sin(ticks / FOCUS_LIGHT_PERIOD) * FOCUS_LIGHT_AMPLITUDE + FOCUS_LIGHT_OFFSET);
+        int light = LightCoordsUtil.smoothPack(level, SKY_LIGHT_NONE);
         submitBox(collector, poseStack, TTFlatRenderTypes.entityTranslucentFlat(FOCUS_TEXTURE), FOCUS_BOX, ARGB.color(FOCUS_ALPHA, focusColor), light);
         poseStack.popPose();
     }
 
-    private static int glowLight(float ticks) {
-        float flicker = Mth.sin(ticks * GLOW_FLICKER_RATE) * Mth.cos(ticks * GLOW_FLICKER_DRIFT_RATE);
-        int level = Math.min(MAX_SMOOTH_LIGHT, GLOW_LIGHT_BASE + Math.round(flicker * GLOW_LIGHT_AMPLITUDE));
-        return LightCoordsUtil.smoothPack(level, level);
+    private static int glowLight(int wholeTicks) {
+        int level = (int) (GLOW_LIGHT_BASE + Mth.sin(wholeTicks) * GLOW_LIGHT_AMPLITUDE + GLOW_LIGHT_OFFSET);
+        return LightCoordsUtil.smoothPack(level, SKY_LIGHT_NONE);
     }
 
-    private static void submitRunes(boolean sceptre, boolean sideRunes, boolean isStaff, float ticks, PoseStack poseStack, OrderedSubmitNodeCollector collector) {
+    private static void submitRunes(boolean sceptre, boolean sideRunes, float ticks, PoseStack poseStack, OrderedSubmitNodeCollector collector) {
         if (!sceptre && !sideRunes) {
             return;
         }
         collector.submitCustomGeometry(poseStack, RUNE_TYPE, (pose, buffer) -> {
             if (sceptre) {
-                float spin = ticks * RING_SPIN_PER_TICK;
                 for (int i = 0; i < RING_RUNES; i++) {
-                    emitRune(pose, buffer, spin + i * RING_YAW_STEP, RING_DISTANCE, RING_Y, RING_HALF_SIZE, (i * RING_GLYPH_STRIDE) % GLYPH_COUNT, i, ticks);
+                    emitRune(pose, buffer, i * RING_YAW_STEP + ticks * RING_SPIN_PER_TICK, RING_DEPTH_Z, RING_AXIAL, i, ticks);
                 }
             }
             if (sideRunes) {
-                int count = isStaff ? STAFF_SIDE_RUNES : SIDE_RUNES;
-                float distance = isStaff ? STAFF_SIDE_DISTANCE_BASE : SIDE_DISTANCE_BASE;
-                float start = isStaff ? STAFF_SIDE_START_Y : SIDE_START_Y;
-                float step = isStaff ? STAFF_SIDE_STEP : SIDE_DISTANCE_STEP;
-                float half = isStaff ? STAFF_SIDE_HALF_SIZE : SIDE_HALF_SIZE;
                 for (int side = 0; side < SIDE_COUNT; side++) {
-                    for (int i = 0; i < count; i++) {
-                        int glyph = (side * SIDE_GLYPH_STEP + i * SIDE_GLYPH_STRIDE) % GLYPH_COUNT;
-                        emitRune(pose, buffer, side * SIDE_YAW_STEP, distance, start + i * step, half, glyph, RING_RUNES + side * count + i, ticks);
+                    for (int step = 0; step < SIDE_RUNES; step++) {
+                        int glyph = (step + SIDE_GLYPH_STRIDE * side) % GLYPH_COUNT;
+                        emitRune(pose, buffer, (side + 1) * SIDE_YAW_STEP, SIDE_DEPTH_Z, SIDE_AXIAL_BASE + SIDE_AXIAL_STEP * step, glyph, ticks);
                     }
                 }
             }
         });
     }
 
-    private static void emitRune(PoseStack.Pose pose, VertexConsumer buffer, float yawDegrees, float distance, float depth, float halfSize, int glyph, int slot, float ticks) {
+    private static void emitRune(PoseStack.Pose pose, VertexConsumer buffer, float yawDegrees, float depthZ, float axial, int glyph, float ticks) {
         float yaw = yawDegrees * Mth.DEG_TO_RAD;
-        float outX = Mth.sin(yaw);
-        float outZ = Mth.cos(yaw);
-        float rightX = -outZ;
-        float rightZ = outX;
-        float phase = slot * RUNE_PHASE_PER_SLOT;
-        float pulse = Mth.sin(ticks * RUNE_PULSE_RATE + phase);
-        float swell = Mth.sin(ticks * RUNE_SIZE_RATE + phase * RUNE_PHASE_PER_SLOT);
-        float half = halfSize * RUNE_HALF_SIZE_BASE * (1.0F + swell * RUNE_SIZE_PULSE);
-        float green = Mth.clamp(RUNE_GREEN_BASE + pulse * RUNE_GREEN_SHIMMER, 0.0F, 1.0F);
-        float alpha = Mth.clamp(RUNE_ALPHA_BASE + pulse * RUNE_ALPHA_PULSE, 0.0F, 1.0F);
-        int color = ARGB.colorFromFloat(alpha, RUNE_RED_BASE, green, RUNE_BLUE);
-        float centerX = outX * distance;
-        float centerZ = outZ * distance;
+        float sin = Mth.sin(yaw);
+        float cos = Mth.cos(yaw);
+        float phase = ticks + RUNE_GLYPH_PHASE * glyph;
+        float half = RUNE_HALF_BASE + Mth.sin(phase / RUNE_SIZE_PERIOD) * RUNE_HALF_WOBBLE;
+        float red = Math.min(1.0F, Mth.sin(phase / RUNE_RED_PERIOD) * RUNE_RED_PULSE + RUNE_RED_BASE);
+        float green = Math.min(1.0F, Mth.sin(phase / RUNE_GREEN_PERIOD) * RUNE_GREEN_PULSE + RUNE_GREEN_BASE);
+        float alpha = Math.min(1.0F, Mth.sin(phase / RUNE_ALPHA_PERIOD) * RUNE_ALPHA_PULSE + RUNE_ALPHA_BASE);
+        int color = ARGB.colorFromFloat(alpha, red, green, RUNE_BLUE);
         float u0 = glyph * GLYPH_WIDTH;
         for (int corner = 0; corner < RUNE_CORNER_X.length; corner++) {
-            float cx = RUNE_CORNER_X[corner];
-            float cy = RUNE_CORNER_Y[corner];
-            float x = centerX + rightX * cx * half;
-            float y = depth + cy * half;
-            float z = centerZ + rightZ * cx * half;
-            float u = u0 + (cx + 1.0F) * UV_HALF * GLYPH_WIDTH;
-            float v = (cy + 1.0F) * UV_HALF;
-            buffer.addVertex(pose, x, y, z).setColor(color).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(RUNE_LIGHT).setNormal(pose, outX, 0.0F, outZ);
+            float localX = RUNE_SHIFT_X + RUNE_CORNER_X[corner] * half;
+            float y = axial + RUNE_CORNER_Y[corner] * half;
+            float x = localX * cos + depthZ * sin;
+            float z = -localX * sin + depthZ * cos;
+            float u = u0 + RUNE_CORNER_U[corner] * GLYPH_WIDTH;
+            buffer.addVertex(pose, x, y, z).setColor(color).setUv(u, RUNE_CORNER_V[corner]).setOverlay(OverlayTexture.NO_OVERLAY).setLight(RUNE_LIGHT).setNormal(pose, sin, 0.0F, cos);
         }
     }
 
     private static void submitBox(OrderedSubmitNodeCollector collector, PoseStack poseStack, RenderType type, BoxSpec box, int tint, int light) {
         collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> BoxGeometry.box(pose, buffer, box.minX() * PIXEL, box.minY() * PIXEL, box.minZ() * PIXEL, (box.minX() + box.width()) * PIXEL,
                 (box.minY() + box.height()) * PIXEL, (box.minZ() + box.depth()) * PIXEL, box.u(), box.v(), box.width(), box.height(), box.depth(), TEXTURE_SIZE, TEXTURE_SIZE, tint, light, true));
+    }
+
+    private static int clientWholeTicks() {
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player == null ? 0 : player.tickCount;
     }
 
     private static float clientTicks() {
@@ -387,12 +368,11 @@ public final class WandItemSpecialRenderer implements SpecialModelRenderer<WandI
         }
     }
 
-    private record CapSlot(Presence presence, float offsetY, float scaleXz, float scaleY, float pivotPixels) {
+    private record CapSlot(Presence presence, float anchorY, float scaleXz, float scaleY) {
         void place(PoseStack poseStack, float outerXz, float outerY) {
             poseStack.scale(outerXz, outerY, outerXz);
-            poseStack.translate(0.0F, offsetY, 0.0F);
+            poseStack.translate(0.0F, anchorY, 0.0F);
             poseStack.scale(scaleXz, scaleY, scaleXz);
-            poseStack.translate(0.0F, pivotPixels * PIXEL, 0.0F);
         }
     }
 

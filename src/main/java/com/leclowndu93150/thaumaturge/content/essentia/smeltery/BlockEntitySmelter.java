@@ -55,19 +55,14 @@ public class BlockEntitySmelter extends AbstractSyncedBlockEntity implements Men
     private static final double SPEED_BOOST_FACTOR = 0.8;
     private static final float VITIUM_RETENTION_FACTOR = 0.66F;
     private static final int VENT_ODDS = 3;
-    private static final double VENT_FACE_OFFSET = 0.5;
-    private static final double VENT_PIPE_SHIFT = 0.125;
-    private static final double VENT_MOUTH_HEIGHT = 1.0;
-    private static final float VENT_SOUND_VOLUME = 0.15F;
-    private static final float VENT_SOUND_PITCH_LOW = 1.8F;
-    private static final float VENT_SOUND_PITCH_RANGE = 0.2F;
-    private static final int VENT_PUFFS = 3;
-    private static final double VENT_PUFF_SPREAD = 0.06;
-    private static final double VENT_PUFF_LIFT = 1.0;
-    private static final double VENT_PUFF_OUTWARD = 0.35;
-    private static final double VENT_PUFF_SWAY = 0.25;
-    private static final float VENT_PUFF_SCALE = 0.5F;
-    private static final int VENT_COLOR = 0xC8C8CC;
+    private static final float VENT_SOUND_VOLUME = 0.25F;
+    private static final float VENT_SOUND_PITCH_BASE = 2.6F;
+    private static final float VENT_SOUND_PITCH_SPREAD = 0.8F;
+    private static final int VENT_PUFFS = 4;
+    private static final double VENT_PUFF_SPREAD = 0.1;
+    private static final double VENT_PUFF_OUTWARD = 0.25;
+    private static final double VENT_PUFF_SWAY = 0.1;
+    private static final int VENT_COLOR = 0xAAAAAA;
     private static final String ASPECTS_KEY = "Aspects";
     private static final String BURN_TIME_KEY = "BurnTime";
     private static final String COOK_TIME_KEY = "CookTime";
@@ -218,8 +213,8 @@ public class BlockEntitySmelter extends AbstractSyncedBlockEntity implements Men
     }
 
     private static void emitVent(ServerLevel server, BlockPos ventPos, Direction outward, RandomSource random) {
-        Vec3 mouth = Vec3.atCenterOf(ventPos).add(outward.getStepX() * -VENT_PIPE_SHIFT, VENT_MOUTH_HEIGHT - VENT_FACE_OFFSET, outward.getStepZ() * -VENT_PIPE_SHIFT);
-        playVentSound(server, mouth, VENT_SOUND_PITCH_LOW + random.nextFloat() * VENT_SOUND_PITCH_RANGE);
+        Vec3 mouth = Vec3.atCenterOf(ventPos);
+        playVentSound(server, mouth, VENT_SOUND_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * VENT_SOUND_PITCH_SPREAD);
         emitPuffs(server, mouth, outward, random);
     }
 
@@ -231,8 +226,9 @@ public class BlockEntitySmelter extends AbstractSyncedBlockEntity implements Men
 
     private static void emitPuff(ServerLevel server, Vec3 at, Direction outward, RandomSource random) {
         double mx = outward.getStepX() * VENT_PUFF_OUTWARD + jitter(random, VENT_PUFF_SWAY);
+        double my = jitter(random, VENT_PUFF_SWAY);
         double mz = outward.getStepZ() * VENT_PUFF_OUTWARD + jitter(random, VENT_PUFF_SWAY);
-        Effects.vent(server, at).motion(mx, VENT_PUFF_LIFT, mz).color(VENT_COLOR).scale(VENT_PUFF_SCALE).send();
+        Effects.vent(server, at).motion(mx, my, mz).color(VENT_COLOR).send();
     }
 
     private int handOverInterval() {
@@ -308,7 +304,7 @@ public class BlockEntitySmelter extends AbstractSyncedBlockEntity implements Men
     }
 
     private static double jitter(RandomSource random, double range) {
-        return (random.nextDouble() * 2.0 - 1.0) * range;
+        return range - random.nextFloat() * range * 2.0;
     }
 
     private boolean handOverEssentia(ServerLevel server, BlockPos pos) {
@@ -324,7 +320,10 @@ public class BlockEntitySmelter extends AbstractSyncedBlockEntity implements Men
     }
 
     private boolean feedColumn(ServerLevel server, BlockPos start) {
-        for (AspectInstance entry : essentiaStock.sortedByAmount()) {
+        for (AspectInstance entry : essentiaStock.entries()) {
+            if (entry.amount() <= 0) {
+                continue;
+            }
             if (BlockEntityAlembic.feedColumn(server, start, entry.aspect())) {
                 essentiaStock = essentiaStock.remove(entry.aspect(), 1);
                 vis = essentiaStock.totalAmount();

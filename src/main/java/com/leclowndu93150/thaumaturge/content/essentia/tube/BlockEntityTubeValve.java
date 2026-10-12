@@ -60,10 +60,20 @@ public final class BlockEntityTubeValve extends BlockEntityTube {
         if (sampler.isDue(POWER_SAMPLE)) {
             boolean powered = level.hasNeighborSignal(pos);
             if (valve.isEdge(powered)) {
-                transitionTo(valve.afterSample(powered), true);
+                sampleEdge(powered);
             }
         }
         super.tickServer(level, pos, state);
+    }
+
+    private void sampleEdge(boolean powered) {
+        ValveState next = valve.afterSample(powered);
+        if (next.allowsFlow() != valve.allowsFlow()) {
+            transitionTo(next, true);
+            return;
+        }
+        valve = next;
+        setChanged();
     }
 
     private void transitionTo(ValveState next, boolean audible) {
@@ -115,12 +125,12 @@ public final class BlockEntityTubeValve extends BlockEntityTube {
 
     @Override
     public boolean receivesOn(Direction face) {
-        return allowFlow() && super.receivesOn(face);
+        return allowFlow() && face != flowSide() && super.receivesOn(face);
     }
 
     @Override
     public boolean releasesOn(Direction face) {
-        return allowFlow() && super.releasesOn(face);
+        return allowFlow() && face != flowSide() && super.releasesOn(face);
     }
 
     @Override

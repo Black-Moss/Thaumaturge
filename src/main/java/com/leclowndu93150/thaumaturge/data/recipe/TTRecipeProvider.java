@@ -608,14 +608,15 @@ public final class TTRecipeProvider extends RecipeProvider {
     }
 
     private List<EnchantStep> enchantSteps() {
-        return List.of(enchantStep(InfusionEnchantment.ARCING, Items.IRON_SWORD, tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), cost(TTAspects.AER, 60), cost(TTAspects.POTENTIA, 40)),
-                enchantStep(InfusionEnchantment.ESSENCE, Items.GOLDEN_SWORD, single(TTItems.ESSENTIA_CRYSTAL.get()), cost(TTAspects.VITIUM, 60), cost(TTAspects.BESTIA, 40)),
-                enchantStep(InfusionEnchantment.SOUNDING, Items.STONE_PICKAXE, single(Items.MAP), cost(TTAspects.IGNIS, 60), cost(TTAspects.SENSUS, 40)),
+        return List.of(
+                enchantStep(InfusionEnchantment.BURROWING, Items.WOODEN_PICKAXE, single(Items.RABBIT_FOOT), cost(TTAspects.SENSUS, 80), cost(TTAspects.TERRA, 150)),
+                enchantStep(InfusionEnchantment.COLLECTOR, Items.STONE_AXE, single(Items.LEAD), cost(TTAspects.DESIDERIUM, 80), cost(TTAspects.AQUA, 100)),
+                enchantStep(InfusionEnchantment.DESTRUCTIVE, Items.STONE_PICKAXE, single(Items.TNT), cost(TTAspects.AVERSIO, 200), cost(TTAspects.PERDITIO, 250)),
                 enchantStep(InfusionEnchantment.REFINING, Items.IRON_PICKAXE, single(TTItems.SALIS_MUNDUS.get()), cost(TTAspects.ORDO, 80), cost(TTAspects.PERMUTATIO, 60)),
-                enchantStep(InfusionEnchantment.DESTRUCTIVE, Items.IRON_SHOVEL, single(Items.TNT), cost(TTAspects.PERDITIO, 250), cost(TTAspects.AVERSIO, 200)),
-                enchantStep(InfusionEnchantment.BURROWING, Items.STONE_AXE, single(Items.RABBIT_FOOT), cost(TTAspects.TERRA, 150), cost(TTAspects.SENSUS, 80)),
-                enchantStep(InfusionEnchantment.COLLECTOR, Items.GOLDEN_AXE, single(Items.LEAD), cost(TTAspects.AQUA, 100), cost(TTAspects.DESIDERIUM, 80)),
-                enchantStep(InfusionEnchantment.LAMPLIGHT, Items.WOODEN_PICKAXE, tagged(TTItemTags.NITORS), cost(TTAspects.LUX, 80), cost(TTAspects.AER, 20)));
+                enchantStep(InfusionEnchantment.SOUNDING, Items.GOLDEN_PICKAXE, single(Items.MAP), cost(TTAspects.SENSUS, 40), cost(TTAspects.IGNIS, 60)),
+                enchantStep(InfusionEnchantment.ARCING, Items.WOODEN_SWORD, tagged(Tags.Items.STORAGE_BLOCKS_REDSTONE), cost(TTAspects.POTENTIA, 40), cost(TTAspects.AER, 60)),
+                enchantStep(InfusionEnchantment.ESSENCE, Items.STONE_SWORD, single(TTItems.ESSENTIA_CRYSTAL.get()), cost(TTAspects.BESTIA, 40), cost(TTAspects.VITIUM, 60)),
+                enchantStep(InfusionEnchantment.LAMPLIGHT, Items.GOLDEN_PICKAXE, tagged(TTItemTags.NITORS), cost(TTAspects.LUX, 80), cost(TTAspects.AER, 20)));
     }
 
     private void buildInfusionEnchantmentRecipes() {

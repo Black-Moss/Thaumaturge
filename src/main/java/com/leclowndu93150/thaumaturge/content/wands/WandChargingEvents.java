@@ -27,7 +27,6 @@ import net.neoforged.neoforge.event.level.BlockDropsEvent;
 public final class WandChargingEvents {
     private static final int PLANT_ORB_MAX_BONUS = 2;
     private static final int MAX_COMPONENT_DEPTH = 16;
-    private static final double HALF = 0.5;
 
     private WandChargingEvents() {}
 
@@ -42,11 +41,10 @@ public final class WandChargingEvents {
             return;
         }
         RandomSource random = level.getRandom();
-        double y = dead.getY() + dead.getBbHeight() * HALF;
         for (Map.Entry<ResourceKey<IAspect>, Integer> primal : reduceToPrimals(aspects).entrySet()) {
             int total = primal.getValue();
             if (total > 0 && random.nextBoolean()) {
-                level.addFreshEntity(new EntityAspectOrb(level, dead.getX(), y, dead.getZ(), primal.getKey(), 1 + random.nextInt(total)));
+                level.addFreshEntity(new EntityAspectOrb(level, dead.getX(), dead.getY(), dead.getZ(), primal.getKey(), 1 + random.nextInt(total)));
             }
         }
     }

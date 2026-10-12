@@ -18,6 +18,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -31,8 +32,8 @@ import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 public final class ItemManaBean extends Item {
-    private static final int INSTANT_EFFECT_AMPLIFIER = 0;
-    private static final double INSTANT_EFFECT_SCALE = 1.0;
+    private static final InstantParameters BENEFICIAL_INSTANT = new InstantParameters(2, 3.0, true);
+    private static final InstantParameters HARMFUL_INSTANT = new InstantParameters(0, 1.0, false);
     private static final int EFFECT_MIN_DURATION_TICKS = 160;
     private static final int EFFECT_DURATION_SPREAD_TICKS = 80;
     private static final int EFFECT_AMPLIFIER = 0;
@@ -66,7 +67,9 @@ public final class ItemManaBean extends Item {
 
     private static void applyEffect(ServerLevel level, ServerPlayer player, Holder<MobEffect> effect, RandomSource random) {
         if (effect.value().isInstantenous()) {
-            effect.value().applyInstantenousEffect(level, null, null, player, INSTANT_EFFECT_AMPLIFIER, INSTANT_EFFECT_SCALE);
+            InstantParameters parameters = effect.value().getCategory() == MobEffectCategory.HARMFUL ? HARMFUL_INSTANT : BENEFICIAL_INSTANT;
+            Entity attribution = parameters.attributed() ? player : null;
+            effect.value().applyInstantenousEffect(level, attribution, attribution, player, parameters.amplifier(), parameters.scale());
         } else {
             player.addEffect(new MobEffectInstance(effect, EFFECT_MIN_DURATION_TICKS + random.nextInt(EFFECT_DURATION_SPREAD_TICKS), EFFECT_AMPLIFIER));
         }
@@ -107,5 +110,8 @@ public final class ItemManaBean extends Item {
             stack.shrink(1);
         }
         return InteractionResult.SUCCESS_SERVER;
+    }
+
+    private record InstantParameters(int amplifier, double scale, boolean attributed) {
     }
 }

@@ -10,7 +10,8 @@ import net.minecraft.world.item.ItemStack;
 /**
  * Immutable rules for deciding whether a candidate stack counts as a reference stack. Counts never take part.
  *
- * <p>An empty stack matches only another empty stack. Otherwise a candidate matches when any of these holds:
+ * <p>An empty stack matches only another empty stack. That check comes first. For two non-empty stacks, a candidate matches when
+ * any of these holds:
  * <ul>
  * <li>{@code sameMod} is set and both items come from the same namespace;</li>
  * <li>{@code sharedTag} is set and the items are the same or the reference item shares at least one item tag with the

@@ -23,20 +23,21 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
     private static final int RING_STRIDE = SIDES * COMPONENTS;
     private static final float STILL_STABILITY = 50.0F;
     private static final float MAX_MOTION = 1.5F;
-    private static final float SWAY_BLOCKS = 0.035F;
-    private static final float SWAY_RATE_X = 0.05F;
-    private static final float SWAY_RATE_Y = 0.043F;
-    private static final float SWAY_RATE_Z = 0.061F;
-    private static final float SWAY_STEP = 0.45F;
-    private static final float THROB_RATE = 0.17F;
-    private static final float THROB_STEP = 0.6F;
-    private static final float THROB_DEPTH = 0.12F;
-    private static final float INNER_HALO = 1.4F;
+    private static final float WOBBLE_BLOCKS = 0.1F;
+    private static final float WOBBLE_DIVISOR_X = 50.0F;
+    private static final float WOBBLE_DIVISOR_Y = 60.0F;
+    private static final float WOBBLE_DIVISOR_Z = 70.0F;
+    private static final float POINT_PHASE_TICKS = 10.0F;
+    private static final float PULSE_DEPTH = 0.1F;
+    private static final float PULSE_DIVISOR = 8.0F;
+    private static final float GOGGLE_HALO = 1.25F;
     private static final float MIDDLE_HALO = 1.75F;
-    private static final float OUTER_HALO = 2.2F;
+    private static final float OUTER_HALO = 2.25F;
     private static final float CORE = 1.0F;
-    private static final double VERTICAL_THRESHOLD = 0.9;
+    private static final int MIN_DRAWN_POINTS = 3;
+    private static final double VERTICAL_THRESHOLD = 0.99;
     private static final double TANGENT_EPSILON = 1.0E-8;
+    private static final double SIDE_RADIANS = Math.PI / 3.0;
 
     public FluxRiftRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -63,15 +64,17 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
         }
         float motion = Mth.clamp(1.0F - entity.stabilityValue() / STILL_STABILITY, 0.0F, MAX_MOTION);
         float time = state.ageInTicks;
-        float sway = SWAY_BLOCKS * motion;
-        float throb = THROB_DEPTH * motion;
+        float wobble = WOBBLE_BLOCKS * motion;
+        float pulse = PULSE_DEPTH * motion;
+        int middle = count / 2;
         for (int i = 0; i < count; i++) {
             Vec3 point = outline.get(i);
             int at = i * COMPONENTS;
-            state.path[at] = (float) point.x + sway * Mth.sin(time * SWAY_RATE_X + i * SWAY_STEP);
-            state.path[at + 1] = (float) point.y + sway * Mth.sin(time * SWAY_RATE_Y + i * SWAY_STEP);
-            state.path[at + 2] = (float) point.z + sway * Mth.sin(time * SWAY_RATE_Z + i * SWAY_STEP);
-            state.radii[i] = widths.get(i) * (1.0F + throb * Mth.sin(time * THROB_RATE + i * THROB_STEP));
+            float phase = i < middle ? time + POINT_PHASE_TICKS * i : i == middle ? time : time - POINT_PHASE_TICKS * i;
+            state.path[at] = (float) point.x + wobble * Mth.sin(phase / WOBBLE_DIVISOR_X);
+            state.path[at + 1] = (float) point.y + wobble * Mth.sin(phase / WOBBLE_DIVISOR_Y);
+            state.path[at + 2] = (float) point.z + wobble * Mth.sin(phase / WOBBLE_DIVISOR_Z);
+            state.radii[i] = widths.get(i) * (1.0F - pulse * Mth.sin(phase / PULSE_DIVISOR));
         }
         buildRings(state.path, state.rings, count);
     }
@@ -79,13 +82,13 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
     @Override
     public void submit(FluxRiftRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
-        if (state.count < 2) {
+        if (state.count < MIN_DRAWN_POINTS) {
             return;
         }
-        submitLayer(state, poseStack, collector, TTFXRenderTypes.RIFT_GLOW, OUTER_HALO);
+        submitLayer(state, poseStack, collector, state.goggles ? TTFXRenderTypes.RIFT_GLOW_NO_DEPTH : TTFXRenderTypes.RIFT_GLOW, GOGGLE_HALO);
         submitLayer(state, poseStack, collector, TTFXRenderTypes.RIFT_GLOW, MIDDLE_HALO);
-        submitLayer(state, poseStack, collector, state.goggles ? TTFXRenderTypes.RIFT_GLOW_NO_DEPTH : TTFXRenderTypes.RIFT_GLOW, INNER_HALO);
-        submitLayer(state, poseStack, collector, TTFXRenderTypes.RIFT_CORE, CORE);
+        submitLayer(state, poseStack, collector, TTFXRenderTypes.RIFT_GLOW, OUTER_HALO);
+        submitLayer(state, poseStack, collector, TTFXRenderTypes.RIFT_SOLID, CORE);
     }
 
     private static void submitLayer(FluxRiftRenderState state, PoseStack poseStack, SubmitNodeCollector collector, RenderType type, float scale) {
@@ -112,12 +115,6 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
     }
 
     private static void buildRings(float[] path, float[] rings, int count) {
-        double nx = 0.0;
-        double ny = 0.0;
-        double nz = 0.0;
-        double tx = 0.0;
-        double ty = 1.0;
-        double tz = 0.0;
         for (int i = 0; i < count; i++) {
             int before = Math.max(0, i - 1) * COMPONENTS;
             int after = Math.min(count - 1, i + 1) * COMPONENTS;
@@ -125,43 +122,39 @@ public final class FluxRiftRenderer extends EntityRenderer<EntityFluxRift, FluxR
             double dy = path[after + 1] - path[before + 1];
             double dz = path[after + 2] - path[before + 2];
             double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            double tx = 0.0;
+            double ty = 1.0;
+            double tz = 0.0;
             if (length > TANGENT_EPSILON) {
                 tx = dx / length;
                 ty = dy / length;
                 tz = dz / length;
             }
-            if (i == 0) {
-                boolean steep = Math.abs(ty) > VERTICAL_THRESHOLD;
-                nx = steep ? 1.0 : 0.0;
-                ny = steep ? 0.0 : 1.0;
-                nz = 0.0;
-            }
-            double along = nx * tx + ny * ty + nz * tz;
-            nx -= along * tx;
-            ny -= along * ty;
-            nz -= along * tz;
-            double normal = Math.sqrt(nx * nx + ny * ny + nz * nz);
-            if (normal < TANGENT_EPSILON) {
-                boolean steep = Math.abs(ty) > VERTICAL_THRESHOLD;
-                nx = steep ? 1.0 - tx * tx : -ty * tx;
-                ny = steep ? -tx * ty : 1.0 - ty * ty;
-                nz = steep ? -tx * tz : -ty * tz;
-                normal = Math.sqrt(nx * nx + ny * ny + nz * nz);
-            }
-            nx /= normal;
-            ny /= normal;
-            nz /= normal;
-            double bx = ty * nz - tz * ny;
-            double by = tz * nx - tx * nz;
-            double bz = tx * ny - ty * nx;
+            boolean steep = Math.abs(ty) >= VERTICAL_THRESHOLD;
+            double rx = steep ? 1.0 : 0.0;
+            double ry = steep ? 0.0 : 1.0;
+            double ax = -tz * ry;
+            double ay = tz * rx;
+            double az = tx * ry - ty * rx;
+            double aLength = Math.sqrt(ax * ax + ay * ay + az * az);
+            ax /= aLength;
+            ay /= aLength;
+            az /= aLength;
+            double bx = ty * az - tz * ay;
+            double by = tz * ax - tx * az;
+            double bz = tx * ay - ty * ax;
+            double bLength = Math.sqrt(bx * bx + by * by + bz * bz);
+            bx /= bLength;
+            by /= bLength;
+            bz /= bLength;
             for (int side = 0; side < SIDES; side++) {
-                double angle = side * Mth.TWO_PI / SIDES;
+                double angle = side * SIDE_RADIANS;
                 double cos = Math.cos(angle);
                 double sin = Math.sin(angle);
                 int at = i * RING_STRIDE + side * COMPONENTS;
-                rings[at] = (float) (nx * cos + bx * sin);
-                rings[at + 1] = (float) (ny * cos + by * sin);
-                rings[at + 2] = (float) (nz * cos + bz * sin);
+                rings[at] = (float) (ax * cos + bx * sin);
+                rings[at + 1] = (float) (ay * cos + by * sin);
+                rings[at + 2] = (float) (az * cos + bz * sin);
             }
         }
     }

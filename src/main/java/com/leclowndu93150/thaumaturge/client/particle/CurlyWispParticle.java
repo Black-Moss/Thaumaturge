@@ -11,18 +11,18 @@ import org.joml.Quaternionf;
 
 public final class CurlyWispParticle extends TTParticle {
     private static final int FRAME_COUNT = 4;
-    private static final int LIFETIME_BASE = 20;
+    private static final int LIFETIME_BASE = 25;
     private static final int LIFETIME_RANGE_BASE = 20;
-    private static final int LIFETIME_RANGE_PER_SEED = 4;
+    private static final int LIFETIME_RANGE_PER_SEED = 20;
     private static final float START_SIZE_FACTOR = 0.5F;
-    private static final float END_SIZE_BASE = 1.05F;
-    private static final float END_SIZE_RANGE = 0.25F;
-    private static final float SPIN_BASE = 1.1F;
-    private static final float SPIN_RANGE = 0.6F;
-    private static final double TILT_DEVIATION_DEGREES = 55.0;
-    private static final float END_RED = 0.09F;
-    private static final float END_GREEN = 0.02F;
-    private static final float END_BLUE = 0.13F;
+    private static final float END_SIZE_BASE = 1.0F;
+    private static final float END_SIZE_RANGE = 0.4F;
+    private static final float SPIN_BASE = 2.0F;
+    private static final float SPIN_RANGE = 2.0F;
+    private static final double TILT_DEVIATION_DEGREES = 90.0;
+    private static final float END_RED = 0.10F;
+    private static final float END_GREEN = 0.0F;
+    private static final float END_BLUE = 0.10F;
 
     private final float startAlpha;
     private final float startRed;

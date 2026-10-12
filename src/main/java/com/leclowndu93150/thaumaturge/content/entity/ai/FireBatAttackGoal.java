@@ -19,9 +19,9 @@ public final class FireBatAttackGoal extends Goal {
     private static final int EXPLODE_ONE_IN = 10;
     private static final float EXPLOSION_POWER = 1.5F;
     private static final double CHEST_FRACTION = 2.0 / 3.0;
-    private static final float HURT_VOLUME = 0.1F;
-    private static final float HURT_PITCH_BASE = 0.95F;
-    private static final float HURT_PITCH_SPREAD = 0.1F;
+    private static final float HURT_VOLUME = 0.5F;
+    private static final float HURT_PITCH_BASE = 0.9F;
+    private static final float HURT_PITCH_SPREAD = 0.2F;
 
     private static final EnumSet<Goal.Flag> FLAGS = EnumSet.of(Goal.Flag.MOVE);
 
@@ -69,7 +69,7 @@ public final class FireBatAttackGoal extends Goal {
 
     private void bite(ServerLevel world, LivingEntity prey, RandomSource random) {
         flyer.doHurtTarget(world, prey);
-        float pitch = HURT_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * HURT_PITCH_SPREAD;
+        float pitch = HURT_PITCH_BASE + random.nextFloat() * HURT_PITCH_SPREAD;
         world.playSound(null, flyer.getX(), flyer.getY(), flyer.getZ(), SoundEvents.BAT_HURT, flyer.getSoundSource(), HURT_VOLUME, pitch);
     }
 

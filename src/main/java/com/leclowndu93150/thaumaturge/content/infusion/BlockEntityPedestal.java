@@ -10,7 +10,7 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Clearable;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -53,7 +53,7 @@ public class BlockEntityPedestal extends AbstractSyncedBlockEntity implements Cl
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
         if (level != null && !level.isClientSide() && !item.isEmpty()) {
-            level.addFreshEntity(new ItemEntity(level, pos.getX() + DROP_CENTER_OFFSET, pos.getY() + DROP_HEIGHT, pos.getZ() + DROP_CENTER_OFFSET, item));
+            Containers.dropItemStack(level, pos.getX() + DROP_CENTER_OFFSET, pos.getY() + DROP_HEIGHT, pos.getZ() + DROP_CENTER_OFFSET, item);
         }
         item = ItemStack.EMPTY;
     }

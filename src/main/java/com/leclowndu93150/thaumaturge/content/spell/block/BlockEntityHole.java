@@ -24,10 +24,11 @@ public final class BlockEntityHole extends AbstractSyncedBlockEntity {
     private static final int RING_REACH = 1;
     private static final int RING_DEPTH = 1;
     private static final int SAVE_INTERVAL = 20;
-    private static final int SPARKLE_SKIP_ODDS = 3;
+    private static final int SPARKLE_MISS_ODDS = 3;
+    private static final int SPARKLE_ATTEMPTS = 2;
     private static final double HALF_BLOCK = 0.5;
-    private static final float SPARKLE_RED = 0.45F;
-    private static final float SPARKLE_GREEN = 0.78F;
+    private static final float SPARKLE_RED = 0.25F;
+    private static final float SPARKLE_GREEN = 0.25F;
     private static final float SPARKLE_BLUE = 1.0F;
     private static final float SPARKLE_ALPHA = 1.0F;
     private static final int SPARKLE_COLOR = ARGB.colorFromFloat(SPARKLE_ALPHA, SPARKLE_RED, SPARKLE_GREEN, SPARKLE_BLUE);
@@ -98,12 +99,17 @@ public final class BlockEntityHole extends AbstractSyncedBlockEntity {
                 continue;
             }
             for (Direction edge : DIRECTIONS) {
-                if (edge.getAxis() == side.getAxis() || random.nextInt(SPARKLE_SKIP_ODDS) != 0) {
+                if (edge.getAxis() == side.getAxis()) {
                     continue;
                 }
                 boolean beside = opaque(level, probe.setWithOffset(pos, edge));
-                if (beside || opaque(level, probe.move(side))) {
-                    sparkle(level, pos, side, edge, random);
+                if (!beside && !opaque(level, probe.move(side))) {
+                    continue;
+                }
+                for (int attempt = 0; attempt < SPARKLE_ATTEMPTS; attempt++) {
+                    if (random.nextInt(SPARKLE_MISS_ODDS) != 0) {
+                        sparkle(level, pos, side, edge, random);
+                    }
                 }
             }
         }
@@ -141,7 +147,7 @@ public final class BlockEntityHole extends AbstractSyncedBlockEntity {
         double y = pos.getY() + HALF_BLOCK + HALF_BLOCK * (side.getStepY() + edge.getStepY()) + (line == Direction.Axis.Y ? along : 0.0);
         double z = pos.getZ() + HALF_BLOCK + HALF_BLOCK * (side.getStepZ() + edge.getStepZ()) + (line == Direction.Axis.Z ? along : 0.0);
         float scale = SPARKLE_BASE_SCALE + random.nextFloat() * SPARKLE_SCALE_RANGE;
-        SparkleParticleOptions options = new SparkleParticleOptions(SPARKLE_COLOR, scale, SPARKLE_DELAY, SPARKLE_DECAY, SPARKLE_GRAVITY, SPARKLE_BASE_AGE, true);
+        SparkleParticleOptions options = new SparkleParticleOptions(SPARKLE_COLOR, scale, SPARKLE_DELAY, SPARKLE_DECAY, SPARKLE_GRAVITY, SPARKLE_BASE_AGE, false);
         level.addParticle(options, x, y, z, 0.0, 0.0, 0.0);
     }
 

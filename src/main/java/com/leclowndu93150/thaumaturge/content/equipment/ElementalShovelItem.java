@@ -4,8 +4,9 @@ import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -48,6 +49,7 @@ public final class ElementalShovelItem extends Item implements AreaPreviewer {
     private static final float PUFF_RED = 128.0F / CHANNEL_MAX;
     private static final float PUFF_GREEN = 51.0F / CHANNEL_MAX;
     private static final float PUFF_BLUE = 0.0F;
+    private static final Map<Direction.Axis, PlaneAxes> PARALLEL_AXES = parallelAxesByNormal();
 
     public ElementalShovelItem(Properties properties) {
         super(properties);
@@ -208,8 +210,15 @@ public final class ElementalShovelItem extends Item implements AreaPreviewer {
     }
 
     private static PlaneAxes parallelAxes(Direction.Axis normal) {
-        Direction.Axis[] others = Arrays.stream(Direction.Axis.values()).filter(axis -> axis != normal).toArray(Direction.Axis[]::new);
-        return new PlaneAxes(others[0], others[1]);
+        return PARALLEL_AXES.get(normal);
+    }
+
+    private static Map<Direction.Axis, PlaneAxes> parallelAxesByNormal() {
+        Map<Direction.Axis, PlaneAxes> axes = new EnumMap<>(Direction.Axis.class);
+        axes.put(Direction.Axis.X, new PlaneAxes(Direction.Axis.Z, Direction.Axis.Y));
+        axes.put(Direction.Axis.Y, new PlaneAxes(Direction.Axis.X, Direction.Axis.Z));
+        axes.put(Direction.Axis.Z, new PlaneAxes(Direction.Axis.X, Direction.Axis.Y));
+        return axes;
     }
 
     private record PlaneAxes(Direction.Axis first, Direction.Axis second) {

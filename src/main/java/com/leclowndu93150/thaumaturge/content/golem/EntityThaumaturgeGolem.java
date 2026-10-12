@@ -48,6 +48,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -191,9 +192,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         if (level().isClientSide()) {
             throw new IllegalStateException("Golem accessory state can only change on the server");
         }
-        Optional<S> previous = accessoryHolder.state(behavior);
-        accessoryHolder.update(behavior, update);
-        if (previous.equals(accessoryHolder.state(behavior))) {
+        if (!accessoryHolder.update(behavior, update)) {
             return false;
         }
         syncAccessoryStates();
@@ -274,11 +273,10 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
 
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
-        SpawnGroupData result = super.finalizeSpawn(level, difficulty, reason, groupData);
         setHomeTo(blockPosition(), GolemStatSheet.HOME_RADIUS);
         refreshStats(true);
         setHealth(getMaxHealth());
-        return result;
+        return groupData;
     }
 
     @Override
@@ -433,16 +431,22 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
 
     @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
-        boolean connected = super.doHurtTarget(level, target);
-        if (connected) {
+        DamageSource source = damageSources().mobAttack(this);
+        float damage = EnchantmentHelper.modifyDamage(level, getMainHandItem(), target, source, (float) getAttributeValue(Attributes.ATTACK_DAMAGE));
+        Vec3 previousMovement = target.getDeltaMovement();
+        boolean hurt = target.hurtServer(level, source, damage);
+        if (hurt) {
+            causeExtraKnockback(target, getKnockback(target, source), previousMovement);
+            EnchantmentHelper.doPostAttackEffects(level, target, source);
+            setLastHurtMob(target);
             afterMeleeHit(target);
         }
-        return connected;
+        return hurt;
     }
 
     private void afterMeleeHit(Entity target) {
-        if (target instanceof LivingEntity living && grantsKillCredit() && getOwner() instanceof Player owner) {
-            living.setLastHurtByPlayer(owner, OWNER_CREDIT_TICKS);
+        if (target instanceof LivingEntity living && grantsKillCredit() && getOwnerReference() != null) {
+            living.setLastHurtByPlayer(getOwnerReference().getUUID(), OWNER_CREDIT_TICKS);
         }
         Optional.ofNullable(properties().arms().ability()).ifPresent(arm -> arm.onMeleeHit(this, target));
         if (target instanceof Mob mob && mob.isDeadOrDying()) {
@@ -818,7 +822,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
     }
 
     static final class GolemFlyingMoveControl extends MoveControl {
-        private static final double ARRIVAL_DAMPING = 0.2D;
+        private static final double ARRIVAL_DAMPING = 0.5D;
 
         private final EntityThaumaturgeGolem golem;
 

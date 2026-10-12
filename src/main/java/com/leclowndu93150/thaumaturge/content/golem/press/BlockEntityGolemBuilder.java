@@ -64,21 +64,17 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
     private static final int PRESS_DESCENT_STEP = 6;
     private static final int PRESS_RISE_STEP = 3;
     private static final int PRESS_HISS_FROM = 60;
-    private static final double STEAM_TOP = 2.0D;
-    private static final double STEAM_SPREAD = 0.35D;
-    private static final double STEAM_SIDE_DRIFT = 0.6D;
-    private static final int STEAM_COLOR = 0xCFCFD4;
-    private static final float BURST_SCALE = 1.6F;
-    private static final int BURST_MIN_PUFFS = 4;
-    private static final int BURST_EXTRA_PUFFS = 3;
-    private static final int SETTLE_VENTS = 14;
-    private static final float SETTLE_SCALE = 2.0F;
-    private static final int IDLE_VENT_ONE_IN = 7;
-    private static final float IDLE_VENT_SCALE = 1.0F;
-    private static final float HISS_VOLUME = 0.35F;
-    private static final float IDLE_HISS_VOLUME = 0.04F;
-    private static final float HISS_PITCH = 0.9F;
-    private static final float HISS_PITCH_SPREAD = 0.2F;
+    private static final double STEAM_LIFT = 1.0D;
+    private static final double STEAM_SIDE_SPREAD = 0.1D;
+    private static final int STEAM_COLOR = 0xAAAAAA;
+    private static final float STEAM_SCALE = 1.0F;
+    private static final int STROKE_PUFFS = 16;
+    private static final int SETTLE_PUFFS = 10;
+    private static final int HELD_VENT_ONE_IN = 8;
+    private static final float HISS_VOLUME = 0.66F;
+    private static final float HELD_HISS_VOLUME = 0.1F;
+    private static final float HISS_PITCH = 1.0F;
+    private static final float HISS_PITCH_SPREAD = 0.1F;
 
     public int press;
     public boolean @Nullable [] hasStuff;
@@ -177,41 +173,37 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
 
     private void animate(Level level, BlockPos pos) {
         RandomSource random = level.getRandom();
-        if (isWorking()) {
-            if (press < PRESS_DOWN) {
-                press = Math.min(PRESS_DOWN, press + PRESS_DESCENT_STEP);
-                if (press > PRESS_HISS_FROM) {
-                    hiss(level, pos, random, HISS_VOLUME);
-                    vent(level, pos, random, BURST_MIN_PUFFS + random.nextInt(BURST_EXTRA_PUFFS), BURST_SCALE);
-                }
-            } else if (random.nextInt(IDLE_VENT_ONE_IN) == 0) {
-                hiss(level, pos, random, IDLE_HISS_VOLUME);
-                vent(level, pos, random, 1, IDLE_VENT_SCALE);
+        boolean working = isWorking();
+        if (working && press < PRESS_DOWN) {
+            press = Math.min(PRESS_DOWN, press + PRESS_DESCENT_STEP);
+            if (press >= PRESS_HISS_FROM) {
+                hiss(level, pos, random, HISS_VOLUME);
+                vent(level, pos, random, STROKE_PUFFS);
             }
-            return;
         }
-        if (press <= 0) {
-            return;
+        if (press >= PRESS_DOWN && random.nextInt(HELD_VENT_ONE_IN) == 0) {
+            hiss(level, pos, random, HELD_HISS_VOLUME);
+            vent(level, pos, random, 1);
         }
-        if (press >= PRESS_DOWN) {
-            vent(level, pos, random, SETTLE_VENTS, SETTLE_SCALE);
+        if (press > 0 && !working) {
+            if (press >= PRESS_DOWN) {
+                vent(level, pos, random, SETTLE_PUFFS);
+            }
+            press = Math.max(0, press - PRESS_RISE_STEP);
         }
-        press = Math.max(0, press - PRESS_RISE_STEP);
     }
 
     private static void hiss(Level level, BlockPos pos, RandomSource random, float volume) {
-        float pitch = HISS_PITCH + (random.nextFloat() - random.nextFloat()) * HISS_PITCH_SPREAD;
-        level.playLocalSound(pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, volume, pitch, false);
+        float pitch = HISS_PITCH + random.nextFloat() * HISS_PITCH_SPREAD;
+        level.playLocalSound(pos.getX() + CENTER, pos.getY() + CENTER, pos.getZ() + CENTER, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, volume, pitch, false);
     }
 
-    private static void vent(Level level, BlockPos pos, RandomSource random, int puffs, float scale) {
+    private static void vent(Level level, BlockPos pos, RandomSource random, int puffs) {
         for (int i = 0; i < puffs; i++) {
-            double x = pos.getX() + CENTER + (random.nextDouble() - CENTER) * STEAM_SPREAD * 2.0D;
-            double z = pos.getZ() + CENTER + (random.nextDouble() - CENTER) * STEAM_SPREAD * 2.0D;
-            double driftX = (random.nextDouble() - CENTER) * STEAM_SIDE_DRIFT;
-            double driftZ = (random.nextDouble() - CENTER) * STEAM_SIDE_DRIFT;
-            VentParticleOptions steam = new VentParticleOptions(driftX, 1.0D, driftZ, STEAM_COLOR, scale, false);
-            level.addParticle(steam, x, pos.getY() + STEAM_TOP, z, 0.0D, 0.0D, 0.0D);
+            double driftX = random.nextGaussian() * STEAM_SIDE_SPREAD;
+            double driftZ = random.nextGaussian() * STEAM_SIDE_SPREAD;
+            VentParticleOptions steam = new VentParticleOptions(driftX, 0.0D, driftZ, STEAM_COLOR, STEAM_SCALE, false);
+            level.addParticle(steam, pos.getX() + CENTER, pos.getY() + STEAM_LIFT, pos.getZ() + CENTER, 0.0D, 0.0D, 0.0D);
         }
     }
 

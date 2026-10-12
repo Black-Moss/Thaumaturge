@@ -9,7 +9,6 @@ import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -29,13 +28,13 @@ public final class GrappleGunItem extends Item {
     private static final int NO_GRAPPLE = -1;
     private static final float LAUNCH_SPEED = 1.5F;
     private static final float LAUNCH_INACCURACY = 0.0F;
-    private static final float RIGHT_YAW_OFFSET_DEGREES = 90.0F;
-    private static final float PITCH_OFFSET = -3.0F;
-    private static final float FIRE_VOLUME = 2.4F;
-    private static final float FIRE_PITCH_BASE = 0.7F;
-    private static final float FIRE_PITCH_SPREAD = 0.15F;
-    private static final double FORWARD_REACH = 0.9;
-    private static final double SIDE_SHIFT = 0.4;
+    private static final float PITCH_OFFSET = -5.0F;
+    private static final float FIRE_VOLUME = 3.0F;
+    private static final float FIRE_PITCH_BASE = 0.8F;
+    private static final float FIRE_PITCH_SPREAD = 0.1F;
+    private static final double SIDE_HALF_AXIS_X = 0.2;
+    private static final double SIDE_HALF_AXIS_Z = 0.3;
+    private static final float SIDE_YAW_BIAS_DEGREES = 0.5F;
     private static final LaunchParameters LAUNCH = new LaunchParameters(PITCH_OFFSET, LAUNCH_SPEED, LAUNCH_INACCURACY);
 
     public GrappleGunItem(Properties properties) {
@@ -44,9 +43,9 @@ public final class GrappleGunItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        float pitch = FIRE_PITCH_BASE + player.getRandom().nextFloat() * FIRE_PITCH_SPREAD;
+        player.playSound(TTSounds.ICE.get(), FIRE_VOLUME, pitch);
         if (level instanceof ServerLevel server) {
-            float pitch = FIRE_PITCH_BASE + server.getRandom().nextFloat() * FIRE_PITCH_SPREAD;
-            server.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.ICE.get(), SoundSource.PLAYERS, FIRE_VOLUME, pitch);
             ItemStack stack = player.getItemInHand(hand);
             if (RechargeAccess.storedVis(stack) >= CHARGE_COST) {
                 fire(server, player, hand, stack);
@@ -80,16 +79,13 @@ public final class GrappleGunItem extends Item {
 
     private static Vec3 spawnPoint(Player player, InteractionHand hand) {
         HumanoidArm arm = hand == InteractionHand.MAIN_HAND ? player.getMainArm() : player.getMainArm().getOpposite();
-        float yaw = player.getYRot();
-        float sideYaw = arm == HumanoidArm.RIGHT ? yaw + RIGHT_YAW_OFFSET_DEGREES : yaw - RIGHT_YAW_OFFSET_DEGREES;
-        Vec3 forward = horizontalHeading(yaw).scale(FORWARD_REACH);
-        Vec3 side = horizontalHeading(sideYaw).scale(SIDE_SHIFT);
-        return player.position().add(forward).add(side);
-    }
-
-    private static Vec3 horizontalHeading(float yawDegrees) {
-        float radians = yawDegrees * Mth.DEG_TO_RAD;
-        return new Vec3(-Mth.sin(radians), 0.0, Mth.cos(radians));
+        double handSign = arm == HumanoidArm.RIGHT ? 1.0 : -1.0;
+        float yawRadians = player.getYRot() * Mth.DEG_TO_RAD;
+        float sideRadians = (player.getYRot() - SIDE_YAW_BIAS_DEGREES) * Mth.DEG_TO_RAD;
+        float horizontalLook = Mth.cos(player.getXRot() * Mth.DEG_TO_RAD);
+        double x = -Mth.sin(yawRadians) * horizontalLook - handSign * SIDE_HALF_AXIS_X * Mth.cos(sideRadians);
+        double z = Mth.cos(yawRadians) * horizontalLook - handSign * SIDE_HALF_AXIS_Z * Mth.sin(sideRadians);
+        return player.position().add(x, 0.0, z);
     }
 
     private static void launch(EntityGrapple grapple, Player player, LaunchParameters parameters) {

@@ -20,13 +20,15 @@ final class CrucibleFx {
     private static final double FROTH_SPREAD = 0.3;
     private static final int FROTH_DOWN_PASSES = 2;
     private static final double RIM_TOP = 1.0;
-    private static final double RIM_OUTSET = 0.04;
+    private static final double BOIL_LIFT = 0.1;
+    private static final double BOIL_SEND_ORIGIN = 0.2;
+    private static final double BOIL_SEND_SPAN = 0.6;
 
     private static final int BUBBLE_ODDS = 6;
-    private static final double PIXEL = 1.0 / 16.0;
-    private static final int BUBBLE_GRID_INSET = 3;
-    private static final int BUBBLE_GRID_CELLS = 10;
-    private static final double BUBBLE_SURFACE_LIFT = 0.02;
+    private static final double PIXEL = 1.0 / 32.0;
+    private static final int BUBBLE_GRID_INSET = 5;
+    private static final int BUBBLE_GRID_CELLS = 22;
+    private static final double BUBBLE_SURFACE_LIFT = 0.05;
     private static final int NO_ASPECT_COLOR = 0xFFFFFF;
 
     private CrucibleFx() {}
@@ -59,10 +61,13 @@ final class CrucibleFx {
 
     static void boilBurst(ServerLevel level, BlockPos pos, float surface, AspectList aspects, int heat) {
         RandomSource random = level.getRandom();
-        Vec3 centre = new Vec3(pos.getX() + CENTRE, pos.getY() + surface, pos.getZ() + CENTRE);
+        double y = pos.getY() + BOIL_LIFT + surface;
         for (int i = 0; i < BOIL_EFFECT_COUNT; i++) {
+            double x = pos.getX() + BOIL_SEND_ORIGIN - BOIL_SEND_SPAN * random.nextDouble();
+            double z = pos.getZ() + BOIL_SEND_ORIGIN - BOIL_SEND_SPAN * random.nextDouble();
+            Vec3 sendPoint = new Vec3(x, y, z);
             int color = aspects.isEmpty() ? NO_ASPECT_COLOR : randomColor(aspects, random);
-            Effects.cauldronBoil(level, centre).color(ARGB.redFloat(color), ARGB.greenFloat(color), ARGB.blueFloat(color)).heat(heat).send();
+            Effects.cauldronBoil(level, sendPoint).color(ARGB.redFloat(color), ARGB.greenFloat(color), ARGB.blueFloat(color)).heat(heat).send();
         }
     }
 
@@ -73,10 +78,9 @@ final class CrucibleFx {
 
     private static Vec3 rimPoint(BlockPos pos, Direction side, RandomSource random) {
         Direction along = side.getClockWise();
-        double out = CENTRE + RIM_OUTSET;
         double slide = random.nextDouble() - CENTRE;
-        double x = pos.getX() + CENTRE + side.getStepX() * out + along.getStepX() * slide;
-        double z = pos.getZ() + CENTRE + side.getStepZ() * out + along.getStepZ() * slide;
+        double x = pos.getX() + CENTRE + side.getStepX() * CENTRE + along.getStepX() * slide;
+        double z = pos.getZ() + CENTRE + side.getStepZ() * CENTRE + along.getStepZ() * slide;
         return new Vec3(x, pos.getY() + RIM_TOP, z);
     }
 

@@ -12,49 +12,47 @@ import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
 public final class VisSparkleParticle extends TTParticle {
-    private static final HomingTuning HOMING = new HomingTuning(0.15, 2.0, 0.004, 0.006, 0.08);
-    private static final int SAFETY_LIFETIME = 900;
-    private static final int GROW_TICKS = 10;
-    private static final float SIZE = 0.09F;
-    private static final float PULSE_AMPLITUDE = 0.15F;
-    private static final float PULSE_RATE = 0.4F;
-    private static final float NEAR_SHRINK = 0.96F;
-    private static final float DRAG = 0.95F;
-    private static final double SPAWN_KICK = 0.015;
-    private static final double TARGET_JITTER = 0.06;
-    private static final float GREEN_RED = 0.35F;
-    private static final float GREEN_GREEN = 0.9F;
-    private static final float GREEN_BLUE = 0.3F;
-    private static final float GREEN_VARIATION = 0.08F;
+    private static final HomingTuning HOMING = new HomingTuning(0.2, 2.0, 0.1, 0.1, 0.1);
+    private static final int SAFETY_LIFETIME = 1000;
+    private static final int GROW_TICKS = 9;
+    private static final int GROWTH_DIVISOR_MIN = 45;
+    private static final int GROWTH_DIVISOR_SPAN = 15;
+    private static final float SIZE_BASE = 0.6F;
+    private static final float PULSE_AMPLITUDE = 0.03F;
+    private static final float PULSE_RATE = 1.0F / 3.0F;
+    private static final float NEAR_SHRINK = 0.95F;
+    private static final float DRAG = 0.985F;
+    private static final float ALPHA = 0.5F;
+    private static final double SPAWN_KICK = 0.01;
+    private static final float GREEN_RED = 0.2F;
+    private static final float GREEN_GREEN_BASE = 0.6F;
+    private static final float GREEN_GREEN_RANGE = 0.3F;
+    private static final float GREEN_BLUE = 0.2F;
 
     private final HomingSteering homing = new HomingSteering(HOMING);
     private final double targetX;
     private final double targetY;
     private final double targetZ;
-    private final float pulsePhase;
+    private final int growthDivisor;
     private float proximityScale = 1.0F;
 
     private VisSparkleParticle(ClientLevel level, double x, double y, double z, VisSparkleParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         if (options.color() == VisSparkleParticleOptions.DEFAULT_COLOR) {
-            setColor(vary(GREEN_RED), vary(GREEN_GREEN), vary(GREEN_BLUE));
+            setColor(GREEN_RED, GREEN_GREEN_BASE + this.random.nextFloat() * GREEN_GREEN_RANGE, GREEN_BLUE);
         } else {
             setColor(options.color());
         }
-        this.targetX = options.tx() + this.random.nextGaussian() * TARGET_JITTER;
-        this.targetY = options.ty() + this.random.nextGaussian() * TARGET_JITTER;
-        this.targetZ = options.tz() + this.random.nextGaussian() * TARGET_JITTER;
+        this.targetX = options.tx();
+        this.targetY = options.ty();
+        this.targetZ = options.tz();
         this.friction = DRAG;
         this.lifetime = SAFETY_LIFETIME;
-        this.alpha = 1.0F;
+        this.alpha = ALPHA;
         this.quadSize = 0.0F;
-        this.pulsePhase = this.random.nextFloat() * Mth.TWO_PI;
+        this.growthDivisor = GROWTH_DIVISOR_MIN + this.random.nextInt(GROWTH_DIVISOR_SPAN);
         jitterVelocity(SPAWN_KICK);
         frame(this.random.nextInt(sheetFrames()));
-    }
-
-    private float vary(float channel) {
-        return Mth.clamp(channel + (this.random.nextFloat() * 2.0F - 1.0F) * GREEN_VARIATION, 0.0F, 1.0F);
     }
 
     @Override
@@ -68,12 +66,14 @@ public final class VisSparkleParticle extends TTParticle {
         this.xd = this.homing.velocityX();
         this.yd = this.homing.velocityY();
         this.zd = this.homing.velocityZ();
-        if (phase == HomingPhase.NEAR) {
+        if (this.age <= GROW_TICKS) {
+            this.proximityScale = phase == HomingPhase.NEAR ? NEAR_SHRINK : 1.0F;
+        } else if (phase == HomingPhase.NEAR) {
             this.proximityScale *= NEAR_SHRINK;
         }
-        float growth = Math.min(1.0F, (float) this.age / GROW_TICKS);
-        float pulse = 1.0F + PULSE_AMPLITUDE * Mth.sin(this.age * PULSE_RATE + this.pulsePhase);
-        this.quadSize = SIZE * growth * pulse * this.proximityScale;
+        float growth = (float) Math.min(this.age, GROW_TICKS) / this.growthDivisor;
+        float pulse = SIZE_BASE + PULSE_AMPLITUDE * Mth.sin(this.age * PULSE_RATE);
+        this.quadSize = growth * pulse * this.proximityScale;
     }
 
     @Override

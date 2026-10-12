@@ -58,21 +58,20 @@ public final class ThaumometerLensRenderer {
     private static final float AMOUNT_SCALE = 0.5F;
     private static final float AMOUNT_GAP = 1.0F;
     private static final float TAG_ALPHA = 1.0F;
-    private static final float TAG_GAP = 2.0F;
-    private static final float ROW_GAP = 1.0F;
+    private static final float TAG_GAP = 0.0F;
+    private static final float ROW_GAP = 0.0F;
     private static final float TAG_PITCH = TAG_SIZE + TAG_GAP;
     private static final float TAG_ROW_PITCH = TAG_SIZE + ROW_GAP;
 
-    private static final float NAME_Y = 0.2F;
-    private static final float NAME_BASE_SCALE = 0.0075F;
-    private static final float NAME_MAX_WIDTH = 0.62F;
-    private static final float NODE_LINE_Y = -0.29F;
-    private static final float NODE_LINE_SCALE = 0.005F;
-    private static final float NODE_LINE_MAX_WIDTH = 0.5F;
-    private static final int NODE_LINE_COLOR = 0xFFE6B84A;
-    private static final float GRID_CENTRE_Y = -0.07F;
-    private static final float GRID_SCALE = 0.0072F;
-    private static final float GRID_MAX_HEIGHT = 0.37F;
+    private static final float NAME_Y = -0.25F;
+    private static final float NAME_BASE_SCALE = 0.005F;
+    private static final float NAME_SHRINK_START_WIDTH = 90.0F;
+    private static final float NAME_SHRINK_PER_UNIT = 0.000025F;
+    private static final float NAME_MIN_SCALE = 0.001F;
+    private static final float NODE_LINE_Y = -0.16F;
+    private static final float NODE_LINE_SCALE = 0.004F;
+    private static final int NODE_LINE_COLOR = 0xFFEEAE16;
+    private static final float GRID_SCALE = 0.0075F;
     private static final int GRID_FIRST_ROW = 5;
     private static final int GRID_ROWS = 5;
 
@@ -154,38 +153,26 @@ public final class ThaumometerLensRenderer {
 
     private static void submitNodeLine(Font font, PoseStack poseStack, SubmitNodeCollector collector, Component line) {
         int width = font.width(line);
-        float scale = fit(width, NODE_LINE_SCALE, NODE_LINE_MAX_WIDTH);
-        drawPlaced(collector, poseStack, line, new Vector3f(0.0F, NODE_LINE_Y, NAME_FRONT_Z), scale, -width / 2.0F, -font.lineHeight / 2.0F, true, NODE_LINE_COLOR);
+        drawPlaced(collector, poseStack, line, new Vector3f(0.0F, NODE_LINE_Y, NAME_FRONT_Z), NODE_LINE_SCALE, -width / 2.0F, 0.0F, false, NODE_LINE_COLOR);
     }
 
     private static void submitName(Font font, PoseStack poseStack, SubmitNodeCollector collector, Component name) {
         int width = font.width(name);
-        drawPlaced(collector, poseStack, name, new Vector3f(0.0F, NAME_Y, NAME_FRONT_Z), nameScale(width), -width / 2.0F, -font.lineHeight / 2.0F, true, NAME_COLOR);
+        drawPlaced(collector, poseStack, name, new Vector3f(0.0F, NAME_Y, NAME_FRONT_Z), nameScale(width), -width / 2.0F, 0.0F, false, NAME_COLOR);
     }
 
     private static float nameScale(int width) {
-        return fit(width, NAME_BASE_SCALE, NAME_MAX_WIDTH);
-    }
-
-    private static float fit(int width, float baseScale, float maxWidth) {
-        return width <= 0 ? baseScale : Math.min(baseScale, maxWidth / width);
+        if (width <= NAME_SHRINK_START_WIDTH) {
+            return NAME_BASE_SCALE;
+        }
+        return Math.max(NAME_MIN_SCALE, NAME_BASE_SCALE - NAME_SHRINK_PER_UNIT * (width - NAME_SHRINK_START_WIDTH));
     }
 
     private static void submitGrid(Font font, AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector collector, List<AspectInstance> entries) {
-        int rows = 0;
-        int capacity = 0;
-        while (rows < GRID_ROWS && capacity < entries.size()) {
-            capacity += GRID_FIRST_ROW - rows;
-            rows++;
-        }
-        float height = rows * TAG_ROW_PITCH - ROW_GAP;
-        float scale = Math.min(GRID_SCALE, GRID_MAX_HEIGHT / height);
         poseStack.pushPose();
-        poseStack.translate(0.0F, GRID_CENTRE_Y, 0.0F);
-        poseStack.scale(scale, scale, scale);
-        poseStack.translate(0.0F, -height / 2.0F, 0.0F);
+        poseStack.scale(GRID_SCALE, GRID_SCALE, GRID_SCALE);
         int start = 0;
-        for (int row = 0; row < rows && start < entries.size(); row++) {
+        for (int row = 0; row < GRID_ROWS && start < entries.size(); row++) {
             int end = Math.min(entries.size(), start + GRID_FIRST_ROW - row);
             submitRow(font, player, poseStack, collector, entries.subList(start, end), row);
             start = end;
@@ -195,7 +182,7 @@ public final class ThaumometerLensRenderer {
 
     private static void submitRow(Font font, AbstractClientPlayer player, PoseStack poseStack, SubmitNodeCollector collector, List<AspectInstance> rowEntries, int row) {
         float x = -(rowEntries.size() * TAG_PITCH - TAG_GAP) / 2.0F;
-        float y = row * TAG_ROW_PITCH;
+        float y = row * TAG_ROW_PITCH - TAG_HALF;
         for (AspectInstance entry : rowEntries) {
             submitTag(font, player, poseStack, collector, entry, x, y);
             x += TAG_PITCH;

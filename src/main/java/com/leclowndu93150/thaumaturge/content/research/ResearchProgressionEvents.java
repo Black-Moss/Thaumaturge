@@ -269,7 +269,7 @@ public final class ResearchProgressionEvents {
     private static WrittenBookContent dreamContent(ServerPlayer player) {
         List<Filterable<Component>> pages = BOOK_PAGE_KEYS.stream().map(ResearchProgressionEvents::page).toList();
         Filterable<String> title = Filterable.passThrough(Component.translatable(BOOK_TITLE_KEY).getString());
-        return new WrittenBookContent(title, player.getDisplayName().getString(), WrittenBookContent.MAX_GENERATION, pages, false);
+        return new WrittenBookContent(title, player.getPlainTextName(), WrittenBookContent.MAX_GENERATION, pages, false);
     }
 
     private static void grantDreamJournal(ServerPlayer player) {

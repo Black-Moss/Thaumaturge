@@ -20,7 +20,6 @@ import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityLampFertility extends BlockEntity implements EssentiaIntakeHost {
     private static final int INTAKE_SUCTION = 128;
-    private static final int SUCTION_PER_CHARGE = 10;
     private static final int INTAKE_INTERVAL = 5;
     private static final int MAX_CHARGES = 10;
     private static final int MIN_RUNNING_CHARGES = 2;
@@ -32,7 +31,7 @@ public final class BlockEntityLampFertility extends BlockEntity implements Essen
 
     private final EssentiaIntake intake = new EssentiaIntake(this, TTAspects.DESIDERIUM, INTAKE_SUCTION, INTAKE_INTERVAL);
     private int charges;
-    private int runningTicks;
+    private int pairingCooldown;
 
     public BlockEntityLampFertility(BlockPos pos, BlockState state) {
         super(TTBlockEntities.LAMP_FERTILITY.get(), pos, state);
@@ -43,10 +42,10 @@ public final class BlockEntityLampFertility extends BlockEntity implements Essen
         boolean running = !level.hasNeighborSignal(pos) && lamp.charges >= MIN_RUNNING_CHARGES;
         BlockLamp.showLit(level, pos, state, running);
         if (!running) {
-            lamp.runningTicks = 0;
             return;
         }
-        if (lamp.runningTicks++ % PAIRING_INTERVAL == 0) {
+        if (--lamp.pairingCooldown <= 0) {
+            lamp.pairingCooldown = PAIRING_INTERVAL;
             lamp.pairAnimals(level, pos);
         }
     }
@@ -110,11 +109,6 @@ public final class BlockEntityLampFertility extends BlockEntity implements Essen
     @Override
     public boolean wantsEssentia() {
         return charges < MAX_CHARGES;
-    }
-
-    @Override
-    public int intakeSuction(int baseSuction) {
-        return baseSuction - SUCTION_PER_CHARGE * charges;
     }
 
     @Override

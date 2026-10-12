@@ -7,7 +7,6 @@ import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
-import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import java.util.ArrayDeque;
@@ -22,7 +21,6 @@ import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -31,7 +29,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BlockEntityCondenser extends BlockEntity implements IEssentiaConduit {
@@ -52,12 +49,6 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
     private static final float FLUX_PER_CONVERSION = 1.0F;
     private static final float UNSCANNED = -1.0F;
     private static final int ABSORB_AMOUNT = 1;
-    private static final int ENTRY_CLOG_WEIGHT = 1;
-    private static final int CELL_CLOG_WEIGHT = 8;
-    private static final int SPARK_PACE = 20;
-    private static final double SPARK_SPREAD = 0.4;
-    private static final float SPARK_SIZE = 0.6F;
-    private static final float SPARK_COLOR_FLOOR = 0.55F;
     private static final String ESSENTIA_KEY = "essentia";
     private static final String FLUX_KEY = "flux";
     private static final Direction[] DIRECTIONS = Direction.values();
@@ -107,25 +98,19 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
         if (interval > 0 && ticks % interval == 0) {
             condense(level);
         }
-        if (essentia > 0 && level instanceof ServerLevel serverLevel) {
-            sparkle(serverLevel);
-        }
     }
 
     private void draw(Level level) {
-        List<IEssentiaConduit> sources = new ArrayList<>(HORIZONTALS.length);
-        for (Direction side : HORIZONTALS) {
+        for (int slot = 0; slot < HORIZONTALS.length && essentia < CAPACITY; slot++) {
+            Direction side = HORIZONTALS[slot];
             IEssentiaConduit source = neighbour(level, side);
-            if (source != null && !source.releasesOn(side.getOpposite())) {
+            if (source == null) {
+                continue;
+            }
+            if (!source.releasesOn(side.getOpposite())) {
                 return;
             }
-            sources.add(source);
-        }
-        for (int slot = 0; slot < HORIZONTALS.length && essentia < CAPACITY; slot++) {
-            IEssentiaConduit source = sources.get(slot);
-            if (source != null) {
-                drawFrom(level, source, HORIZONTALS[slot]);
-            }
+            drawFrom(level, source, side);
         }
     }
 
@@ -163,6 +148,9 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
         if (victim == null) {
             return;
         }
+        if (!isClean(level, victim)) {
+            return;
+        }
         BlockState clean = level.getBlockState(victim);
         level.setBlock(victim, TTBlocks.CONDENSER_LATTICE_DIRTY.get().withPropertiesOf(clean), Block.UPDATE_ALL);
         rescan(level);
@@ -172,42 +160,21 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
         if (dirtyCandidates.isEmpty()) {
             return null;
         }
-        BlockPos entry = worldPosition.above();
-        int totalWeight = 0;
-        for (BlockPos cell : dirtyCandidates) {
-            totalWeight += cell.equals(entry) ? ENTRY_CLOG_WEIGHT : CELL_CLOG_WEIGHT;
+        int size = dirtyCandidates.size();
+        int index = random.nextInt(size);
+        if (index == 0) {
+            index = random.nextInt(size);
         }
-        int roll = random.nextInt(totalWeight);
-        for (BlockPos cell : dirtyCandidates) {
-            roll -= cell.equals(entry) ? ENTRY_CLOG_WEIGHT : CELL_CLOG_WEIGHT;
-            if (roll < 0) {
-                return cell;
-            }
-        }
-        return dirtyCandidates.getLast();
-    }
-
-    private void sparkle(ServerLevel level) {
-        RandomSource random = level.getRandom();
-        if (dirtyCandidates.isEmpty() || random.nextInt(Math.max(1, interval / SPARK_PACE)) != 0) {
-            return;
-        }
-        BlockPos cell = dirtyCandidates.get(random.nextInt(dirtyCandidates.size()));
-        Vec3 at = Vec3.atCenterOf(cell).add(random.triangle(0.0, SPARK_SPREAD), random.triangle(0.0, SPARK_SPREAD), random.triangle(0.0, SPARK_SPREAD));
-        Effects.spark(level, at).color(softChannel(random), softChannel(random), softChannel(random)).size(SPARK_SIZE).send();
-    }
-
-    private static float softChannel(RandomSource random) {
-        return SPARK_COLOR_FLOOR + random.nextFloat() * (1.0F - SPARK_COLOR_FLOOR);
+        return dirtyCandidates.get(index);
     }
 
     private void evaluate(Level level, Map<BlockPos, Integer> depth, Set<BlockPos> clean) {
-        if (depth.isEmpty()) {
+        BlockPos entry = worldPosition.above();
+        if (depth.isEmpty() || !clean.contains(entry)) {
             markIdle();
             return;
         }
-        BlockPos entry = worldPosition.above();
-        Set<BlockPos> counted = clean.contains(entry) ? cleanRouteFrom(entry, clean) : Set.of();
+        Set<BlockPos> counted = cleanRouteFrom(entry, clean);
         int total = ROOT_VALUE;
         for (BlockPos cell : counted) {
             if (!isTerminal(cell, depth)) {

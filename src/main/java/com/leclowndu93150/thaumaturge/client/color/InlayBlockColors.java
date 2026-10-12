@@ -19,8 +19,8 @@ public final class InlayBlockColors {
     private static final int MAX_CHANNEL = 255;
     private static final int OPAQUE_ALPHA = 255;
     private static final float UNCHARGED_BRIGHTNESS = 0.3F;
-    private static final float FIRST_CHARGE_BRIGHTNESS = 0.55F;
-    private static final float FULL_BRIGHTNESS = 1.0F;
+    private static final float RAMP_SPAN = 0.5F;
+    private static final float RAMP_BASE = 0.5F;
     private static final int FIRST_CHARGE = 1;
 
     private InlayBlockColors() {}
@@ -32,7 +32,7 @@ public final class InlayBlockColors {
     }
 
     private static int tint(BlockState state) {
-        int grey = Mth.clamp(Math.round(brightness(state.getValue(BlockInlay.CHARGE)) * MAX_CHANNEL), 0, MAX_CHANNEL);
+        int grey = Mth.clamp((int) (brightness(state.getValue(BlockInlay.CHARGE)) * MAX_CHANNEL), 0, MAX_CHANNEL);
         return ARGB.color(OPAQUE_ALPHA, grey, grey, grey);
     }
 
@@ -40,7 +40,6 @@ public final class InlayBlockColors {
         if (charge < FIRST_CHARGE) {
             return UNCHARGED_BRIGHTNESS;
         }
-        float progress = (float) (charge - FIRST_CHARGE) / (MAX_CHARGE - FIRST_CHARGE);
-        return Mth.lerp(progress, FIRST_CHARGE_BRIGHTNESS, FULL_BRIGHTNESS);
+        return (float) charge / MAX_CHARGE * RAMP_SPAN + RAMP_BASE;
     }
 }

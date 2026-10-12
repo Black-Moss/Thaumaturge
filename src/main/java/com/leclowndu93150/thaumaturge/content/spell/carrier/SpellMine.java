@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
 import com.leclowndu93150.thaumaturge.content.spell.world.SpellTargeting;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import java.util.List;
-import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -16,7 +15,6 @@ import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
@@ -35,8 +33,6 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
     private static final int SCAN_INTERVAL = 5;
     private static final double TRIGGER_RANGE = 1.0;
     private static final double SETTLE_DAMPING = 0.25;
-    private static final double SETTLE_STEP = 0.05;
-    private static final int SETTLE_ATTEMPTS = 10;
     private static final int GLOW_INTERVAL = 5;
     private static final double GLOW_SPREAD = 0.1;
 
@@ -110,41 +106,23 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
 
     @Override
     protected void onHit(HitResult result) {
-        if (!armed() && !tryArm()) {
-            return;
-        }
-        setDeltaMovement(getDeltaMovement().scale(SETTLE_DAMPING));
-        pushOut(outwardOf(result));
-    }
-
-    private boolean tryArm() {
-        if (!(level() instanceof ServerLevel) || getOwner() == null) {
-            return false;
-        }
-        armedAt = tickCount;
-        entityData.set(ARMED, true);
-        return true;
-    }
-
-    private static Direction outwardOf(HitResult result) {
-        return result instanceof BlockHitResult block ? block.getDirection() : Direction.UP;
-    }
-
-    private void pushOut(Direction outward) {
-        int attempt = 0;
-        while (attempt < SETTLE_ATTEMPTS && isEmbedded()) {
-            setPos(position().relative(outward, SETTLE_STEP));
-            attempt++;
+        if (level() instanceof ServerLevel && getOwner() != null && !armed()) {
+            armedAt = tickCount;
+            entityData.set(ARMED, true);
         }
     }
 
-    private boolean isEmbedded() {
-        return !level().noBlockCollision(this, getBoundingBox());
+    private void settle() {
+        if (!level().noCollision(this)) {
+            moveTowardsClosestSpace(getX(), getY(), getZ());
+            setDeltaMovement(getDeltaMovement().scale(SETTLE_DAMPING));
+        }
     }
 
     @Override
     public void tick() {
         super.tick();
+        settle();
         if (!(level() instanceof ServerLevel server)) {
             pulseGlow();
         } else if (!isRemoved()) {
@@ -165,8 +143,9 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
             discard();
             return;
         }
-        if (victims != null) {
-            releaseNext(server);
+        List<LivingEntity> queue = victims;
+        if (queue != null) {
+            releaseNext(server, queue);
         } else if (scanDue()) {
             gather(server, master);
         }
@@ -181,27 +160,19 @@ public final class SpellMine extends ThrowableProjectile implements IEntityWithC
         if (!found.isEmpty()) {
             victims = found;
             nextVictim = 0;
+            releaseNext(server, found);
         }
     }
 
-    private @Nullable LivingEntity nextLiving() {
-        while (nextVictim < victims.size()) {
-            LivingEntity candidate = victims.get(nextVictim++);
-            if (candidate.isAlive()) {
-                return candidate;
-            }
+    private void releaseNext(ServerLevel server, List<LivingEntity> queue) {
+        if (nextVictim >= queue.size() || charge.isSpent()) {
+            discard();
+            return;
         }
-        return null;
-    }
-
-    private void releaseNext(ServerLevel server) {
-        LivingEntity victim = nextLiving();
-        if (victim != null) {
+        LivingEntity victim = queue.get(nextVictim++);
+        if (victim.isAlive()) {
             Vec3 heading = victim.getBoundingBox().getCenter().subtract(position());
             charge.resume(server, List.of(SpellTarget.entity(victim, heading)));
-        }
-        if (victim == null || nextVictim >= victims.size() || charge.isSpent()) {
-            discard();
         }
     }
 }

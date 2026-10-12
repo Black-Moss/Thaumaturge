@@ -17,7 +17,6 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -37,14 +36,14 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
     private static final int ONE_POINT = 1;
     private static final int NONE = 0;
     private static final int BREAK_FLUX = 1;
-    private static final float TOP_SPEED = 24.0F;
-    private static final float SPIN_UP_STEP = 2.5F;
-    private static final float SPIN_DOWN_STEP = 0.6F;
+    private static final float TOP_SPEED = 20.0F;
+    private static final float SPIN_UP_STEP = 2.0F;
+    private static final float SPIN_DOWN_STEP = 0.5F;
     private static final float HALF_TURN = 180.0F;
     private static final float FULL_TURN = 360.0F;
-    private static final float PUMP_VOLUME = 0.2F;
-    private static final float PUMP_PITCH_LOW = 0.85F;
-    private static final float PUMP_PITCH_RANGE = 0.3F;
+    private static final float PUMP_VOLUME = 1.0F;
+    private static final float PUMP_PITCH = 1.0F;
+    private static final double BLOCK_CENTER = 0.5;
 
     public float rotation;
     public float rotationSpeed;
@@ -84,10 +83,11 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
         if (powered) {
             return;
         }
+        if (intake == null && product == null && server.getGameTime() % PULL_INTERVAL == 0) {
+            drawFromBelow(server, pos);
+        }
         if (intake != null) {
             advanceProcess(server);
-        } else if (product == null && server.getGameTime() % PULL_INTERVAL == 0) {
-            drawFromBelow(server, pos);
         }
     }
 
@@ -104,21 +104,18 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
         if (rotation >= FULL_TURN) {
             rotation -= FULL_TURN;
         }
-        return driven && crossedHalf;
+        return crossedHalf && rotationSpeed > 0.0F;
     }
 
     private static void playPump(ServerLevel server, BlockPos pos) {
-        RandomSource random = server.getRandom();
-        float pitch = PUMP_PITCH_LOW + random.nextFloat() * PUMP_PITCH_RANGE;
-        server.playSound(null, pos, TTSounds.PUMP.get(), SoundSource.BLOCKS, PUMP_VOLUME, pitch);
+        server.playSound(null, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, TTSounds.PUMP.get(), SoundSource.BLOCKS, PUMP_VOLUME, PUMP_PITCH);
     }
 
     private void advanceProcess(ServerLevel server) {
         if (processLeft > 0) {
             processLeft--;
-            return;
         }
-        if (product != null || intake == null) {
+        if (processLeft > 0 || product != null || intake == null) {
             return;
         }
         Holder<IAspect> held = Aspects.resolve(server, intake);
@@ -166,10 +163,6 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
         intake = aspect.unwrapKey().orElse(null);
         processLeft = PROCESS_TICKS;
         setChangedAndSync();
-    }
-
-    private boolean holdsNothing() {
-        return intake == null && product == null;
     }
 
     private @Nullable Holder<IAspect> resolve(@Nullable ResourceKey<IAspect> key) {
@@ -225,10 +218,10 @@ public final class BlockEntityCentrifuge extends AbstractSyncedBlockEntity imple
     }
 
     private int pullStrength(@Nullable Direction side) {
-        if (side == OUTLET || isPowered()) {
+        if (side != INTAKE || isPowered()) {
             return NO_SUCTION;
         }
-        return holdsNothing() ? EMPTY_SUCTION : BUSY_SUCTION;
+        return intake == null ? EMPTY_SUCTION : BUSY_SUCTION;
     }
 
     @Override

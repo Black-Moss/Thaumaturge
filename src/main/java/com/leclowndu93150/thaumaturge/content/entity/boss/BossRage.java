@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -20,12 +21,12 @@ final class BossRage {
     private static final int RAGE_TICKS = 200;
     private static final float REGENERATION_DIVISOR = 15.0F;
     private static final float STRENGTH_DIVISOR = 10.0F;
-    private static final float SPEED_DIVISOR = 40.0F;
-    private static final int PUFF_ODDS = 20;
-    private static final double PUFF_LIFT = 0.5;
-    private static final double PUFF_SPREAD = 0.3;
-    private static final int PUFF_COUNT = 1;
-    private static final double PUFF_SPEED = 0.0;
+    private static final float HASTE_DIVISOR = 40.0F;
+    private static final int PUFF_ODDS = 15;
+    private static final float PUFF_LIFT = 0.5F;
+    private static final double PUFF_DRIFT = 0.02;
+    private static final int PUFF_VELOCITY_MODE = 0;
+    private static final double PUFF_SPEED = 1.0;
 
     private final LivingEntity owner;
     private final EntityDataAccessor<Integer> anger;
@@ -67,16 +68,27 @@ final class BossRage {
         }
         setAnger(remaining - 1);
         if (owner.getRandom().nextInt(PUFF_ODDS) == 0) {
-            level.sendParticles(ParticleTypes.ANGRY_VILLAGER, owner.getX(), owner.getY() + owner.getBbHeight() + PUFF_LIFT, owner.getZ(), PUFF_COUNT, PUFF_SPREAD, PUFF_SPREAD, PUFF_SPREAD,
-                    PUFF_SPEED);
+            puff(level);
         }
+    }
+
+    private void puff(ServerLevel level) {
+        RandomSource random = owner.getRandom();
+        float width = owner.getBbWidth();
+        double x = owner.getX() + random.nextFloat() * width - width / 2.0F;
+        double y = owner.getY() + owner.getBbHeight() + random.nextFloat() * PUFF_LIFT;
+        double z = owner.getZ() + random.nextFloat() * width - width / 2.0F;
+        double driftX = random.nextGaussian() * PUFF_DRIFT;
+        double driftY = random.nextGaussian() * PUFF_DRIFT;
+        double driftZ = random.nextGaussian() * PUFF_DRIFT;
+        level.sendParticles(ParticleTypes.ANGRY_VILLAGER, x, y, z, PUFF_VELOCITY_MODE, driftX, driftY, driftZ, PUFF_SPEED);
     }
 
     private void erupt(DamageSource source, float damage) {
         setAnger(RAGE_TICKS);
         empower(MobEffects.REGENERATION, damage / REGENERATION_DIVISOR);
         empower(MobEffects.STRENGTH, damage / STRENGTH_DIVISOR);
-        empower(MobEffects.SPEED, damage / SPEED_DIVISOR);
+        empower(MobEffects.HASTE, damage / HASTE_DIVISOR);
         if (source.getEntity() instanceof ServerPlayer player) {
             player.sendSystemMessage(Component.translatable(ENRAGED_KEY, owner.getDisplayName()), true);
         }

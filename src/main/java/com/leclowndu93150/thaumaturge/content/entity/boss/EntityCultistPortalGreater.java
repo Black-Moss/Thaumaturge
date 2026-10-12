@@ -10,7 +10,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.BossEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
@@ -37,7 +36,6 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     private static final int EXPERIENCE = 30;
     private static final float TOUCH_DAMAGE = 8.0F;
     private static final float DEATH_BLAST_POWER = 2.0F;
-    private static final float NO_PASSIVE_HEALING = 0.0F;
     private static final float REGEN_PER_TICK = 1.0F;
     private static final int LAST_HEALING_WAVE = 12;
     private static final int PRAETOR_WAVE = 13;
@@ -45,13 +43,13 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     private static final int OPENING_TICKS = 200;
     private static final int BANNER_TICK = 40;
     private static final int BANNER_DISTANCE = 6;
-    private static final int CRATE_FIRST_TICK = 50;
-    private static final int CRATE_LAST_TICK = 180;
+    private static final int CRATE_FIRST_TICK = 57;
+    private static final int CRATE_LAST_TICK = 174;
     private static final int CRATE_INTERVAL = 13;
     private static final int CRATE_REACH = 4;
     private static final float RARE_CRATE_CHANCE = 0.05F;
     private static final float UNCOMMON_CRATE_CHANCE = 0.15F;
-    private static final int ARC_COLOR = 0xB01030;
+    private static final int ARC_COLOR = 0xBB2222;
     private static final double BLOCK_CENTER = 0.5;
     private static final double PORTAL_CORE = 0.5;
     private static final double WAVE_PLAYER_RANGE = 48.0;
@@ -60,6 +58,8 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     private static final double CROWD_RANGE = 32.0;
     private static final int ARRIVAL_HOME_RADIUS = 32;
     private static final int TICKS_PER_SECOND = 20;
+    private static final float CONJURE_VOLUME = 1.0F;
+    private static final float CONJURE_PITCH = 1.0F;
     private static final int RUSH_MIN_START = 15;
     private static final int RUSH_MAX_START = 24;
     private static final int RUSH_MIN_STEP = 1;
@@ -81,7 +81,6 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     public EntityCultistPortalGreater(EntityType<? extends EntityCultistPortalGreater> type, Level level) {
         super(type, level);
         this.xpReward = EXPERIENCE;
-        this.bossBar.event().setOverlay(BossEvent.BossBarOverlay.NOTCHED_6);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -90,16 +89,6 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
 
     @Override
     protected void registerGoals() {}
-
-    @Override
-    protected boolean usesLegacyEnrage() {
-        return false;
-    }
-
-    @Override
-    protected float passiveHealing() {
-        return NO_PASSIVE_HEALING;
-    }
 
     @Override
     public void tick() {
@@ -128,7 +117,7 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
             return;
         }
         if (server.getNearestPlayer(this, WAVE_PLAYER_RANGE) == null) {
-            this.waveCountdown = IDLE_RECHECK_MIN + this.random.nextInt(IDLE_RECHECK_SPREAD + 1);
+            this.waveCountdown = IDLE_RECHECK_MIN + this.random.nextInt(IDLE_RECHECK_SPREAD);
             return;
         }
         this.runWave(server);
@@ -150,8 +139,9 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
             BlockState banner = TTBlocks.BANNER_CRIMSON_CULT.get().defaultBlockState().setValue(BannerStandingBlock.ROTATION, RotationSegment.convertToSegment(outward));
             server.setBlock(spot, banner, Block.UPDATE_ALL);
             this.arcTo(server, spot);
+            this.playConjure();
         }
-        this.announce(server, this.position());
+        CultistPortals.pulse(server, this);
     }
 
     private void tryConjureCrate(ServerLevel server) {
@@ -166,7 +156,8 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
         }
         server.setBlock(spot, this.rollCrate().defaultBlockState(), Block.UPDATE_ALL);
         this.arcTo(server, spot);
-        this.announce(server, Vec3.atCenterOf(spot));
+        this.playConjure();
+        CultistPortals.pulse(server, this);
     }
 
     private Block rollCrate() {
@@ -183,18 +174,18 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
     private void arcTo(ServerLevel server, BlockPos spot) {
         Vec3 core = new Vec3(this.getX(), this.getY(PORTAL_CORE), this.getZ());
         Vec3 end = new Vec3(spot.getX() + BLOCK_CENTER, spot.getY() + BLOCK_CENTER, spot.getZ() + BLOCK_CENTER);
-        Effects.zapArc(server, core).to(end).color(ARC_COLOR).send();
+        Effects.boltStrike(server, core).to(end).color(ARC_COLOR).send();
     }
 
-    private void announce(ServerLevel server, Vec3 at) {
-        CultistPortals.pulse(server, this);
-        CultistPortals.playConjureSound(server, at);
+    private void playConjure() {
+        this.playSound(TTSounds.WANDFAIL.get(), CONJURE_VOLUME, CONJURE_PITCH);
     }
 
     private void runWave(ServerLevel server) {
         this.stage++;
         boolean praetorWave = this.stage == PRAETOR_WAVE;
         Mob arrival = praetorWave ? TTEntities.CULTIST_LEADER.get().create(server, EntitySpawnReason.MOB_SUMMONED) : CultistPortals.rollMinion(server, this.random);
+        int crowd = CultistPortals.cultistsNear(this, CROWD_RANGE) * TICKS_PER_SECOND;
         CultistPortals.pulse(server, this);
         if (arrival != null) {
             CultistPortals.summon(this, server, arrival);
@@ -203,7 +194,7 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
                 this.hurtServer(server, server.damageSources().magic(), BURN_DAMAGE_BASE + this.random.nextInt(BURN_DAMAGE_SPREAD));
             }
         }
-        this.waveCountdown = this.pauseAfter(this.stage, CultistPortals.cultistsNear(this, CROWD_RANGE) * TICKS_PER_SECOND);
+        this.waveCountdown = this.pauseAfter(this.stage, crowd);
     }
 
     private int pauseAfter(int wave, int crowdTicks) {
@@ -214,9 +205,9 @@ public class EntityCultistPortalGreater extends EntityThaumaturgeBoss {
             return shortest + this.random.nextInt(longest - shortest + 1);
         }
         if (wave == PRAETOR_WAVE) {
-            return PRAETOR_PAUSE_BASE + PRAETOR_CROWD_FACTOR * crowdTicks + this.random.nextInt(PRAETOR_PAUSE_SPREAD + 1);
+            return PRAETOR_PAUSE_BASE + PRAETOR_CROWD_FACTOR * crowdTicks + this.random.nextInt(PRAETOR_PAUSE_SPREAD);
         }
-        return crowdTicks + this.random.nextInt(CROWD_EXTRA_BASE + crowdTicks / CROWD_EXTRA_DIVISOR + 1);
+        return crowdTicks + this.random.nextInt(CROWD_EXTRA_BASE + crowdTicks / CROWD_EXTRA_DIVISOR);
     }
 
     @Override

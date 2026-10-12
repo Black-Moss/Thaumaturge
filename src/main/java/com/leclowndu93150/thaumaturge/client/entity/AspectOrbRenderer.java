@@ -23,8 +23,8 @@ import org.joml.Matrix4fc;
 public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, AspectOrbRenderer.State> {
     private static final float SHADOW_RADIUS = 0.0F;
     private static final float CHANNEL_MAX = 255.0F;
-    private static final float MIN_SCALE = 0.11F;
-    private static final float SCALE_RANGE = 0.34F;
+    private static final float MIN_SCALE = 0.1F;
+    private static final float SCALE_RANGE = 0.3F;
     private static final float ALPHA = 0.5F;
     private static final float LEFT = -0.5F;
     private static final float RIGHT = 0.5F;

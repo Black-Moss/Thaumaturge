@@ -16,16 +16,15 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class TaintTraitVisuals {
-    private static final float ALPHA = 0.3F;
-    private static final float RED_BASE = 0.16F;
-    private static final float RED_SPREAD = 0.1F;
-    private static final float GREEN = 0.03F;
-    private static final float BLUE_BASE = 0.14F;
-    private static final float BLUE_SPREAD = 0.08F;
-    private static final float SCALE_BASE = 4.0F;
-    private static final float SCALE_SPREAD = 2.0F;
-    private static final float END_GROWTH = 1.25F;
-    private static final double DRIFT = -0.004D;
+    private static final float ALPHA = 0.25F;
+    private static final float RED_BASE = 0.1F;
+    private static final float RED_SPREAD = 0.2F;
+    private static final float GREEN = 0.0F;
+    private static final float BLUE_BASE = 0.1F;
+    private static final float BLUE_SPREAD = 0.1F;
+    private static final float SCALE_BASE = 2.0F;
+    private static final float END_SCALE = 2.0F;
+    private static final double DRIFT = -0.01D;
 
     private TaintTraitVisuals() {}
 
@@ -40,11 +39,10 @@ public final class TaintTraitVisuals {
     }
 
     private static void fluxSwirl(LivingEntity mob, Level level, RandomSource random, double x, double y, double z) {
-        float shade = random.nextFloat();
-        float red = RED_BASE + RED_SPREAD * shade;
-        float blue = BLUE_BASE + BLUE_SPREAD * (1.0F - shade);
-        float scale = SCALE_BASE + random.nextFloat() * SCALE_SPREAD;
+        float red = RED_BASE + random.nextFloat() * RED_SPREAD;
+        float blue = BLUE_BASE + random.nextFloat() * BLUE_SPREAD;
+        float scale = SCALE_BASE + random.nextFloat();
         int color = ARGB.colorFromFloat(ALPHA, red, GREEN, blue);
-        level.addParticle(new FluxSwirlParticleOptions(color, scale, scale * END_GROWTH), x, y, z, 0.0, DRIFT, 0.0);
+        level.addParticle(new FluxSwirlParticleOptions(color, scale, END_SCALE), x, y, z, 0.0, DRIFT, 0.0);
     }
 }

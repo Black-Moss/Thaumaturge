@@ -11,29 +11,24 @@ final class PechMoods {
     private static final byte EVENT_TEMPER = 18;
     private static final byte EVENT_DELIGHT = 19;
 
-    private static final float MUTTER_LEVEL = 4.0F;
-    private static final float GOSSIP_LEVEL = 20.0F;
-    private static final float CHATTER_FALLOFF = 1.4F;
+    private static final float MUTTER_LEVEL = (float) Math.PI;
+    private static final float GOSSIP_LEVEL = (float) (Math.PI * 2.0);
+    private static final float CHATTER_DECAY = 0.75F;
 
     private static final int CONTENT_ONE_IN = 25;
-    private static final int CROSS_ONE_IN = 18;
-    private static final int TEMPER_BURST = 6;
-    private static final int DELIGHT_BURST = 7;
-    private static final double LOW_FRACTION = 0.5;
-    private static final double HEAD_CLEARANCE = 0.3;
-    private static final double SPREAD_FRACTION = 0.6;
-    private static final double DRIFT = 0.015;
+    private static final int CROSS_ONE_IN = 15;
+    private static final int TEMPER_BURST = 5;
+    private static final int DELIGHT_BURST = 5;
+    private static final double LOW_OFFSET = 0.5;
+    private static final double SPREAD_FRACTION = 1.0;
+    private static final double DRIFT = 0.02;
 
     private PechMoods() {}
 
     static void decay(EntityPech pech) {
         if (pech.chatterLevel > 0.0F) {
-            pech.chatterLevel = Math.max(0.0F, pech.chatterLevel - CHATTER_FALLOFF);
+            pech.chatterLevel = pech.chatterLevel * CHATTER_DECAY;
         }
-    }
-
-    static boolean isQuiet(EntityPech pech) {
-        return pech.chatterLevel <= 0.0F;
     }
 
     static void mutter(EntityPech pech) {
@@ -85,11 +80,10 @@ final class PechMoods {
         Level level = pech.level();
         RandomSource random = pech.getRandom();
         double spread = pech.getBbWidth() * SPREAD_FRACTION;
-        double low = pech.getBbHeight() * LOW_FRACTION;
-        double rise = pech.getBbHeight() - low + HEAD_CLEARANCE;
+        double rise = pech.getBbHeight();
         for (int i = 0; i < count; i++) {
             double x = pech.getX() + (random.nextDouble() * 2.0 - 1.0) * spread;
-            double y = pech.getY() + low + random.nextDouble() * rise;
+            double y = pech.getY() + LOW_OFFSET + random.nextDouble() * rise;
             double z = pech.getZ() + (random.nextDouble() * 2.0 - 1.0) * spread;
             level.addParticle(particle, x, y, z, random.nextGaussian() * DRIFT, random.nextGaussian() * DRIFT, random.nextGaussian() * DRIFT);
         }

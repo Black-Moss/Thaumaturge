@@ -79,7 +79,7 @@ public final class BlockEntityDioptra extends AbstractSyncedBlockEntity {
 
     private static byte toStep(float amount) {
         float fraction = Mth.clamp(amount / FULL_READING, 0.0F, 1.0F);
-        return (byte) Math.round(fraction * STEPS);
+        return (byte) (fraction * STEPS);
     }
 
     @Override

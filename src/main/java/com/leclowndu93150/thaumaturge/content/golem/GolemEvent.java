@@ -26,26 +26,24 @@ public enum GolemEvent {
     private static final int HEARTS_LOOK = 4;
 
     private static final int WHITE = 0xFFFFFF;
-    private static final int CYAN = 0x38E8F5;
-    private static final int YELLOW = 0xFFF21A;
+    private static final int CYAN = 0x19FFFF;
+    private static final int YELLOW = 0xFFFF19;
     private static final float ICON_SCALE = 2.0F;
-    private static final double ICON_LIFT = 0.15D;
-    private static final int TASK_TICKS = 7;
+    private static final double ICON_LIFT = 0.1D;
+    private static final int TASK_TICKS = 6;
     private static final int FAILED_TICKS = 10;
-    private static final double FAILED_RISE = 0.008D;
+    private static final double FAILED_RISE = 0.025D;
     private static final int CONFUSED_TICKS = 10;
-    private static final double CONFUSED_RISE = 0.02D;
+    private static final double CONFUSED_RISE = 0.05D;
     private static final int STAY_TICKS = 20;
-    private static final double STAY_RISE = 0.006D;
-    private static final int HEART_MIN_COUNT = 4;
-    private static final int HEART_EXTRA_COUNT = 3;
+    private static final double STAY_RISE = 0.01D;
+    private static final int HEART_COUNT = 5;
     private static final int HEART_MIN_TICKS = 20;
     private static final int HEART_EXTRA_TICKS = 20;
-    private static final float HEART_MIN_SCALE = 0.35F;
+    private static final float HEART_MIN_SCALE = 0.3F;
     private static final float HEART_EXTRA_SCALE = 0.4F;
-    private static final double HEART_SCATTER = 0.012D;
-    private static final double HEART_MAX_RISE = 0.025D;
-    private static final double HEART_LIFT = 0.05D;
+    private static final double HEART_SCATTER = 0.01D;
+    private static final double HEART_MAX_RISE = 0.02D;
 
     private final byte id;
     private final int look;
@@ -99,15 +97,14 @@ public enum GolemEvent {
 
     private static void hearts(Level level, Entity entity, double top) {
         RandomSource random = level.getRandom();
-        int count = HEART_MIN_COUNT + random.nextInt(HEART_EXTRA_COUNT);
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < HEART_COUNT; i++) {
             int ticks = HEART_MIN_TICKS + random.nextInt(HEART_EXTRA_TICKS);
             float scale = HEART_MIN_SCALE + random.nextFloat() * HEART_EXTRA_SCALE;
             GolemEmoteParticleOptions options = new GolemEmoteParticleOptions(WHITE, GolemEmoteParticleOptions.ICON_HEART, ticks, scale);
             double vx = random.nextGaussian() * HEART_SCATTER;
             double vz = random.nextGaussian() * HEART_SCATTER;
             double vy = random.nextDouble() * HEART_MAX_RISE;
-            level.addParticle(options, entity.getX(), top + HEART_LIFT, entity.getZ(), vx, vy, vz);
+            level.addParticle(options, entity.getX(), top, entity.getZ(), vx, vy, vz);
         }
     }
 }

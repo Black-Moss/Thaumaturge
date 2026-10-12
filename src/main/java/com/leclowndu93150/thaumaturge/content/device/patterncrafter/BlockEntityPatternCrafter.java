@@ -39,7 +39,6 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     private static final int SPIN_DURATION = 10;
     private static final float SPIN_ACCELERATION = 1.0F;
     private static final float SPIN_DECAY = 0.8F;
-    private static final float SPIN_REST_SPEED = 0.5F;
     private static final float CLACK_PITCH = 1.7F;
     private static final float CLACK_VOLUME = 0.2F;
     private static final Direction TAKE_FACE = Direction.DOWN;
@@ -49,7 +48,6 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     public float rotSpeed;
     public float rot;
 
-    private int clackTimer;
     private int workTimer;
     private float power;
     private byte type;
@@ -80,31 +78,22 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     }
 
     private void animate(Level level, BlockPos pos) {
-        advanceSpin();
-        if (rotSpeed <= 0.0F) {
-            clackTimer = 0;
-            return;
-        }
-        rot += rotSpeed;
-        if (++clackTimer >= Math.max(1, (int) rotSpeed)) {
-            clackTimer = 0;
+        if (advanceSpin()) {
             Vec3 center = Vec3.atCenterOf(pos);
             level.playLocalSound(center.x, center.y, center.z, TTSounds.CLACK.get(), SoundSource.BLOCKS, CLACK_VOLUME, CLACK_PITCH, false);
         }
+        rot += rotSpeed;
     }
 
-    private void advanceSpin() {
+    private boolean advanceSpin() {
         if (rotTicks > 0) {
+            int interval = Math.max(1, (int) rotSpeed);
             rotTicks--;
             rotSpeed += SPIN_ACCELERATION;
-            return;
+            return rotTicks % interval == 0;
         }
-        if (rotSpeed > 0.0F) {
-            rotSpeed *= SPIN_DECAY;
-            if (rotSpeed < SPIN_REST_SPEED) {
-                rotSpeed = 0.0F;
-            }
-        }
+        rotSpeed *= SPIN_DECAY;
+        return false;
     }
 
     private void work(ServerLevel level, BlockPos pos) {

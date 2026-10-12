@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelReader;
@@ -45,7 +44,7 @@ public final class BlockCrystal extends Block {
     private static final float AURA_BAND = 10.0F;
     private static final float AURA_EXCHANGE = 10.0F;
     private static final int CEILING_BASE = 5;
-    private static final int CEILING_BONUS_VARIANTS = 3;
+    private static final long CEILING_BONUS_VARIANTS = 3L;
     private static final int SPREAD_ONE_IN = 16;
     private static final int KEEP_GENERATION_ONE_IN = 6;
 
@@ -133,16 +132,13 @@ public final class BlockCrystal extends Block {
         }
         float stock = currentStock(level, pos);
         float base = AuraHelper.getAuraBase(level, pos);
-        if (!flux) {
-            convertToFlux(state, level, pos, stock, base);
-            if (!level.getBlockState(pos).is(this)) {
-                return;
-            }
-        }
         switch (bandFor(stock, base)) {
             case STARVED -> wither(state, level, pos);
             case RICH -> flourish(state, level, pos, random);
             case MIDDLE -> {
+                if (!flux) {
+                    convertToFlux(state, level, pos, stock, base);
+                }
             }
         }
     }
@@ -158,11 +154,13 @@ public final class BlockCrystal extends Block {
         int size = growth(state);
         if (size > 0) {
             level.setBlock(pos, state.setValue(SIZE, size - 1), CHANGE_FLAGS);
-        } else if (hasSameCrystalBeside(level, pos)) {
-            level.removeBlock(pos, false);
-        } else {
+            returnToAura(level, pos);
             return;
         }
+        if (!hasSameCrystalBeside(level, pos)) {
+            return;
+        }
+        level.removeBlock(pos, false);
         returnToAura(level, pos);
         if (!flux) {
             AuraHelper.addFlux(level, pos, DECAY_FLUX);
@@ -183,13 +181,13 @@ public final class BlockCrystal extends Block {
     }
 
     private static int sizeCeiling(BlockState state, BlockPos pos) {
-        int bonus = Math.floorMod(Mth.getSeed(pos), CEILING_BONUS_VARIANTS);
+        int bonus = (int) Math.floorMod(pos.asLong(), CEILING_BONUS_VARIANTS);
         return Math.min(MAX_SIZE, CEILING_BASE - state.getValue(GENERATION) + bonus);
     }
 
     private void seed(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
         BlockPos target = neighbourWithin(pos, random);
-        if (random.nextInt(SPREAD_ONE_IN) != 0 || !canHost(level, target)) {
+        if (target.equals(pos) || !isOpenCell(level, target) || random.nextInt(SPREAD_ONE_IN) != 0 || !hasSupport(level, target)) {
             return;
         }
         if (drain(level, pos, AURA_EXCHANGE) <= 0.0F) {
@@ -201,19 +199,15 @@ public final class BlockCrystal extends Block {
     }
 
     private static BlockPos neighbourWithin(BlockPos pos, RandomSource random) {
-        int cells = SPREAD_SPAN * SPREAD_SPAN * SPREAD_SPAN;
-        int centre = cells / 2;
-        int pick = random.nextInt(cells - 1);
-        int cell = pick >= centre ? pick + 1 : pick;
-        int dx = cell % SPREAD_SPAN - SPREAD_REACH;
-        int dy = cell / SPREAD_SPAN % SPREAD_SPAN - SPREAD_REACH;
-        int dz = cell / (SPREAD_SPAN * SPREAD_SPAN) - SPREAD_REACH;
+        int dx = random.nextInt(SPREAD_SPAN) - SPREAD_REACH;
+        int dy = random.nextInt(SPREAD_SPAN) - SPREAD_REACH;
+        int dz = random.nextInt(SPREAD_SPAN) - SPREAD_REACH;
         return pos.offset(dx, dy, dz);
     }
 
-    private static boolean canHost(ServerLevel level, BlockPos pos) {
+    private static boolean isOpenCell(ServerLevel level, BlockPos pos) {
         BlockState existing = level.getBlockState(pos);
-        return existing.getFluidState().isEmpty() && (existing.isAir() || existing.canBeReplaced()) && hasSupport(level, pos);
+        return existing.getFluidState().isEmpty() && (existing.isAir() || existing.canBeReplaced());
     }
 
     private boolean hasSameCrystalBeside(ServerLevel level, BlockPos pos) {

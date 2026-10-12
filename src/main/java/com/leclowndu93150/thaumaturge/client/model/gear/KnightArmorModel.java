@@ -34,7 +34,7 @@ public final class KnightArmorModel extends AbstractTTArmorModel {
         }
         ArmorCloth.Motion motion = ArmorCloth.sample(state);
         float forwardLeg = Math.min(ArmorCloth.forwardSwing(rightLeg, body), ArmorCloth.forwardSwing(leftLeg, body));
-        ArmorCloth.swayFront(tabard, tabardHem, body, forwardLeg, motion.flutter(), motion);
+        ArmorCloth.swayFront(tabard, tabardHem, body, forwardLeg, motion.flutter(), motion, false);
         CapeSway.swing(cape, state);
     }
 

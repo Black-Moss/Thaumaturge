@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
@@ -26,7 +27,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -41,15 +41,16 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     private static final int WHITE = 0xFFFFFFFF;
     private static final float PIXEL = 1.0F / 16.0F;
     private static final float CENTER = 0.5F;
-    private static final float FLUID_MIN = 4.5F * PIXEL;
-    private static final float FLUID_MAX = 11.5F * PIXEL;
+    private static final float FLUID_MIN = 4.0F * PIXEL;
+    private static final float FLUID_MAX = 12.0F * PIXEL;
     private static final float FLUID_BASE_Y = 1.0F * PIXEL;
-    private static final float FLUID_MAX_HEIGHT = 10.5F * PIXEL;
+    private static final float FLUID_MAX_HEIGHT = 10.0F * PIXEL;
     private static final float FULL_V = 1.0F;
     private static final float SIDE_V_BOTTOM = FULL_V - FLUID_BASE_Y;
-    private static final float BRACE_HALF = 3.1F * PIXEL;
-    private static final float BRACE_BOTTOM_Y = 11.95F * PIXEL;
-    private static final float BRACE_TOP_Y = 14.05F * PIXEL;
+    private static final float BRACE_STRETCH = 1.001F;
+    private static final float BRACE_HALF = 3.125F * BRACE_STRETCH * PIXEL;
+    private static final float BRACE_BOTTOM_Y = 12.0F * PIXEL;
+    private static final float BRACE_TOP_Y = 14.25F * PIXEL;
     private static final int BRACE_U = 32;
     private static final int BRACE_V = 24;
     private static final int BRACE_WIDTH_PX = 6;
@@ -62,11 +63,11 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     private static final int LID_V = 23;
     private static final int LID_WIDTH_PX = 4;
     private static final int LID_HEIGHT_PX = 2;
-    private static final float PLATE_HEIGHT = 6.0F * PIXEL;
+    private static final float PLATE_HEIGHT = 0.4F;
     private static final float PLATE_NEAR = 2.95F * PIXEL;
     private static final float PLATE_FAR = 13.05F * PIXEL;
-    private static final int TILT_PERIOD = 7;
-    private static final float TILT_BIAS = 3.0F;
+    private static final int TILT_MODULUS = 4;
+    private static final int TILT_OFFSET = 2;
     private static final float PLATE_HALF = 0.25F;
     private static final float ICON_HALF = 0.19F;
     private static final float ICON_LIFT = 0.001F;
@@ -80,8 +81,8 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     private static final int BIT_Z = 1;
     private static final int FALLBACK_PLATE_INDEX = 0;
     private static final Prism BRACE = boxPrism(CENTER - BRACE_HALF, BRACE_BOTTOM_Y, CENTER - BRACE_HALF, CENTER + BRACE_HALF, BRACE_TOP_Y, CENTER + BRACE_HALF, BRACE_U, BRACE_V, BRACE_WIDTH_PX,
-            BRACE_HEIGHT_PX, BRACE_WIDTH_PX);
-    private static final Prism LID = boxPrism(LID_MIN, LID_BOTTOM_Y, LID_MIN, LID_MAX, LID_TOP_Y, LID_MAX, LID_U, LID_V, LID_WIDTH_PX, LID_HEIGHT_PX, LID_WIDTH_PX);
+            BRACE_HEIGHT_PX, BRACE_WIDTH_PX, false);
+    private static final Prism LID = boxPrism(LID_MIN, LID_BOTTOM_Y, LID_MIN, LID_MAX, LID_TOP_Y, LID_MAX, LID_U, LID_V, LID_WIDTH_PX, LID_HEIGHT_PX, LID_WIDTH_PX, true);
     private static final float[][] FLUID_RING_TOP = {{FLUID_MIN, FLUID_MIN}, {FLUID_MIN, FLUID_MAX}, {FLUID_MAX, FLUID_MAX}, {FLUID_MAX, FLUID_MIN}};
     private static final float[][] FLUID_RING_BOTTOM = {{FLUID_MIN, FLUID_MIN}, {FLUID_MAX, FLUID_MIN}, {FLUID_MAX, FLUID_MAX}, {FLUID_MIN, FLUID_MAX}};
     private static final Wall[] FLUID_WALLS = {new Wall(FLUID_MIN, FLUID_MIN, FLUID_MIN, FLUID_MAX, -1.0F, 0.0F, 0.0F), new Wall(FLUID_MAX, FLUID_MAX, FLUID_MAX, FLUID_MIN, 1.0F, 0.0F, 0.0F),
@@ -145,7 +146,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
             return;
         }
         TextureAtlasSprite glow = sprites.get(ANIMATED_GLOW_SPRITE);
-        submitFluid(state.amount, state.capacity, state.aspectColor, LightCoordsUtil.FULL_BRIGHT, glow, poseStack, collector);
+        submitFluid(state.amount, state.capacity, state.aspectColor, state.lightCoords, glow, poseStack, collector);
     }
 
     private static List<Prism> activePrisms(JarRenderState state) {
@@ -205,7 +206,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     private static void submitLabel(JarRenderState state, Identifier iconTexture, PoseStack poseStack, SubmitNodeCollector collector) {
         Direction facing = state.facing;
         Plate plate = PLATES_BY_HORIZONTAL_INDEX[facing.getAxis().isHorizontal() ? facing.get2DDataValue() : FALLBACK_PLATE_INDEX];
-        float tilt = Math.floorMod(state.blockPos.getX() + state.blockPos.getZ() + facing.ordinal(), TILT_PERIOD) - TILT_BIAS;
+        float tilt = (state.blockPos.getX() + facing.ordinal()) % TILT_MODULUS - TILT_OFFSET;
         int light = state.lightCoords;
         int iconColour = state.filterColor;
         poseStack.pushPose();
@@ -239,20 +240,23 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
         });
     }
 
-    private static Prism boxPrism(float minX, float minY, float minZ, float maxX, float maxY, float maxZ, int u, int v, int width, int height, int depth) {
+    private static Prism boxPrism(float minX, float minY, float minZ, float maxX, float maxY, float maxZ, int u, int v, int width, int height, int depth, boolean bottomFace) {
         int sideTop = v + depth;
         int sideBottom = sideTop + height;
         int westRight = u + depth;
         int northRight = westRight + width;
         int eastRight = northRight + depth;
         int southRight = eastRight + width;
-        List<Panel> panels = List.of(face(0.0F, 1.0F, 0.0F, BIT_Y, BIT_Y | BIT_Z, BIT_X | BIT_Y | BIT_Z, BIT_X | BIT_Y, westRight, v, northRight, sideTop),
-                face(0.0F, -1.0F, 0.0F, BIT_Z, 0, BIT_X, BIT_X | BIT_Z, northRight, v, northRight + width, sideTop),
-                face(-1.0F, 0.0F, 0.0F, BIT_Y, 0, BIT_Z, BIT_Y | BIT_Z, u, sideTop, westRight, sideBottom),
-                face(0.0F, 0.0F, -1.0F, BIT_X | BIT_Y, BIT_X, 0, BIT_Y, westRight, sideTop, northRight, sideBottom),
-                face(1.0F, 0.0F, 0.0F, BIT_X | BIT_Y | BIT_Z, BIT_X | BIT_Z, BIT_X, BIT_X | BIT_Y, northRight, sideTop, eastRight, sideBottom),
-                face(0.0F, 0.0F, 1.0F, BIT_Y | BIT_Z, BIT_Z, BIT_X | BIT_Z, BIT_X | BIT_Y | BIT_Z, eastRight, sideTop, southRight, sideBottom));
-        return new Prism(minX, minY, minZ, maxX, maxY, maxZ, panels);
+        List<Panel> panels = new ArrayList<>();
+        panels.add(face(0.0F, 1.0F, 0.0F, BIT_Y, BIT_Y | BIT_Z, BIT_X | BIT_Y | BIT_Z, BIT_X | BIT_Y, westRight, v, northRight, sideTop));
+        if (bottomFace) {
+            panels.add(face(0.0F, -1.0F, 0.0F, BIT_Z, 0, BIT_X, BIT_X | BIT_Z, northRight, v, northRight + width, sideTop));
+        }
+        panels.add(face(-1.0F, 0.0F, 0.0F, BIT_Y, 0, BIT_Z, BIT_Y | BIT_Z, u, sideTop, westRight, sideBottom));
+        panels.add(face(0.0F, 0.0F, -1.0F, BIT_X | BIT_Y, BIT_X, 0, BIT_Y, westRight, sideTop, northRight, sideBottom));
+        panels.add(face(1.0F, 0.0F, 0.0F, BIT_X | BIT_Y | BIT_Z, BIT_X | BIT_Z, BIT_X, BIT_X | BIT_Y, northRight, sideTop, eastRight, sideBottom));
+        panels.add(face(0.0F, 0.0F, 1.0F, BIT_Y | BIT_Z, BIT_Z, BIT_X | BIT_Z, BIT_X | BIT_Y | BIT_Z, eastRight, sideTop, southRight, sideBottom));
+        return new Prism(minX, minY, minZ, maxX, maxY, maxZ, List.copyOf(panels));
     }
 
     private static Panel face(float nx, float ny, float nz, int topLeft, int bottomLeft, int bottomRight, int topRight, int u0, int v0, int u1, int v1) {

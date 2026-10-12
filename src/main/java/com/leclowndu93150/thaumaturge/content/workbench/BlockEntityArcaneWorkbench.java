@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
@@ -29,7 +28,7 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvider {
     private static final int CHARGER_RADIUS_CHUNKS = 1;
-    private static final float MIN_ANCHOR_REQUEST = 1.0F;
+    private static final int MIN_ANCHOR_REQUEST = 1;
     private static final double DRAIN_EPSILON = 0.01;
     private static final String HOST_SEPARATOR = ":";
 
@@ -63,7 +62,7 @@ public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvi
         if (anchors.isEmpty()) {
             return false;
         }
-        float perAnchor = Math.max(MIN_ANCHOR_REQUEST, (float) vis / anchors.size());
+        int perAnchor = Math.max(MIN_ANCHOR_REQUEST, vis / anchors.size());
         double owed = vis;
         while (owed > DRAIN_EPSILON) {
             double progress = 0.0;
@@ -135,12 +134,16 @@ public class BlockEntityArcaneWorkbench extends BlockEntity implements MenuProvi
         List<BlockPos> anchors = new ArrayList<>();
         if (serverLevel.getBlockState(worldPosition.above()).is(TTBlocks.ARCANE_WORKBENCH_CHARGER)) {
             int y = worldPosition.getY();
-            ChunkPos.rangeClosed(ChunkPos.containing(worldPosition), CHARGER_RADIUS_CHUNKS).forEach(chunk -> anchors.add(chunk.getMiddleBlockPosition(y)));
+            ChunkPos centre = ChunkPos.containing(worldPosition);
+            for (int chunkX = centre.x() - CHARGER_RADIUS_CHUNKS; chunkX <= centre.x() + CHARGER_RADIUS_CHUNKS; chunkX++) {
+                for (int chunkZ = centre.z() - CHARGER_RADIUS_CHUNKS; chunkZ <= centre.z() + CHARGER_RADIUS_CHUNKS; chunkZ++) {
+                    anchors.add(new ChunkPos(chunkX, chunkZ).getMiddleBlockPosition(y));
+                }
+            }
         } else {
             anchors.add(worldPosition);
         }
         anchors.removeIf(anchor -> !serverLevel.hasChunkAt(anchor));
-        anchors.sort(Comparator.comparingLong(BlockPos::asLong));
         return anchors;
     }
 }

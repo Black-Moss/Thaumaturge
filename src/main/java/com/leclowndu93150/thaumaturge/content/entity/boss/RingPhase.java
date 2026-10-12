@@ -26,24 +26,24 @@ final class RingPhase {
     private static final int RING_COUNT = 12;
     private static final double FIRST_RING_RADIUS = 3.75;
     private static final double RING_GROWTH = 1.25;
-    private static final double POINT_SPACING = 2.0;
+    private static final int SPOKE_BUDGET_BASE = 120;
+    private static final int SPOKE_BUDGET_STEP = 10;
+    private static final int SPOKE_STRIDE_DIVISOR = 8;
+    private static final int HALF_TURN_DEGREES = 180;
     private static final int FIELD_LIFE_MIN = 250;
-    private static final int FIELD_LIFE_SPREAD = 151;
-    private static final float ARC_CHANCE = 0.3F;
-    private static final int ARC_COLOR = 0xA050E8;
-    private static final double ARC_SOURCE_HEIGHT = 0.6;
-    private static final double ARC_TARGET_LIFT = 0.1;
-    private static final float ZAP_VOLUME = 2.0F;
-    private static final float ZAP_PITCH_BASE = 0.8F;
-    private static final float ZAP_PITCH_SPREAD = 0.3F;
+    private static final int FIELD_LIFE_SPREAD = 150;
+    private static final float BOLT_CHANCE = 0.3F;
+    private static final int BOLT_COLOR = 0xBB44BB;
+    private static final double BOLT_SOURCE_HEIGHT = 0.5;
+    private static final float ZAP_VOLUME = 1.0F;
+    private static final float ZAP_PITCH_BASE = 0.9F;
+    private static final float ZAP_PITCH_SPREAD = 0.1F;
     private static final int LANDING_ATTEMPTS = 20;
     private static final double LANDING_REACH = 7.0;
     private static final double BLOCK_CENTRE = 0.5;
     private static final double FLOOR_PROBE = 0.5;
-    private static final double TRAIL_POINTS_PER_BLOCK = 2.0;
-    private static final int TRAIL_MIN_POINTS = 8;
-    private static final double TRAIL_SPREAD = 0.2;
-    private static final double TRAIL_SPEED = 0.1;
+    private static final int TRAIL_POINTS = 128;
+    private static final double TRAIL_WIDTH_FACTOR = 2.0;
     private static final float TELEPORT_VOLUME = 1.0F;
     private static final float TELEPORT_PITCH = 1.0F;
 
@@ -84,17 +84,23 @@ final class RingPhase {
     private void sendRing(ServerLevel level, int ring) {
         RandomSource random = warden.getRandom();
         arms.raiseBoth();
-        level.playSound(null, warden.getX(), warden.getY(), warden.getZ(), TTSounds.ZAP.get(), SoundSource.HOSTILE, ZAP_VOLUME, ZAP_PITCH_BASE + random.nextFloat() * ZAP_PITCH_SPREAD);
+        if (!warden.isSilent()) {
+            level.playSound(null, warden.getX(), warden.getY(), warden.getZ(), TTSounds.ZAP.get(), SoundSource.HOSTILE, ZAP_VOLUME, ZAP_PITCH_BASE + random.nextFloat() * ZAP_PITCH_SPREAD);
+        }
         double radius = FIRST_RING_RADIUS + RING_GROWTH * ring;
-        int points = Mth.ceil(Mth.TWO_PI * radius / POINT_SPACING);
-        double step = Mth.TWO_PI / points;
-        double offset = random.nextDouble() * step;
-        for (int point = 0; point < points; point++) {
-            double bearing = offset + step * point;
-            BlockPos spot = BlockPos.containing(warden.getX() + Math.cos(bearing) * radius, warden.getY(), warden.getZ() + Math.sin(bearing) * radius);
-            if (plantField(level, spot) && random.nextFloat() < ARC_CHANCE) {
-                Vec3 source = warden.position().add(0.0, warden.getBbHeight() * ARC_SOURCE_HEIGHT, 0.0);
-                Effects.zapArc(level, source).to(Vec3.atBottomCenterOf(spot).add(0.0, ARC_TARGET_LIFT, 0.0)).color(ARC_COLOR).send();
+        int budget = SPOKE_BUDGET_BASE - SPOKE_BUDGET_STEP * ring;
+        int stride = 1 + budget / SPOKE_STRIDE_DIVISOR;
+        int spokes = HALF_TURN_DEGREES / stride;
+        int stepDegrees = 2 * stride;
+        int centreX = Mth.floor(warden.getX());
+        int centreZ = Mth.floor(warden.getZ());
+        int height = Mth.floor(warden.getY());
+        Vec3 source = warden.position().add(0.0, warden.getBbHeight() * BOLT_SOURCE_HEIGHT, 0.0);
+        for (int spoke = 0; spoke < spokes; spoke++) {
+            float bearing = spoke * stepDegrees * Mth.DEG_TO_RAD;
+            BlockPos spot = BlockPos.containing(centreX + Mth.cos(bearing) * radius, height, centreZ + Mth.sin(bearing) * radius);
+            if (plantField(level, spot) && random.nextFloat() < BOLT_CHANCE) {
+                Effects.boltStrike(level, source).to(Vec3.atCenterOf(spot)).color(BOLT_COLOR).send();
             }
         }
     }
@@ -127,8 +133,9 @@ final class RingPhase {
         warden.getNavigation().stop();
         Vec3 to = warden.position();
         drawTrail(level, from, to);
-        level.playSound(null, from.x, from.y, from.z, SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, TELEPORT_VOLUME, TELEPORT_PITCH);
-        level.playSound(null, to.x, to.y, to.z, SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, TELEPORT_VOLUME, TELEPORT_PITCH);
+        if (!warden.isSilent()) {
+            level.playSound(null, to.x, to.y, to.z, SoundEvents.ENDERMAN_TELEPORT, SoundSource.HOSTILE, TELEPORT_VOLUME, TELEPORT_PITCH);
+        }
     }
 
     private @Nullable Vec3 findLanding(ServerLevel level, BlockPos home) {
@@ -158,12 +165,16 @@ final class RingPhase {
     }
 
     private void drawTrail(ServerLevel level, Vec3 from, Vec3 to) {
-        int points = Math.max(TRAIL_MIN_POINTS, Mth.ceil(from.distanceTo(to) * TRAIL_POINTS_PER_BLOCK));
+        Vec3 path = to.subtract(from);
+        double width = warden.getBbWidth() * TRAIL_WIDTH_FACTOR;
+        double height = warden.getBbHeight();
         RandomSource random = warden.getRandom();
-        for (int point = 0; point <= points; point++) {
-            Vec3 at = from.lerp(to, (double) point / points);
-            double y = at.y + random.nextDouble() * warden.getBbHeight();
-            level.sendParticles(ParticleTypes.PORTAL, at.x, y, at.z, 1, TRAIL_SPREAD, TRAIL_SPREAD, TRAIL_SPREAD, TRAIL_SPEED);
+        for (int point = 0; point < TRAIL_POINTS; point++) {
+            double progress = (double) point / (TRAIL_POINTS - 1);
+            double x = from.x + path.x * progress + (random.nextDouble() - BLOCK_CENTRE) * width;
+            double z = from.z + path.z * progress + (random.nextDouble() - BLOCK_CENTRE) * width;
+            double y = from.y + path.y * progress + random.nextDouble() * height;
+            level.sendParticles(ParticleTypes.PORTAL, x, y, z, 1, 0.0, 0.0, 0.0, 0.0);
         }
     }
 }

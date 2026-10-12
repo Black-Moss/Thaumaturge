@@ -2,12 +2,6 @@ package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.spell.CastStyle;
-import com.leclowndu93150.thaumaturge.api.spell.Spell;
-import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
-import com.leclowndu93150.thaumaturge.api.spell.Spells;
-import com.leclowndu93150.thaumaturge.api.spell.TTSpellParts;
-import com.leclowndu93150.thaumaturge.api.spell.cast.SpellTarget;
 import com.leclowndu93150.thaumaturge.api.taint.TaintApi;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
 import com.leclowndu93150.thaumaturge.content.warp.WarpNotices;
@@ -17,14 +11,11 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -32,11 +23,9 @@ final class RiftEvents {
     private static final int WISP_WEIGHT = 50;
     private static final int SEED_WEIGHT = 10;
     private static final int PHAGE_WEIGHT = 20;
-    private static final int CLOUD_WEIGHT = 20;
     private static final int COLLAPSE_WEIGHT = 1;
     private static final float WISP_CALMING = 5.0F;
     private static final float PHAGE_CALMING = 10.0F;
-    private static final float CLOUD_CALMING = 10.0F;
     private static final float NO_CALMING = 0.0F;
 
     private static final double SCATTER_DEVIATION = 5.0;
@@ -51,22 +40,8 @@ final class RiftEvents {
     private static final int PHAGE_AMPLIFIER = 2;
     private static final String PHAGE_NOTICE = "warp.thaumaturge.fluxevent.2";
 
-    private static final double CLOUD_REACH = 16.0;
-    private static final int CLOUD_MIN_RADIUS = 1;
-    private static final int CLOUD_MAX_RADIUS = 3;
-    private static final int CLOUD_SHORT_CAP = 30;
-    private static final int CLOUD_LONG_CAP = 120;
-    private static final int CLOUD_MIN_SECONDS = 5;
-    private static final int CLOUD_MAX_SECONDS = 30;
-    private static final int FLUX_LOWEST_POWER = 1;
-    private static final float CAST_POWER = 1.0F;
-    private static final String RADIUS_SETTING = "radius";
-    private static final String DURATION_SETTING = "duration";
-    private static final String POWER_SETTING = "power";
-
     private static final List<RiftEvent> EVENTS = List.of(new RiftEvent(WISP_WEIGHT, WISP_CALMING, false, RiftEvents::releaseWisp), new RiftEvent(SEED_WEIGHT, NO_CALMING, true, RiftEvents::sowSeed),
-            new RiftEvent(PHAGE_WEIGHT, PHAGE_CALMING, false, RiftEvents::spreadPhage), new RiftEvent(CLOUD_WEIGHT, CLOUD_CALMING, false, RiftEvents::castCloud),
-            new RiftEvent(COLLAPSE_WEIGHT, NO_CALMING, false, RiftEvents::collapse));
+            new RiftEvent(PHAGE_WEIGHT, PHAGE_CALMING, false, RiftEvents::spreadPhage), new RiftEvent(COLLAPSE_WEIGHT, NO_CALMING, false, RiftEvents::collapse));
     private static final int TOTAL_WEIGHT = EVENTS.stream().mapToInt(RiftEvent::weight).sum();
 
     private RiftEvents() {}
@@ -106,8 +81,8 @@ final class RiftEvents {
         if (wisp == null) {
             return false;
         }
-        wisp.snapTo(spot.x, spot.y, spot.z, rift.getRandom().nextFloat() * FULL_TURN_DEGREES, 0.0F);
-        if (!wisp.checkSpawnRules(level, EntitySpawnReason.EVENT) || !level.noCollision(wisp)) {
+        wisp.snapTo(spot.x, spot.y, spot.z, 0.0F, 0.0F);
+        if (!level.noCollision(wisp)) {
             wisp.discard();
             return false;
         }
@@ -131,9 +106,7 @@ final class RiftEvents {
             seed.discard();
             return false;
         }
-        int size = rift.currentSize();
-        seed.grantHeadStart(size);
-        AuraHelper.polluteAura(level, rift.blockPosition(), size * SEED_FLUX_SHARE, true);
+        AuraHelper.polluteAura(level, rift.blockPosition(), rift.currentSize() * SEED_FLUX_SHARE, true);
         rift.discard();
         return true;
     }
@@ -159,24 +132,6 @@ final class RiftEvents {
             }
         }
         return !victims.isEmpty();
-    }
-
-    private static boolean castCloud(ServerLevel level, EntityFluxRift rift) {
-        Player player = level.getNearestPlayer(rift, CLOUD_REACH);
-        if (player == null) {
-            return false;
-        }
-        RandomSource random = rift.getRandom();
-        int size = rift.currentSize();
-        int radius = Mth.nextInt(random, CLOUD_MIN_RADIUS, CLOUD_MAX_RADIUS);
-        int shortest = Math.min(size / 2, CLOUD_SHORT_CAP);
-        int longest = Math.min(size, CLOUD_LONG_CAP);
-        int seconds = Mth.clamp(Mth.nextInt(random, shortest, Math.max(shortest, longest)), CLOUD_MIN_SECONDS, CLOUD_MAX_SECONDS);
-        SpellNode effect = SpellNode.of(TTSpellParts.FLUX).withSetting(POWER_SETTING, FLUX_LOWEST_POWER);
-        SpellNode cloud = SpellNode.of(TTSpellParts.CLOUD).withSetting(RADIUS_SETTING, radius).withSetting(DURATION_SETTING, seconds).then(effect);
-        Spell spell = new Spell(CastStyle.INSTANT, SpellNode.of(Spell.ORIGIN).then(cloud));
-        Spells.cast(player, ItemStack.EMPTY, spell, List.of(SpellTarget.origin(player)), CAST_POWER);
-        return true;
     }
 
     private static boolean collapse(ServerLevel level, EntityFluxRift rift) {

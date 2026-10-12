@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ChampionHelper;
 import com.leclowndu93150.thaumaturge.content.entity.trait.MobTraitNames;
-import com.leclowndu93150.thaumaturge.content.particle.SparkParticleOptions;
 import com.leclowndu93150.thaumaturge.content.world.mound.BlockLoot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.BlockParticleOption;
@@ -34,7 +33,7 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.RangedAttackMob;
@@ -62,15 +61,14 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements Ranged
     private static final int FLOAT_PRIORITY = 0;
     private static final int RANGED_PRIORITY = 2;
     private static final int MELEE_PRIORITY = 3;
-    private static final int HOME_PRIORITY = 5;
-    private static final int STROLL_PRIORITY = 6;
-    private static final int LOOK_PLAYER_PRIORITY = 7;
-    private static final int LOOK_AROUND_PRIORITY = 8;
+    private static final int HOME_PRIORITY = 6;
+    private static final int STROLL_PRIORITY = 7;
+    private static final int LOOK_PRIORITY = 8;
     private static final int RETALIATE_PRIORITY = 1;
     private static final int PLAYER_PRIORITY = 2;
     private static final double MELEE_SPEED = 1.1;
     private static final double HOME_SPEED = 0.8;
-    private static final double STROLL_SPEED = 0.6;
+    private static final double STROLL_SPEED = 0.8;
     private static final float LOOK_DISTANCE = 8.0F;
     private static final double BEAM_STANCE_SPEED = 1.0;
     private static final double BEAM_MIN_DISTANCE = 3.0;
@@ -79,8 +77,8 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements Ranged
     private static final byte SWING_EVENT = 4;
     private static final int SWING_COOLDOWN = 10;
     private static final float SWING_DAMAGE_FACTOR = 0.75F;
-    private static final double SWING_TOSS = 0.25;
-    private static final double HEADLESS_SHOVE = 1.6;
+    private static final double SWING_TOSS = 0.2;
+    private static final double HEADLESS_SHOVE = 1.5;
     private static final double HEADLESS_EXTRA_LIFT = 0.1;
     private static final float SWING_VOLUME = 1.0F;
     private static final float SWING_PITCH = 1.0F;
@@ -96,14 +94,6 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements Ranged
     private static final double DUST_SPEED = 0.15;
     private static final double FLOOR_PROBE = 0.2;
     private static final float FRAGILE_HARDNESS = 0.15F;
-    private static final double NECK_HEIGHT = 0.95;
-    private static final int SMOKE_INTERVAL = 2;
-    private static final double SMOKE_SPREAD = 0.1;
-    private static final double SMOKE_RISE = 0.06;
-    private static final int SPARK_ODDS = 10;
-    private static final int SPARK_COLOR = 0xFFE6A0;
-    private static final float SPARK_ALPHA = 0.9F;
-    private static final float SPARK_SCALE = 3.0F;
 
     private final GolemBeamCore beam = new GolemBeamCore(this);
     private boolean beamStanceArmed;
@@ -126,11 +116,11 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements Ranged
     @Override
     protected void registerGoals() {
         goalSelector.addGoal(FLOAT_PRIORITY, new FloatGoal(this));
-        goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, true));
+        goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
         goalSelector.addGoal(HOME_PRIORITY, new MoveTowardsRestrictionGoal(this, HOME_SPEED));
-        goalSelector.addGoal(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
-        goalSelector.addGoal(LOOK_PLAYER_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
-        goalSelector.addGoal(LOOK_AROUND_PRIORITY, new RandomLookAroundGoal(this));
+        goalSelector.addGoal(STROLL_PRIORITY, new RandomStrollGoal(this, STROLL_SPEED));
+        goalSelector.addGoal(LOOK_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
+        goalSelector.addGoal(LOOK_PRIORITY, new RandomLookAroundGoal(this));
         targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this).setAlertOthers());
         targetSelector.addGoal(PLAYER_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
@@ -198,17 +188,8 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements Ranged
         }
         if (isHeadless()) {
             beam.tick(level);
-            ventNeck(level);
         }
         trample(level);
-    }
-
-    @Override
-    public void aiStep() {
-        super.aiStep();
-        if (isHeadless()) {
-            setXRot(0.0F);
-        }
     }
 
     private void trample(ServerLevel level) {
@@ -247,17 +228,6 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements Ranged
         float hardness = state.getDestroySpeed(level, pos);
         if (hardness >= 0.0F && hardness <= FRAGILE_HARDNESS) {
             level.destroyBlock(pos, true, this);
-        }
-    }
-
-    private void ventNeck(ServerLevel level) {
-        if (tickCount % SMOKE_INTERVAL != 0) {
-            return;
-        }
-        double neckY = getY() + getBbHeight() * NECK_HEIGHT;
-        level.sendParticles(ParticleTypes.LARGE_SMOKE, getX(), neckY, getZ(), 0, getRandom().triangle(0.0, SMOKE_SPREAD), SMOKE_RISE, getRandom().triangle(0.0, SMOKE_SPREAD), 1.0);
-        if (getRandom().nextInt(SPARK_ODDS) == 0) {
-            level.sendParticles(new SparkParticleOptions(SPARK_COLOR, SPARK_ALPHA, SPARK_SCALE), getX(), neckY, getZ(), 1, SMOKE_SPREAD, SMOKE_SPREAD, SMOKE_SPREAD, 0.0);
         }
     }
 
@@ -301,14 +271,12 @@ public class EntityEldritchGolem extends EntityThaumaturgeBoss implements Ranged
     }
 
     private void fling(Entity target) {
-        double resistance = target instanceof LivingEntity living ? living.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) : 0.0;
-        double give = Math.max(0.0, 1.0 - resistance);
-        if (isHeadless() && target instanceof LivingEntity living) {
+        Vec3 push = target.getDeltaMovement().add(0.0, SWING_TOSS, 0.0);
+        if (isHeadless()) {
             float yaw = getYRot() * Mth.DEG_TO_RAD;
-            living.knockback(HEADLESS_SHOVE, Mth.sin(yaw), -Mth.cos(yaw));
-            target.setDeltaMovement(target.getDeltaMovement().add(0.0, HEADLESS_EXTRA_LIFT * give, 0.0));
+            push = push.add(-Mth.sin(yaw) * HEADLESS_SHOVE, HEADLESS_EXTRA_LIFT, Mth.cos(yaw) * HEADLESS_SHOVE);
         }
-        target.setDeltaMovement(target.getDeltaMovement().add(0.0, SWING_TOSS * give, 0.0));
+        target.setDeltaMovement(push);
         target.hurtMarked = true;
     }
 

@@ -50,7 +50,7 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
     static final int RETALIATE_PRIORITY = 1;
     static final int SCAN_PRIORITY = 2;
 
-    private static final String DISABLED_KEY = "disabled";
+    private static final String RAIL_SWITCHED_KEY = "rail_switched";
     private static final double MAX_HEALTH = 30.0;
     private static final double ARMOR = 2.0;
     private static final int ATTACK_INTERVAL_MIN = 20;
@@ -59,22 +59,21 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
     private static final int REGEN_INTERVAL = 80;
     private static final float REGEN_AMOUNT = 1.0F;
     private static final double MOVE_DAMPING = 20.0;
-    private static final double KNOCKBACK_SHARE = 0.2;
-    private static final float NO_STEP = 0.0F;
     private static final int MAX_HEAD_PITCH = 90;
-    private static final int HEAD_TURN_SPEED = 24;
+    private static final int HEAD_TURN_SPEED = 20;
     private static final double BASE_DAMAGE = 2.25;
     private static final double RANGE_DAMAGE = 2.0;
     private static final double DAMAGE_SPREAD = 0.25;
     private static final float LAUNCH_SPEED = 2.0F;
     private static final float LAUNCH_INACCURACY = 2.0F;
-    private static final double AIM_LIFT = 3.5;
-    private static final double GROUND_MUZZLE_OFFSET = -0.2;
-    private static final double MOUNTED_MUZZLE_OFFSET = 1.0;
+    private static final double AIM_LIFT = 3.0;
+    private static final double ARROW_EYE_DROP = 0.1;
+    private static final double GROUND_MUZZLE_OFFSET = -0.9;
+    private static final double MOUNTED_MUZZLE_OFFSET = 1.75;
     private static final float SHOT_VOLUME = 1.0F;
     private static final float SHOT_PITCH_BASE = 0.8F;
     private static final float SHOT_PITCH_SPREAD = 0.4F;
-    private static final float RELOAD_VOLUME = 0.5F;
+    private static final float RELOAD_VOLUME = 1.0F;
     private static final float RELOAD_PITCH = 1.0F;
     private static final byte EVENT_FIRE = 80;
     private static final byte EVENT_RELOAD = 81;
@@ -84,7 +83,7 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
     public float swingAnim;
 
     private final BlockPos.MutableBlockPos scratch = new BlockPos.MutableBlockPos();
-    private boolean disabled;
+    private boolean railSwitched;
     private int fireAnimTicks;
     private int reloadAnimTicks;
     private float loadProgress;
@@ -92,7 +91,6 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
 
     public EntityTurretCrossbow(EntityType<? extends EntityTurretCrossbow> type, Level level) {
         super(type, level);
-        this.lookControl = new ConstructLookControl(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -148,10 +146,6 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
         return MOVE_DAMPING;
     }
 
-    protected double knockbackShare() {
-        return KNOCKBACK_SHARE;
-    }
-
     @Override
     public void tick() {
         super.tick();
@@ -164,7 +158,6 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
         }
         swivelWithHead();
         followActivatorRail();
-        applySwitch();
         regenerate(REGEN_INTERVAL, REGEN_AMOUNT);
         if (getMainHandItem().isEmpty()) {
             reloadFromDispenser((ServerLevel) level());
@@ -174,20 +167,15 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
     private void followActivatorRail() {
         BlockState rail = ActivatorRails.find(level(), blockPosition(), scratch);
         if (rail == null) {
+            if (railSwitched) {
+                railSwitched = false;
+                setNoAi(false);
+            }
             return;
         }
         boolean off = ActivatorRails.powered(rail);
-        if (off && !disabled) {
-            setTarget(null);
-        }
-        disabled = off;
-    }
-
-    private void applySwitch() {
-        boolean enabled = !disabled;
-        goalSelector.setControlFlag(Goal.Flag.MOVE, enabled);
-        goalSelector.setControlFlag(Goal.Flag.LOOK, enabled);
-        targetSelector.setControlFlag(Goal.Flag.TARGET, enabled);
+        setNoAi(off);
+        railSwitched = off;
     }
 
     private void reloadFromDispenser(ServerLevel level) {
@@ -248,14 +236,13 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
             return;
         }
         AbstractArrow arrow = arrowItem.createArrow(server, ammo, this, null);
-        Vec3 eye = getEyePosition();
-        Vec3 aimPoint = new Vec3(target.getX(), target.getEyeY() + AIM_LIFT * power * power, target.getZ());
-        Vec3 start = eye.add(aimPoint.subtract(eye).normalize().scale(isPassenger() ? MOUNTED_MUZZLE_OFFSET : GROUND_MUZZLE_OFFSET));
-        Vec3 path = aimPoint.subtract(start);
+        double muzzleOffset = isPassenger() ? MOUNTED_MUZZLE_OFFSET : GROUND_MUZZLE_OFFSET;
+        Vec3 start = new Vec3(getX(), getEyeY() - ARROW_EYE_DROP, getZ()).add(getViewVector(1.0F).scale(muzzleOffset));
+        double aimY = target.getBoundingBox().minY + target.getEyeHeight() + AIM_LIFT * power * power;
         arrow.setPos(start);
         arrow.setBaseDamage(BASE_DAMAGE + RANGE_DAMAGE * power + random.nextGaussian() * DAMAGE_SPREAD);
         arrow.pickup = AbstractArrow.Pickup.DISALLOWED;
-        Projectile.spawnProjectileUsingShoot(arrow, server, ammo, path.x, path.y, path.z, LAUNCH_SPEED, LAUNCH_INACCURACY);
+        Projectile.spawnProjectileUsingShoot(arrow, server, ammo, target.getX() - getX(), aimY - start.y, target.getZ() - getZ(), LAUNCH_SPEED, LAUNCH_INACCURACY);
         ammo.shrink(1);
         playSound(SoundEvents.ARROW_SHOOT, SHOT_VOLUME, 1.0F / (random.nextFloat() * SHOT_PITCH_SPREAD + SHOT_PITCH_BASE));
         server.broadcastEntityEvent(this, EVENT_FIRE);
@@ -294,18 +281,13 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
 
     @Override
     public void knockback(double power, double xd, double zd) {
-        super.knockback(power * knockbackShare(), xd, zd);
+        super.knockback(power, xd, zd);
         capRise();
     }
 
     @Override
     public void move(MoverType type, Vec3 delta) {
         super.move(type, type == MoverType.SELF ? dampHorizontal(delta, moveDamping()) : delta);
-    }
-
-    @Override
-    public float maxUpStep() {
-        return NO_STEP;
     }
 
     @Override
@@ -326,13 +308,13 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
     @Override
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
-        output.putBoolean(DISABLED_KEY, disabled);
+        output.putBoolean(RAIL_SWITCHED_KEY, railSwitched);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
-        disabled = input.getBooleanOr(DISABLED_KEY, false);
+        railSwitched = input.getBooleanOr(RAIL_SWITCHED_KEY, false);
     }
 
     private static final class RetaliateGoal extends HurtByTargetGoal {

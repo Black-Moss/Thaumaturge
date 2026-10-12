@@ -58,10 +58,10 @@ public final class GolemOrbRenderer extends EntityRenderer<EntityGolemOrb, Golem
     }
 
     private static void writeQuad(VertexConsumer buffer, Matrix4fc matrix, float u0, float u1) {
-        buffer.addVertex(matrix, -HALF, -HALF, 0.0F).setUv(u0, StripUv.V1).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
-        buffer.addVertex(matrix, HALF, -HALF, 0.0F).setUv(u1, StripUv.V1).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
-        buffer.addVertex(matrix, HALF, HALF, 0.0F).setUv(u1, StripUv.V0).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
-        buffer.addVertex(matrix, -HALF, HALF, 0.0F).setUv(u0, StripUv.V0).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, -HALF, -HALF, 0.0F).setUv(u1, StripUv.V1).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, HALF, -HALF, 0.0F).setUv(u0, StripUv.V1).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, HALF, HALF, 0.0F).setUv(u0, StripUv.V0).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, -HALF, HALF, 0.0F).setUv(u1, StripUv.V0).setColor(TINT).setLight(LightCoordsUtil.FULL_BRIGHT);
     }
 
     public static final class State extends EntityRenderState {

@@ -19,7 +19,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
@@ -37,20 +36,18 @@ public final class AspectTagWorldRenderer {
     private static final Predicate<Holder<IAspect>> ALL_DISCOVERED = aspect -> true;
     private static final float TAG_SIZE_FACTOR = 0.6F;
     private static final float SPACING_FACTOR = 1.2F;
-    private static final float ROW_HEIGHT_FACTOR = 1.2F;
+    private static final float ROW_HEIGHT_FACTOR = 1.05F;
     private static final float FACE_REACH_FACTOR = 2.0F;
-    private static final float TEXT_PIXEL = 1.0F / 32.0F;
+    private static final float TEXT_PIXEL = 0.04F;
     private static final float AMOUNT_RIGHT = HALF;
     private static final float AMOUNT_BOTTOM = -HALF;
-    private static final int DIGIT_HEIGHT = 7;
-    private static final int GLYPH_TAIL = 1;
+    private static final float AMOUNT_PEN_OVERHANG = 0.5F;
+    private static final float AMOUNT_TEXT_TOP = -6.5F;
     private static final int SHADOW_STEP = 1;
     private static final float DARK_LIFT = 0.002F;
     private static final float WHITE_LIFT = 0.004F;
-    private static final int AMOUNT_SHADOW_COLOR = 0xFF1C1424;
-    private static final float UNKNOWN_ALPHA = 0.5F;
-    private static final int WHITE_RGB = 0xFFFFFF;
-    private static final int CHANNEL_MAX = 255;
+    private static final int AMOUNT_SHADOW_COLOR = 0xFF111111;
+    private static final float UNKNOWN_ALPHA = 0.75F;
     private static final float[][] QUAD_CORNERS = {{-HALF, -HALF, 0.0F, 1.0F}, {HALF, -HALF, 1.0F, 1.0F}, {HALF, HALF, 1.0F, 0.0F}, {-HALF, HALF, 0.0F, 0.0F}};
 
     private AspectTagWorldRenderer() {}
@@ -72,7 +69,7 @@ public final class AspectTagWorldRenderer {
         Vec3 anchor = cloudAnchor(x, y, z, face, tagSize);
         float yaw = (float) Mth.atan2(camera.x - anchor.x, camera.z - anchor.z);
         MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        List<AspectInstance> entries = aspects.entries();
+        List<AspectInstance> entries = aspects.sortedByTag();
         poseStack.pushPose();
         poseStack.translate(anchor.x - camera.x, anchor.y - camera.y, anchor.z - camera.z);
         poseStack.mulPose(Axis.YP.rotation(yaw));
@@ -110,7 +107,7 @@ public final class AspectTagWorldRenderer {
 
     private static void drawTag(PoseStack poseStack, MultiBufferSource buffers, Holder<IAspect> aspect, boolean known, float tagX, float tagY, float tagSize, float alpha) {
         Identifier texture = known ? aspect.value().texture() : UNKNOWN_TEXTURE;
-        int color = known ? AspectTagRenderer.colorOf(aspect.value(), alpha, false) : ARGB.color(Mth.clamp((int) (alpha * UNKNOWN_ALPHA * CHANNEL_MAX), 0, CHANNEL_MAX), WHITE_RGB);
+        int color = known ? AspectTagRenderer.colorOf(aspect.value(), alpha, false) : AspectTagRenderer.colorOf(aspect.value(), UNKNOWN_ALPHA, false);
         poseStack.pushPose();
         poseStack.translate(tagX, tagY, 0.0F);
         poseStack.scale(tagSize, tagSize, tagSize);
@@ -120,8 +117,8 @@ public final class AspectTagWorldRenderer {
 
     private static void drawAmount(PoseStack poseStack, MultiBufferSource buffers, Font font, int amount, float tagX, float tagY, float tagSize) {
         String digits = Integer.toString(amount);
-        float textX = GLYPH_TAIL - font.width(digits);
-        float textY = -DIGIT_HEIGHT;
+        float textX = AMOUNT_PEN_OVERHANG - font.width(digits);
+        float textY = AMOUNT_TEXT_TOP;
         drawDigits(poseStack, buffers, font, digits, tagX + AMOUNT_RIGHT * tagSize, tagY + AMOUNT_BOTTOM * tagSize, tagSize, DARK_LIFT, textX + SHADOW_STEP, textY + SHADOW_STEP, AMOUNT_SHADOW_COLOR);
         drawDigits(poseStack, buffers, font, digits, tagX + AMOUNT_RIGHT * tagSize, tagY + AMOUNT_BOTTOM * tagSize, tagSize, WHITE_LIFT, textX, textY, AMOUNT_COLOR);
     }

@@ -16,7 +16,6 @@ public class PechScreen extends AbstractTTContainerScreen<MenuPech> {
     private static final int SHEET_SIZE = 256;
     private static final int IMAGE_WIDTH = 175;
     private static final int IMAGE_HEIGHT = 232;
-    private static final int LEFT_BUTTON = 0;
 
     private static final int TRADE_X = 67;
     private static final int TRADE_Y = 24;
@@ -45,7 +44,7 @@ public class PechScreen extends AbstractTTContainerScreen<MenuPech> {
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() == LEFT_BUTTON && minecraft != null && minecraft.gameMode != null && minecraft.player != null && menu.canTrade() && overTradeButton(event.x(), event.y())) {
+        if (minecraft != null && minecraft.gameMode != null && minecraft.player != null && menu.canTrade() && overTradeButton(event.x(), event.y())) {
             LocalPlayer player = minecraft.player;
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, MenuPech.TRADE_BUTTON_ID);
             player.playSound(TTSounds.PECH_DICE.get(), DICE_VOLUME, DICE_PITCH_BASE + player.getRandom().nextFloat() * DICE_PITCH_SPREAD);

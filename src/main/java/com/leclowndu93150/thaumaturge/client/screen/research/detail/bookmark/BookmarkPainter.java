@@ -87,8 +87,8 @@ public final class BookmarkPainter {
         ItemStack result = resultOf(shown, frame.level());
         Rect area = slot.hoverArea();
         boolean hovered = area.contains(mouseX, mouseY);
-        int shift = jitter.shift(slot.ordinal());
-        int lean = jitter.lean(slot.ordinal()) + (hovered ? 0 : RECIPE_IDLE_LEAN);
+        int shift = jitter.shift();
+        int lean = jitter.lean() + (hovered ? 0 : RECIPE_IDLE_LEAN);
         int tint = slot.recipeId().equals(model.openRecipe()) ? RECIPE_SELECTED_TINT : RECIPE_IDLE_TINT;
         drawTab(graphics, area, shift, lean, tint);
         int iconX = area.x() + shift + RECIPE_ICON_OFFSET - lean;
@@ -104,8 +104,8 @@ public final class BookmarkPainter {
     private void paintConstruct(GuiGraphicsExtractor graphics, DetailFrame frame, EntryDetailModel model, IResearchStage stage, BookmarkSlot slot, BookmarkJitter jitter, int mouseX, int mouseY) {
         Rect area = slot.hoverArea();
         boolean hovered = area.contains(mouseX, mouseY);
-        int shift = jitter.shift(slot.ordinal());
-        int lean = jitter.lean(slot.ordinal()) + (hovered ? 0 : RECIPE_IDLE_LEAN);
+        int shift = jitter.shift();
+        int lean = jitter.lean() + (hovered ? 0 : RECIPE_IDLE_LEAN);
         drawTab(graphics, area, shift, lean, model.constructOpen() ? RECIPE_SELECTED_TINT : RECIPE_IDLE_TINT);
         BlockPreviews.render(graphics, area.x() + shift + RECIPE_ICON_OFFSET - lean + CONSTRUCT_ICON_CENTER_X, area.y() + CONSTRUCT_ICON_CENTER_Y,
                 ConstructInsertRenderer.constructBlocks(stage.construct().orElseThrow(), frame.gameTime()), CONSTRUCT_ICON_SIZE, CONSTRUCT_ICON_SIZE, CONSTRUCT_ICON_SIZE, CONSTRUCT_ICON_ROTATION,

@@ -14,6 +14,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.FluidTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -41,16 +42,14 @@ public class EntityAspectOrb extends Entity {
     private static final int UNTINTED = 0xFFFFFF;
     private static final float FULL_HEALTH = 5.0F;
     private static final int MIN_VALUE = 1;
-    private static final double GRAVITY = 0.02;
-    private static final double HOP_SIDEWAYS = 0.1;
-    private static final double HOP_UP_BASE = 0.05;
-    private static final double HOP_UP_SPREAD = 0.15;
+    private static final double GRAVITY = 0.03;
+    private static final double HOP_SIDEWAYS = 0.2;
+    private static final double HOP_UP = 0.4;
     private static final double AIR_DRAG = 0.98;
-    private static final double BOUNCE_RETAINED = 0.7;
-    private static final double MIN_BOUNCE_SPEED = 0.04;
-    private static final double WATER_DRAG = 0.95;
-    private static final double WATER_RISE = 0.002;
-    private static final double WATER_MAX_RISE = 0.04;
+    private static final double BOUNCE_RETAINED = 0.9;
+    private static final double WATER_DRAG = 0.99;
+    private static final double WATER_RISE = 0.0005;
+    private static final double WATER_MAX_RISE = 0.06;
     private static final double LAVA_TOSS_SIDEWAYS = 0.2;
     private static final double LAVA_TOSS_UP = 0.2;
     private static final float FIZZ_VOLUME = 0.4F;
@@ -62,9 +61,10 @@ public class EntityAspectOrb extends Entity {
     private static final double ATTRACT_STRENGTH = 0.1;
     private static final double MIN_PULL_DISTANCE = 1.0E-4;
     private static final int PICKUP_DELAY_TICKS = 2;
-    private static final float CHIME_VOLUME = 0.08F;
-    private static final float CHIME_PITCH_BASE = 1.7F;
-    private static final float CHIME_PITCH_SPREAD = 0.3F;
+    private static final float CHIME_VOLUME = 0.1F;
+    private static final float CHIME_PITCH_SCALE = 0.5F;
+    private static final float CHIME_PITCH_SPREAD = 0.7F;
+    private static final float CHIME_PITCH_BASE = 1.8F;
     private static final double HALF = 0.5;
     private static final float FULL_TURN_DEGREES = 360.0F;
 
@@ -86,11 +86,15 @@ public class EntityAspectOrb extends Entity {
         setValue(value);
         RandomSource random = level.getRandom();
         setYRot(random.nextFloat() * FULL_TURN_DEGREES);
-        setDeltaMovement(spread(random, HOP_SIDEWAYS), HOP_UP_BASE + random.nextDouble() * HOP_UP_SPREAD, spread(random, HOP_SIDEWAYS));
+        setDeltaMovement(flatSpread(random, HOP_SIDEWAYS), random.nextDouble() * HOP_UP, flatSpread(random, HOP_SIDEWAYS));
     }
 
     private static double spread(RandomSource random, double reach) {
         return (random.nextDouble() - random.nextDouble()) * reach;
+    }
+
+    private static double flatSpread(RandomSource random, double reach) {
+        return (random.nextDouble() * 2.0 - 1.0) * reach;
     }
 
     public @Nullable ResourceKey<IAspect> getAspect() {
@@ -156,9 +160,6 @@ public class EntityAspectOrb extends Entity {
     }
 
     @Override
-    protected void doWaterSplashEffect() {}
-
-    @Override
     public @Nullable InterpolationHandler getInterpolation() {
         return interpolation;
     }
@@ -174,6 +175,7 @@ public class EntityAspectOrb extends Entity {
         followTarget();
         double fallSpeed = getDeltaMovement().y;
         move(MoverType.SELF, getDeltaMovement());
+        applyEffectsFromBlocks();
         applyFriction(fallSpeed);
         age++;
         if (age >= MAX_AGE) {
@@ -182,16 +184,17 @@ public class EntityAspectOrb extends Entity {
     }
 
     private void applyFluidsAndGravity() {
-        Vec3 motion = getDeltaMovement();
-        if (isInLava()) {
-            setDeltaMovement(spread(random, LAVA_TOSS_SIDEWAYS), LAVA_TOSS_UP, spread(random, LAVA_TOSS_SIDEWAYS));
-            if (!level().isClientSide()) {
-                playSound(SoundEvents.GENERIC_BURN, FIZZ_VOLUME, FIZZ_PITCH_BASE + random.nextFloat() * FIZZ_PITCH_SPREAD);
-            }
-        } else if (isInWater()) {
-            setDeltaMovement(motion.x * WATER_DRAG, Math.min(motion.y * WATER_DRAG + WATER_RISE, WATER_MAX_RISE), motion.z * WATER_DRAG);
+        if (isEyeInFluid(FluidTags.WATER)) {
+            Vec3 motion = getDeltaMovement();
+            setDeltaMovement(motion.x * WATER_DRAG, Math.min(motion.y + WATER_RISE, WATER_MAX_RISE), motion.z * WATER_DRAG);
         } else {
             applyGravity();
+        }
+        if (level().getFluidState(blockPosition()).is(FluidTags.LAVA)) {
+            setDeltaMovement(spread(random, LAVA_TOSS_SIDEWAYS), LAVA_TOSS_UP, spread(random, LAVA_TOSS_SIDEWAYS));
+            if (!level().isClientSide()) {
+                playSound(SoundEvents.GENERIC_EXTINGUISH_FIRE, FIZZ_VOLUME, FIZZ_PITCH_BASE + random.nextFloat() * FIZZ_PITCH_SPREAD);
+            }
         }
     }
 
@@ -202,7 +205,7 @@ public class EntityAspectOrb extends Entity {
             drag = level().getBlockState(below).getFriction(level(), below, this) * AIR_DRAG;
         }
         Vec3 slowed = getDeltaMovement().multiply(drag, AIR_DRAG, drag);
-        if (verticalCollisionBelow && fallSpeed < -MIN_BOUNCE_SPEED) {
+        if (verticalCollisionBelow && fallSpeed < -getGravity()) {
             slowed = new Vec3(slowed.x, -fallSpeed * BOUNCE_RETAINED, slowed.z);
         }
         setDeltaMovement(slowed);
@@ -273,7 +276,7 @@ public class EntityAspectOrb extends Entity {
         WandVisHelper.topUp(wand, aspect, worth, true);
         player.takeXpDelay = PICKUP_DELAY_TICKS;
         player.take(this, 1);
-        float pitch = CHIME_PITCH_BASE + random.nextFloat() * CHIME_PITCH_SPREAD;
+        float pitch = CHIME_PITCH_SCALE * ((random.nextFloat() - random.nextFloat()) * CHIME_PITCH_SPREAD + CHIME_PITCH_BASE);
         level().playSound(null, getX(), getY(), getZ(), SoundEvents.EXPERIENCE_ORB_PICKUP, getSoundSource(), CHIME_VOLUME, pitch);
         discard();
     }

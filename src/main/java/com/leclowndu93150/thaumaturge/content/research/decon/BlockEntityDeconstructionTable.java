@@ -47,8 +47,6 @@ public final class BlockEntityDeconstructionTable extends AbstractSyncedBlockEnt
     private final DeconstructionInventory items = new DeconstructionInventory();
     private @Nullable Identifier resultAspect;
     private int breakTime = BREAK_TIME_TICKS;
-    private ItemResource validatedResource = ItemResource.EMPTY;
-    private boolean validatedHasAspects;
 
     public BlockEntityDeconstructionTable(BlockPos pos, BlockState state) {
         super(TTBlockEntities.DECONSTRUCTION_TABLE.get(), pos, state);
@@ -142,11 +140,7 @@ public final class BlockEntityDeconstructionTable extends AbstractSyncedBlockEnt
     }
 
     private boolean hasAspects(ItemResource resource) {
-        if (!resource.equals(validatedResource)) {
-            validatedResource = resource;
-            validatedHasAspects = !resource.isEmpty() && !AspectIndexAccess.of(resource.toStack(1)).isEmpty();
-        }
-        return validatedHasAspects;
+        return !resource.isEmpty() && !AspectIndexAccess.of(resource.toStack(1)).isEmpty();
     }
 
     private void breakInput(Level level, BlockPos pos) {

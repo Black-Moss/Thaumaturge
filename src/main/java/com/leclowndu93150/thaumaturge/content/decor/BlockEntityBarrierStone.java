@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.content.decor;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -11,6 +10,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 public final class BlockEntityBarrierStone extends BlockEntity {
     private static final long PHASE_MODULUS = 100L;
@@ -39,8 +39,8 @@ public final class BlockEntityBarrierStone extends BlockEntity {
     private static void repel(Level level, BlockPos pos) {
         AABB region = new AABB(pos).expandTowards(0.0, REPEL_COLUMN_EXTRA_HEIGHT, 0.0).inflate(REPEL_MARGIN);
         for (LivingEntity entity : level.getEntitiesOfClass(LivingEntity.class, region, candidate -> !(candidate instanceof Player) && !candidate.onGround())) {
-            Direction away = entity.getDirection().getOpposite();
-            entity.push(away.getStepX() * REPEL_HORIZONTAL_SPEED, REPEL_VERTICAL_SPEED, away.getStepZ() * REPEL_HORIZONTAL_SPEED);
+            Vec3 away = Vec3.directionFromRotation(0.0F, entity.getYRot()).scale(-REPEL_HORIZONTAL_SPEED);
+            entity.push(away.x, REPEL_VERTICAL_SPEED, away.z);
         }
     }
 

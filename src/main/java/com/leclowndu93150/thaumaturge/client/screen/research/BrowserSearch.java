@@ -34,7 +34,6 @@ final class BrowserSearch {
     private static final int HOVER_LEFT = 22;
     private static final int HOVER_RIGHT_OFFSET = 18;
     private static final int HOVER_HEIGHT = 8;
-    private static final int RESERVED_LINES = 1;
     private static final int MORE_X = 22;
     private static final int MORE_Y_GAP = 2;
     private static final int MORE_COLOR = 0xFFAAAAAA;
@@ -117,7 +116,7 @@ final class BrowserSearch {
     }
 
     private static int visibleRows(int viewHeight) {
-        return Math.max(0, (viewHeight - FIRST_ROW_Y) / ROW_PITCH - RESERVED_LINES);
+        return Math.max(1, (viewHeight - FIRST_ROW_Y) / ROW_PITCH);
     }
 
     private void addCategory(CategoryRef category, String needle) {

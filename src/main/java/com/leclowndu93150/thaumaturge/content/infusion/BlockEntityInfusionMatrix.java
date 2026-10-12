@@ -73,22 +73,14 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     private static final float EVENT_STABILITY_SPREAD = 5.0F;
     private static final float FAILED_DRAIN_PENALTY = 0.25F;
     private static final int PULL_TICKS = 5;
-    private static final int FINISH_DELAY_STEPS = 1;
-    private static final float GLYPH_RED_LOW = 0.55F;
-    private static final float GLYPH_RED_RANGE = 0.25F;
-    private static final float GLYPH_GREEN = 0.12F;
-    private static final float GLYPH_BLUE_LOW = 0.75F;
-    private static final float GLYPH_BLUE_RANGE = 0.25F;
-    private static final int GLYPH_LIFETIME = 7;
+    private static final int FINISH_DELAY_STEPS = 3;
+    private static final float GLYPH_RED_LOW = 0.5F;
+    private static final float GLYPH_RED_RANGE = 0.2F;
+    private static final float GLYPH_GREEN = 0.1F;
+    private static final float GLYPH_BLUE_LOW = 0.7F;
+    private static final float GLYPH_BLUE_RANGE = 0.3F;
+    private static final int GLYPH_LIFETIME = 25;
     private static final float GLYPH_RISE = -0.03F;
-    private static final float UNSTABLE_SPARKS_AT_FLOOR = 0.2F;
-    private static final int PROBLEM_SPARK_INTERVAL = 20;
-    private static final float SPARK_RED = 0.65F;
-    private static final float SPARK_GREEN = 0.2F;
-    private static final float SPARK_BLUE = 0.9F;
-    private static final float SPARK_SIZE = 0.35F;
-    private static final double PROBLEM_SPARK_INSET = 0.25;
-    private static final double PROBLEM_SPARK_SPAN = 0.5;
 
     private boolean active;
     private final StabilityState stability = new StabilityState();
@@ -324,13 +316,11 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
             return;
         }
         int half = halfCycle(env);
-        flagProblemBlocks(level, env);
         if (!crafting) {
             regenerateIdle(half);
             return;
         }
         ambience(level);
-        crackle(level);
         if (due(half)) {
             runCycle(level, env, half);
         }
@@ -370,33 +360,6 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         if (due(LOOP_SOUND_INTERVAL)) {
             playSound(level, TTSounds.INFUSER.get(), SOUND_VOLUME, SOUND_PITCH);
         }
-    }
-
-    private void crackle(ServerLevel level) {
-        float unrest = stability.unrest();
-        RandomSource random = level.getRandom();
-        if (unrest <= 0.0F || random.nextFloat() >= unrest * UNSTABLE_SPARKS_AT_FLOOR) {
-            return;
-        }
-        Vec3 point = Vec3.atLowerCornerWithOffset(worldPosition, random.nextDouble(), random.nextDouble(), random.nextDouble());
-        sendSpark(level, point);
-    }
-
-    private void flagProblemBlocks(ServerLevel level, MatrixEnvironment env) {
-        List<BlockPos> problems = env.problemBlocks();
-        if (problems.isEmpty() || !due(PROBLEM_SPARK_INTERVAL)) {
-            return;
-        }
-        RandomSource random = level.getRandom();
-        BlockPos culprit = problems.get(random.nextInt(problems.size()));
-        double x = PROBLEM_SPARK_INSET + random.nextDouble() * PROBLEM_SPARK_SPAN;
-        double y = PROBLEM_SPARK_INSET + random.nextDouble() * PROBLEM_SPARK_SPAN;
-        double z = PROBLEM_SPARK_INSET + random.nextDouble() * PROBLEM_SPARK_SPAN;
-        sendSpark(level, Vec3.atLowerCornerWithOffset(culprit, x, y, z));
-    }
-
-    private static void sendSpark(ServerLevel level, Vec3 point) {
-        Effects.spark(level, point).color(SPARK_RED, SPARK_GREEN, SPARK_BLUE).size(SPARK_SIZE).send();
     }
 
     private void runCycle(ServerLevel level, MatrixEnvironment env, int half) {
@@ -702,10 +665,6 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
             value = Mth.clamp(value - loss + replenish, STABILITY_FLOOR, STABILITY_CAP);
         }
 
-        private float unrest() {
-            return value < 0.0F ? Math.min(1.0F, value / STABILITY_FLOOR) : 0.0F;
-        }
-
         private boolean eventRoll(RandomSource random) {
             return value < 0.0F && random.nextInt(INSTABILITY_ROLL_BOUND) <= Math.abs(value);
         }
@@ -747,8 +706,10 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
 
     private static final class ClientAnimator {
         private static final float FULLY_AWAKE = 1.0F;
-        private static final float WAKE_EASE = 0.09F;
-        private static final float WAKE_SNAP = 0.005F;
+        private static final float WAKE_GROWTH = 0.1F;
+        private static final float WAKE_CREEP = 0.001F;
+        private static final float SLEEP_DECAY = 0.1F;
+        private static final float SLEEP_SNAP = 0.001F;
         private static final int SWAY_SETTLED_TICKS = 50;
         private static final int SWAY_WIND_DOWN = 2;
 
@@ -765,9 +726,14 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         }
 
         private static float startUp(float current, boolean active) {
-            float target = active ? FULLY_AWAKE : 0.0F;
-            float eased = current + (target - current) * WAKE_EASE;
-            return Math.abs(target - eased) < WAKE_SNAP ? target : eased;
+            if (active && current < FULLY_AWAKE) {
+                return Math.min(FULLY_AWAKE, current + Math.max(current * WAKE_GROWTH, WAKE_CREEP));
+            }
+            if (!active && current > 0.0F) {
+                float faded = current - current * SLEEP_DECAY;
+                return faded < SLEEP_SNAP ? 0.0F : faded;
+            }
+            return current;
         }
     }
 

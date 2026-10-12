@@ -35,9 +35,9 @@ public final class FluxGooDropletParticle extends BreakingItemParticle {
     }
 
     public static final class Provider extends BreakingItemParticle.ItemParticleProvider<FluxGooDropletParticleOptions> implements ParticleProvider<FluxGooDropletParticleOptions> {
-        private static final int SKEWED_LIFETIME_BASE = 50;
-        private static final int SKEWED_LIFETIME_EXTRA = 550;
-        private static final int SKEW_POWER = 4;
+        private static final float RECIPROCAL_NUMERATOR = 66.0F;
+        private static final float RECIPROCAL_SPREAD = 0.9F;
+        private static final float RECIPROCAL_FLOOR = 0.1F;
 
         @Override
         public @Nullable Particle createParticle(FluxGooDropletParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
@@ -46,12 +46,7 @@ public final class FluxGooDropletParticle extends BreakingItemParticle {
         }
 
         private static int skewedLifetime(RandomSource random) {
-            float roll = random.nextFloat();
-            float skewed = roll;
-            for (int i = 1; i < SKEW_POWER; i++) {
-                skewed *= roll;
-            }
-            return SKEWED_LIFETIME_BASE + (int) (skewed * SKEWED_LIFETIME_EXTRA);
+            return (int) (RECIPROCAL_NUMERATOR / (random.nextFloat() * RECIPROCAL_SPREAD + RECIPROCAL_FLOOR));
         }
     }
 }

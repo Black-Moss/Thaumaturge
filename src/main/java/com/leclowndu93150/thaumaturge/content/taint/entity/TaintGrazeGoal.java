@@ -29,7 +29,7 @@ public final class TaintGrazeGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return sheep.getRandom().nextInt(reducedTickDelay(GRAZE_ODDS)) == 0 && pasture() != Pasture.NONE;
+        return sheep.getRandom().nextInt(GRAZE_ODDS) == 0 && pasture() != Pasture.NONE;
     }
 
     @Override
@@ -75,7 +75,10 @@ public final class TaintGrazeGoal extends Goal {
     private boolean bite(ServerLevel level) {
         BlockPos feet = sheep.blockPosition();
         switch (pasture()) {
-            case TUFT -> level.destroyBlock(feet, false, sheep);
+            case TUFT -> {
+                level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, feet, Block.getId(Blocks.GRASS_BLOCK.defaultBlockState()));
+                level.destroyBlock(feet, false);
+            }
             case TURF -> {
                 BlockPos below = feet.below();
                 level.levelEvent(LevelEvent.PARTICLES_DESTROY_BLOCK, below, Block.getId(level.getBlockState(below)));

@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.entity.boss;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
+import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import net.minecraft.core.Holder;
@@ -250,7 +251,9 @@ public class EntityThaumaturgeBoss extends Monster {
         }
         if (isDue(AGGRO_REVIEW_INTERVAL)) {
             reviewAggro(level);
-            scaleForPlayers(level);
+            if (getTarget() != null && !LabyrinthHelper.isLabyrinthBound(this)) {
+                scaleForPlayers(level);
+            }
         }
     }
 

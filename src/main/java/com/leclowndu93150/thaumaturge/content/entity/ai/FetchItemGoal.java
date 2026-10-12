@@ -6,6 +6,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.PathfinderMob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
@@ -16,12 +17,11 @@ public final class FetchItemGoal<T extends PathfinderMob & ItemCollector> extend
     private static final double SEARCH_RANGE = 16.0;
     private static final double SEARCH_RANGE_SQR = SEARCH_RANGE * SEARCH_RANGE;
     private static final int RESCAN_COOLDOWN = 10;
-    private static final double MOVE_SPEED = 1.5;
+    private static final double SPEED_FACTOR = 1.5;
     private static final float LOOK_SPEED = 30.0F;
     private static final int REPATH_MIN_TICKS = 4;
     private static final int REPATH_SPREAD_TICKS = 4;
-    private static final double PICKUP_RANGE = 1.2;
-    private static final double PICKUP_RANGE_SQR = PICKUP_RANGE * PICKUP_RANGE;
+    private static final double PICKUP_RANGE_SQR = 1.5;
     private static final float CHIME_VOLUME = 0.2F;
     private static final float CHIME_PITCH = 2.0F;
     private static final float CHIME_PITCH_SPREAD = 0.7F;
@@ -47,7 +47,7 @@ public final class FetchItemGoal<T extends PathfinderMob & ItemCollector> extend
 
     @Override
     public boolean canContinueToUse() {
-        return pickQuarry();
+        return pickQuarry() && !collector.getNavigation().isDone();
     }
 
     @Override
@@ -88,7 +88,7 @@ public final class FetchItemGoal<T extends PathfinderMob & ItemCollector> extend
             return;
         }
         repathDelay = REPATH_MIN_TICKS + collector.getRandom().nextInt(REPATH_SPREAD_TICKS);
-        collector.getNavigation().moveTo(quarry, MOVE_SPEED);
+        collector.getNavigation().moveTo(quarry, collector.getAttributeValue(Attributes.MOVEMENT_SPEED) * SPEED_FACTOR);
     }
 
     private Optional<ItemEntity> closestWanted() {

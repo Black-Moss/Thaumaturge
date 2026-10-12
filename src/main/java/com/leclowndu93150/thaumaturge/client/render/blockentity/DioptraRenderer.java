@@ -22,36 +22,34 @@ import org.jspecify.annotations.Nullable;
 
 public final class DioptraRenderer implements BlockEntityRenderer<BlockEntityDioptra, DioptraRenderState> {
     private static final Identifier SURFACE_TEXTURE = TTIds.rl("textures/misc/gridblock.png");
-    private static final Identifier WALL_TEXTURE = TTIds.rl("textures/misc/white.png");
+    private static final Identifier WALL_TEXTURE = TTIds.rl("textures/entity/dioptra_side.png");
     private static final int LAST = BlockEntityDioptra.GRID_SIZE - 1;
     private static final float CELL = 1.0F / LAST;
-    private static final float CENTER = LAST / 2.0F;
-    private static final float BASE_LIFT = 0.015F;
-    private static final float BASE_Y = 1.0F + BASE_LIFT;
+    private static final float CENTER_CELL = LAST / 2.0F;
+    private static final float SURFACE_INSET = 0.005F;
+    private static final float SURFACE_INSET_SCALE = 0.99F;
+    private static final float SURFACE_BASE_Y = 1.001F;
     private static final float PEAK_HEIGHT = 2.0F / 3.0F;
-    private static final float WALL_HEIGHT = 1.0F;
-    private static final float SURFACE_ALPHA = 0.55F;
-    private static final float SKIRT_TOP_ALPHA = 0.35F;
-    private static final float WALL_BASE_ALPHA = 0.12F;
-    private static final float WALL_TINT = 0.8F;
-    private static final float DRIFT_AMPLITUDE = 0.12F;
-    private static final float RED_DRIFT_RATE = 0.031F;
-    private static final float GREEN_DRIFT_RATE = 0.023F;
-    private static final float BLUE_DRIFT_RATE = 0.017F;
-    private static final float GREEN_DRIFT_PHASE = 2.1F;
-    private static final float BLUE_DRIFT_PHASE = 4.2F;
-    private static final float VIS_RED = 0.78F;
-    private static final float VIS_GREEN = 0.94F;
-    private static final float VIS_BLUE = 1.0F;
-    private static final float FLUX_RED = 0.62F;
-    private static final float FLUX_GREEN = 0.28F;
-    private static final float FLUX_BLUE = 0.95F;
-    private static final float RIPPLE_FLOOR = 0.6F;
-    private static final float RIPPLE_DEPTH = 0.4F;
-    private static final float RIPPLE_WAVENUMBER = 0.9F;
-    private static final float RIPPLE_SPEED = 0.12F;
-    private static final float HEIGHT_GLOW = 0.35F;
-    private static final double BOUNDS_HEIGHT = BASE_Y + WALL_HEIGHT;
+    private static final float WALL_BOTTOM_Y = 1.0F;
+    private static final float WALL_TOP_Y = 2.0F;
+    private static final float SURFACE_ALPHA = 0.9F;
+    private static final float SKIRT_TOP_ALPHA = 0.9F;
+    private static final float WALL_ALPHA = 0.8F;
+    private static final float RED_BASE = 0.85F;
+    private static final float GREEN_ENABLED = 0.9F;
+    private static final float GREEN_DISABLED = 0.45F;
+    private static final float BLUE_BASE = 0.95F;
+    private static final float COLOR_DRIFT = 0.05F;
+    private static final float RED_DRIFT_TICKS = 12.0F;
+    private static final float GREEN_DRIFT_TICKS = 11.0F;
+    private static final float BLUE_DRIFT_TICKS = 10.0F;
+    private static final float CELL_RED_FACTOR = 0.8F;
+    private static final float LUMINANCE_BASE = 200.0F;
+    private static final float LUMINANCE_RIPPLE = 15.0F;
+    private static final float LUMINANCE_SCALE = 255.0F;
+    private static final float RIPPLE_TICKS_PER_CELL = 10.0F;
+    private static final float RIPPLE_DIVISOR_TICKS = 8.0F;
+    private static final double BOUNDS_HEIGHT = WALL_TOP_Y;
 
     public DioptraRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -73,69 +71,90 @@ public final class DioptraRenderer implements BlockEntityRenderer<BlockEntityDio
     public void submit(DioptraRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         Palette palette = Palette.of(state.enabled, state.time);
         float[] fills = fills(state.grid);
+        poseStack.pushPose();
+        poseStack.translate(SURFACE_INSET, SURFACE_BASE_Y, SURFACE_INSET);
+        poseStack.scale(SURFACE_INSET_SCALE, 1.0F, SURFACE_INSET_SCALE);
         collector.submitCustomGeometry(poseStack, TTFXRenderTypes.dioptra(SURFACE_TEXTURE), (pose, buffer) -> {
             Matrix4fc matrix = pose.pose();
             writeSurface(buffer, matrix, fills, palette);
             writeSkirts(buffer, matrix, fills, palette);
         });
+        poseStack.popPose();
         collector.submitCustomGeometry(poseStack, TTFXRenderTypes.dioptra(WALL_TEXTURE), (pose, buffer) -> writeWalls(buffer, pose.pose(), palette));
     }
 
     private static void writeSurface(VertexConsumer buffer, Matrix4fc matrix, float[] fills, Palette palette) {
         for (int row = 0; row < LAST; row++) {
             for (int column = 0; column < LAST; column++) {
-                surfacePoint(buffer, matrix, fills, palette, column, row, 0.0F, 0.0F);
-                surfacePoint(buffer, matrix, fills, palette, column, row + 1, 0.0F, 1.0F);
-                surfacePoint(buffer, matrix, fills, palette, column + 1, row + 1, 1.0F, 1.0F);
-                surfacePoint(buffer, matrix, fills, palette, column + 1, row, 1.0F, 0.0F);
+                float red = palette.cellRed(column, row);
+                float green = palette.cellGreen(column, row);
+                float blue = palette.cellBlue(column, row);
+                surfacePoint(buffer, matrix, fills, red, green, blue, column, row + 1, 0.0F, 0.0F);
+                surfacePoint(buffer, matrix, fills, red, green, blue, column + 1, row + 1, 1.0F, 0.0F);
+                surfacePoint(buffer, matrix, fills, red, green, blue, column + 1, row, 1.0F, 1.0F);
+                surfacePoint(buffer, matrix, fills, red, green, blue, column, row, 0.0F, 1.0F);
             }
         }
     }
 
-    private static void surfacePoint(VertexConsumer buffer, Matrix4fc matrix, float[] fills, Palette palette, int column, int row, float u, float v) {
-        float fill = fill(fills, column, row);
-        float brightness = palette.ripple(column, row) * (1.0F - HEIGHT_GLOW + HEIGHT_GLOW * fill);
-        buffer.addVertex(matrix, column * CELL, BASE_Y + fill * PEAK_HEIGHT, row * CELL).setUv(u, v).setColor(palette.red * brightness, palette.green * brightness, palette.blue * brightness,
-                SURFACE_ALPHA);
+    private static void surfacePoint(VertexConsumer buffer, Matrix4fc matrix, float[] fills, float red, float green, float blue, int column, int row, float u, float v) {
+        buffer.addVertex(matrix, column * CELL, fill(fills, column, row) * PEAK_HEIGHT, row * CELL).setUv(u, v).setColor(red, green, blue, SURFACE_ALPHA);
     }
 
     private static void writeSkirts(VertexConsumer buffer, Matrix4fc matrix, float[] fills, Palette palette) {
         for (int step = 0; step < LAST; step++) {
-            skirt(buffer, matrix, fills, palette, step, 0, step + 1, 0);
-            skirt(buffer, matrix, fills, palette, step, LAST, step + 1, LAST);
-            skirt(buffer, matrix, fills, palette, 0, step, 0, step + 1);
-            skirt(buffer, matrix, fills, palette, LAST, step, LAST, step + 1);
+            skirtAlongZ(buffer, matrix, fills, palette, 0, 0, step);
+            skirtAlongZ(buffer, matrix, fills, palette, LAST, LAST - 1, step);
+            skirtAlongX(buffer, matrix, fills, palette, 0, 0, step);
+            skirtAlongX(buffer, matrix, fills, palette, LAST, LAST - 1, step);
         }
     }
 
-    private static void skirt(VertexConsumer buffer, Matrix4fc matrix, float[] fills, Palette palette, int fromColumn, int fromRow, int toColumn, int toRow) {
-        skirtPoint(buffer, matrix, palette, fromColumn, fromRow, BASE_Y, 0.0F, 1.0F, 0.0F);
-        skirtPoint(buffer, matrix, palette, fromColumn, fromRow, BASE_Y + fill(fills, fromColumn, fromRow) * PEAK_HEIGHT, SKIRT_TOP_ALPHA, 0.0F, 0.0F);
-        skirtPoint(buffer, matrix, palette, toColumn, toRow, BASE_Y + fill(fills, toColumn, toRow) * PEAK_HEIGHT, SKIRT_TOP_ALPHA, 0.0F, 1.0F);
-        skirtPoint(buffer, matrix, palette, toColumn, toRow, BASE_Y, 0.0F, 1.0F, 1.0F);
+    private static void skirtAlongZ(VertexConsumer buffer, Matrix4fc matrix, float[] fills, Palette palette, int column, int cellColumn, int step) {
+        float red = palette.cellRed(cellColumn, step);
+        float green = palette.cellGreen(cellColumn, step);
+        float blue = palette.cellBlue(cellColumn, step);
+        float x = column * CELL;
+        float nearZ = step * CELL;
+        float farZ = (step + 1) * CELL;
+        float nearTop = fill(fills, column, step) * PEAK_HEIGHT;
+        float farTop = fill(fills, column, step + 1) * PEAK_HEIGHT;
+        buffer.addVertex(matrix, x, 0.0F, nearZ).setUv(0.0F, 1.0F).setColor(red, green, blue, 0.0F);
+        buffer.addVertex(matrix, x, nearTop, nearZ).setUv(1.0F, 1.0F).setColor(red, green, blue, SKIRT_TOP_ALPHA);
+        buffer.addVertex(matrix, x, farTop, farZ).setUv(1.0F, 0.0F).setColor(red, green, blue, SKIRT_TOP_ALPHA);
+        buffer.addVertex(matrix, x, 0.0F, farZ).setUv(0.0F, 0.0F).setColor(red, green, blue, 0.0F);
     }
 
-    private static void skirtPoint(VertexConsumer buffer, Matrix4fc matrix, Palette palette, int column, int row, float y, float alpha, float u, float v) {
-        float brightness = palette.ripple(column, row);
-        buffer.addVertex(matrix, column * CELL, y, row * CELL).setUv(u, v).setColor(palette.red * brightness, palette.green * brightness, palette.blue * brightness, alpha);
+    private static void skirtAlongX(VertexConsumer buffer, Matrix4fc matrix, float[] fills, Palette palette, int row, int cellRow, int step) {
+        float red = palette.cellRed(step, cellRow);
+        float green = palette.cellGreen(step, cellRow);
+        float blue = palette.cellBlue(step, cellRow);
+        float z = row * CELL;
+        float nearX = step * CELL;
+        float farX = (step + 1) * CELL;
+        float nearTop = fill(fills, step, row) * PEAK_HEIGHT;
+        float farTop = fill(fills, step + 1, row) * PEAK_HEIGHT;
+        buffer.addVertex(matrix, nearX, 0.0F, z).setUv(0.0F, 1.0F).setColor(red, green, blue, 0.0F);
+        buffer.addVertex(matrix, nearX, nearTop, z).setUv(0.0F, 0.0F).setColor(red, green, blue, SKIRT_TOP_ALPHA);
+        buffer.addVertex(matrix, farX, farTop, z).setUv(1.0F, 0.0F).setColor(red, green, blue, SKIRT_TOP_ALPHA);
+        buffer.addVertex(matrix, farX, 0.0F, z).setUv(1.0F, 1.0F).setColor(red, green, blue, 0.0F);
     }
 
     private static void writeWalls(VertexConsumer buffer, Matrix4fc matrix, Palette palette) {
         wall(buffer, matrix, palette, 0.0F, 0.0F, 1.0F, 0.0F);
-        wall(buffer, matrix, palette, 1.0F, 0.0F, 1.0F, 1.0F);
         wall(buffer, matrix, palette, 1.0F, 1.0F, 0.0F, 1.0F);
         wall(buffer, matrix, palette, 0.0F, 1.0F, 0.0F, 0.0F);
+        wall(buffer, matrix, palette, 1.0F, 0.0F, 1.0F, 1.0F);
     }
 
     private static void wall(VertexConsumer buffer, Matrix4fc matrix, Palette palette, float x0, float z0, float x1, float z1) {
-        float red = palette.red * WALL_TINT;
-        float green = palette.green * WALL_TINT;
-        float blue = palette.blue * WALL_TINT;
-        float top = BASE_Y + WALL_HEIGHT;
-        buffer.addVertex(matrix, x0, BASE_Y, z0).setUv(0.0F, 1.0F).setColor(red, green, blue, WALL_BASE_ALPHA);
-        buffer.addVertex(matrix, x0, top, z0).setUv(0.0F, 0.0F).setColor(red, green, blue, 0.0F);
-        buffer.addVertex(matrix, x1, top, z1).setUv(1.0F, 0.0F).setColor(red, green, blue, 0.0F);
-        buffer.addVertex(matrix, x1, BASE_Y, z1).setUv(1.0F, 1.0F).setColor(red, green, blue, WALL_BASE_ALPHA);
+        float red = Math.min(1.0F, palette.red);
+        float green = Math.min(1.0F, palette.green);
+        float blue = Math.min(1.0F, palette.blue);
+        buffer.addVertex(matrix, x0, WALL_BOTTOM_Y, z0).setUv(0.0F, 0.0F).setColor(red, green, blue, WALL_ALPHA);
+        buffer.addVertex(matrix, x0, WALL_TOP_Y, z0).setUv(1.0F, 0.0F).setColor(red, green, blue, WALL_ALPHA);
+        buffer.addVertex(matrix, x1, WALL_TOP_Y, z1).setUv(1.0F, 1.0F).setColor(red, green, blue, WALL_ALPHA);
+        buffer.addVertex(matrix, x1, WALL_BOTTOM_Y, z1).setUv(0.0F, 1.0F).setColor(red, green, blue, WALL_ALPHA);
     }
 
     private static float[] fills(byte[] grid) {
@@ -162,20 +181,29 @@ public final class DioptraRenderer implements BlockEntityRenderer<BlockEntityDio
     }
 
     private record Palette(float red, float green, float blue, float time) {
-        static Palette of(boolean vis, float time) {
-            float red = drift(vis ? VIS_RED : FLUX_RED, time * RED_DRIFT_RATE);
-            float green = drift(vis ? VIS_GREEN : FLUX_GREEN, time * GREEN_DRIFT_RATE + GREEN_DRIFT_PHASE);
-            float blue = drift(vis ? VIS_BLUE : FLUX_BLUE, time * BLUE_DRIFT_RATE + BLUE_DRIFT_PHASE);
+        static Palette of(boolean enabled, float time) {
+            float red = RED_BASE + COLOR_DRIFT * Mth.sin(time / RED_DRIFT_TICKS);
+            float green = (enabled ? GREEN_ENABLED : GREEN_DISABLED) + COLOR_DRIFT * Mth.sin(time / GREEN_DRIFT_TICKS);
+            float blue = BLUE_BASE + COLOR_DRIFT * Mth.sin(time / BLUE_DRIFT_TICKS);
             return new Palette(red, green, blue, time);
         }
 
-        private static float drift(float base, float phase) {
-            return Mth.clamp(base + DRIFT_AMPLITUDE * Mth.sin(phase), 0.0F, 1.0F);
+        float luminance(int column, int row) {
+            float distance = Mth.sqrt(Mth.square(column - CENTER_CELL) + Mth.square(row - CENTER_CELL));
+            float ripple = Mth.sin((time - RIPPLE_TICKS_PER_CELL * distance) / RIPPLE_DIVISOR_TICKS);
+            return (LUMINANCE_BASE + LUMINANCE_RIPPLE * ripple) / LUMINANCE_SCALE;
         }
 
-        float ripple(int column, int row) {
-            float distance = Mth.sqrt(Mth.square(column - CENTER) + Mth.square(row - CENTER));
-            return RIPPLE_FLOOR + RIPPLE_DEPTH * (0.5F + 0.5F * Mth.sin(distance * RIPPLE_WAVENUMBER - time * RIPPLE_SPEED));
+        float cellRed(int column, int row) {
+            return Math.min(1.0F, red * CELL_RED_FACTOR * luminance(column, row));
+        }
+
+        float cellGreen(int column, int row) {
+            return Math.min(1.0F, green * luminance(column, row));
+        }
+
+        float cellBlue(int column, int row) {
+            return Math.min(1.0F, blue * luminance(column, row));
         }
     }
 }

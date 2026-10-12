@@ -13,11 +13,10 @@ import com.leclowndu93150.thaumaturge.api.research.scan.ScannedBlock;
 import com.leclowndu93150.thaumaturge.content.aura.node.BlockEntityNode;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import java.util.EnumMap;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -39,8 +38,6 @@ public final class ScanNode implements IScannable {
     private static final int TYPE_BONUS = 2;
     private static final String NODE_KEY_PREFIX = "node/";
     private static final String ERROR_KEY = "message.thaumaturge.research.discovery_error";
-    private static final List<ResourceKey<IAspect>> CANONICAL_ORDER = List.of(TTAspects.AER, TTAspects.TERRA, TTAspects.IGNIS, TTAspects.AQUA, TTAspects.ORDO, TTAspects.PERDITIO, TTAspects.DESIDERIUM,
-            TTAspects.VITIUM, TTAspects.VICTUS, TTAspects.MORTUUS, TTAspects.TENEBRAE);
     private static final Map<NodeType, List<TypeRule>> TYPE_RULES = typeRules();
 
     public ScanNode() {}
@@ -114,7 +111,7 @@ public final class ScanNode implements IScannable {
     }
 
     private static Map<ResourceKey<IAspect>, Integer> basePoints(BlockEntityNode node) {
-        Map<ResourceKey<IAspect>, Integer> points = new HashMap<>();
+        Map<ResourceKey<IAspect>, Integer> points = new LinkedHashMap<>();
         node.getAspects().entries().forEach(instance -> {
             ResourceKey<IAspect> key = instance.aspect().getKey();
             if (key != null) {
@@ -124,20 +121,18 @@ public final class ScanNode implements IScannable {
         return points;
     }
 
-    private static Stream<ResourceKey<IAspect>> orderedKeys(HolderLookup.RegistryLookup<IAspect> lookup) {
-        return Stream.concat(CANONICAL_ORDER.stream(), lookup.listElements().map(Holder.Reference::key)).distinct();
-    }
-
     private static AspectList scanList(Level level, BlockEntityNode node) {
         Map<ResourceKey<IAspect>, Integer> points = basePoints(node);
         TYPE_RULES.getOrDefault(node.kind(), List.of()).forEach(rule -> rule.applyTo(points));
         HolderLookup.RegistryLookup<IAspect> lookup = level.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY);
-        List<ResourceKey<IAspect>> keys = orderedKeys(lookup).filter(key -> points.getOrDefault(key, 0) > 0).toList();
         AspectList result = AspectList.EMPTY;
-        for (ResourceKey<IAspect> key : keys) {
-            Optional<Holder.Reference<IAspect>> holder = lookup.get(key);
+        for (Map.Entry<ResourceKey<IAspect>, Integer> entry : points.entrySet()) {
+            if (entry.getValue() <= 0) {
+                continue;
+            }
+            Optional<Holder.Reference<IAspect>> holder = lookup.get(entry.getKey());
             if (holder.isPresent()) {
-                result = result.add(holder.get(), points.get(key));
+                result = result.add(holder.get(), entry.getValue());
             }
         }
         return result;

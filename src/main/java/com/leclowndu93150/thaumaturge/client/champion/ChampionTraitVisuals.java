@@ -30,95 +30,84 @@ public final class ChampionTraitVisuals {
 
     private static final float NO_LIFT = 0.0F;
 
-    private static final float HALF_GATE = 0.45F;
-    private static final double SINK = -0.012D;
+    private static final float HALF_GATE = 0.5F;
+    private static final double SINK = -0.02D;
     private static final double RISE = 0.03D;
-    private static final double RISE_SLOW = 0.012D;
+    private static final double RISE_SLOW = 0.02D;
 
-    private static final float BOLD_SCALE = 0.6F;
-    private static final float BOLD_RED_BASE = 0.42F;
-    private static final float BOLD_RED_DROP = 0.16F;
-    private static final float BOLD_BLUE_BASE = 0.84F;
-    private static final float BOLD_BLUE_SPREAD = 0.16F;
-    private static final float BOLD_HEIGHT_FRACTION = 0.3F;
+    private static final float BOLD_SCALE = 0.2F;
+    private static final float BOLD_RED_BASE = 0.3F;
+    private static final float BOLD_RED_DROP = 0.1F;
+    private static final float BOLD_BLUE_BASE = 0.8F;
+    private static final float BOLD_BLUE_SPREAD = 0.2F;
+    private static final float BOLD_HEIGHT_FRACTION = 1.0F / 3.0F;
 
     private static final float SPINE_RED_BASE = 0.5F;
-    private static final float SPINE_GREEN_BASE = 0.06F;
-    private static final float SPINE_BLUE_BASE = 0.07F;
-    private static final float SPINE_SPREAD = 0.12F;
-    private static final float SPINE_SCALE_BASE = 1.6F;
-    private static final float SPINE_SCALE_SPREAD = 0.6F;
+    private static final float SPINE_GREEN_BASE = 0.1F;
+    private static final float SPINE_BLUE_BASE = 0.1F;
+    private static final float SPINE_SPREAD = 0.2F;
+    private static final float SPINE_SCALE_BASE = 1.2F;
+    private static final float SPINE_SCALE_SPREAD = 0.3F;
     private static final int SPINE_AGE = 3;
 
-    private static final float ARMOR_GATE = 0.15F;
-    private static final float ARMOR_RED_GREEN = 0.74F;
-    private static final float ARMOR_BLUE_BASE = 0.82F;
-    private static final float ARMOR_BLUE_SPREAD = 0.16F;
-    private static final float ARMOR_ALPHA = 0.5F;
-    private static final float ARMOR_SCALE_BASE = 0.8F;
-    private static final float ARMOR_SCALE_SPREAD = 0.4F;
-    private static final int ARMOR_AGE_BASE = 3;
-    private static final int ARMOR_AGE_SPREAD = 3;
+    private static final float ARMOR_GATE = 0.25F;
+    private static final float ARMOR_RED_GREEN = 0.9F;
+    private static final float ARMOR_BLUE_BASE = 0.9F;
+    private static final float ARMOR_BLUE_SPREAD = 0.1F;
+    private static final float ARMOR_ALPHA = 0.7F;
+    private static final float ARMOR_SCALE_BASE = 0.6F;
+    private static final float ARMOR_SCALE_SPREAD = 0.2F;
+    private static final int ARMOR_AGE_BASE = 5;
+    private static final int ARMOR_AGE_SPREAD = 4;
 
-    private static final float MIGHTY_GATE = 0.25F;
-    private static final float MIGHTY_COLOR_BASE = 0.78F;
-    private static final float MIGHTY_COLOR_SPREAD = 0.18F;
-    private static final float MIGHTY_SCALE_BASE = 1.2F;
-    private static final float MIGHTY_SCALE_SPREAD = 0.4F;
+    private static final float MIGHTY_GATE = 0.3F;
+    private static final float MIGHTY_COLOR_BASE = 0.8F;
+    private static final float MIGHTY_COLOR_SPREAD = 0.2F;
+    private static final float MIGHTY_SCALE_BASE = 1.0F;
+    private static final float MIGHTY_SCALE_SPREAD = 0.3F;
     private static final int MIGHTY_AGE_BASE = 4;
-    private static final int MIGHTY_AGE_SPREAD = 4;
+    private static final int MIGHTY_AGE_SPREAD = 3;
 
-    private static final double GRIM_DRIFT = -0.01D;
-    private static final float GRIM_SCALE_BASE = 1.0F;
-    private static final float GRIM_SCALE_SPREAD = 0.6F;
-    private static final float GRIM_ALPHA = 0.35F;
-    private static final float GRIM_TINT = 0.52F;
+    private static final float GRIM_SCALE_BASE = 0.6F;
+    private static final float GRIM_SCALE_SPREAD = 0.4F;
+    private static final float GRIM_ALPHA = 0.8F;
+    private static final float GRIM_TINT = 0.6F;
 
-    private static final float WARDED_BASE = 0.55F;
-    private static final float WARDED_SPREAD = 0.15F;
+    private static final float WARDED_BASE = 0.5F;
+    private static final float WARDED_SPREAD = 0.1F;
 
-    private static final float WARP_RED_BASE = 0.75F;
-    private static final float WARP_RED_SPREAD = 0.25F;
-    private static final float WARP_BLUE_BASE = 0.8F;
-    private static final float WARP_BLUE_SPREAD = 0.2F;
-    private static final float WARP_ALPHA = 0.6F;
+    private static final float WARP_RED_BASE = 0.8F;
+    private static final float WARP_RED_SPREAD = 0.2F;
+    private static final float WARP_BLUE_BASE = 0.9F;
+    private static final float WARP_BLUE_SPREAD = 0.1F;
+    private static final float WARP_ALPHA = 0.7F;
     private static final float WARP_SCALE_BASE = 0.6F;
-    private static final float WARP_SCALE_SPREAD = 1.2F;
+    private static final float WARP_SCALE_SPREAD = 0.4F;
 
-    private static final float UNDYING_LOW_BASE = 0.25F;
-    private static final float UNDYING_LOW_SPREAD = 0.15F;
-    private static final float UNDYING_GREEN_BASE = 0.75F;
-    private static final float UNDYING_GREEN_SPREAD = 0.25F;
-    private static final float UNDYING_ALPHA = 0.6F;
-    private static final float UNDYING_SCALE_BASE = 0.8F;
-    private static final float UNDYING_SCALE_SPREAD = 0.6F;
+    private static final float UNDYING_LOW_BASE = 0.1F;
+    private static final float UNDYING_LOW_SPREAD = 0.1F;
+    private static final float UNDYING_GREEN_BASE = 0.8F;
+    private static final float UNDYING_GREEN_SPREAD = 0.2F;
+    private static final float UNDYING_ALPHA = 0.9F;
+    private static final float UNDYING_SCALE_BASE = 0.5F;
+    private static final float UNDYING_SCALE_SPREAD = 0.2F;
 
-    private static final float FIERY_SCALE_BASE = 0.6F;
-    private static final float FIERY_SCALE_SPREAD = 0.6F;
+    private static final float FIERY_SCALE_BASE = 0.7F;
+    private static final float FIERY_SCALE_SPREAD = 0.2F;
     private static final float FIERY_ALPHA = 0.7F;
 
-    private static final float SICKLY_RED = 0.25F;
-    private static final float SICKLY_GREEN_BASE = 0.4F;
-    private static final float SICKLY_GREEN_SPREAD = 0.15F;
-    private static final float SICKLY_BLUE_BASE = 0.1F;
-    private static final float SICKLY_BLUE_SPREAD = 0.1F;
-    private static final float SICKLY_SCALE_BASE = 2.0F;
-    private static final float SICKLY_SCALE_SPREAD = 1.0F;
-    private static final float SICKLY_END_SCALE = 1.0F;
+    private static final float TOXIC_RED = 0.2F;
+    private static final float TOXIC_GREEN_BASE = 0.6F;
+    private static final float TOXIC_SPREAD = 0.1F;
+    private static final float TOXIC_BLUE_BASE = 0.2F;
 
-    private static final float VENOM_RED = 0.3F;
-    private static final float VENOM_GREEN_BASE = 0.85F;
-    private static final float VENOM_GREEN_SPREAD = 0.15F;
-    private static final float VENOM_BLUE_BASE = 0.1F;
-    private static final float VENOM_BLUE_SPREAD = 0.15F;
+    private static final float SICKLY_SCALE_BASE = 0.9F;
+    private static final float SICKLY_SCALE_SPREAD = 0.3F;
+    private static final float SICKLY_END_SCALE = 0.9F;
 
-    private static final float VAMPIRIC_GATE = 0.06F;
-    private static final float VAMPIRIC_RED_BASE = 0.5F;
-    private static final float VAMPIRIC_RED_SPREAD = 0.2F;
-
-    private static final int VENOMOUS_TINT = 0xFFB4E6A8;
-    private static final int VAMPIRIC_TINT = 0xFFF0B0B8;
-    private static final int FIERY_TINT = 0xFFFFC080;
+    private static final float VAMPIRIC_GATE = 0.2F;
+    private static final float VAMPIRIC_RED_BASE = 0.9F;
+    private static final float VAMPIRIC_RED_SPREAD = 0.1F;
 
     private ChampionTraitVisuals() {}
 
@@ -138,12 +127,9 @@ public final class ChampionTraitVisuals {
         MobTraitVisuals.registerParticles(TTMobTraits.WARP.getKey(), ChampionTraitVisuals::warp);
         MobTraitVisuals.registerParticles(TTMobTraits.UNDYING.getKey(), ChampionTraitVisuals::undying);
         MobTraitVisuals.registerParticles(TTMobTraits.FIERY.getKey(), ChampionTraitVisuals::fiery);
-        MobTraitVisuals.registerTint(TTMobTraits.FIERY.getKey(), FIERY_TINT);
         MobTraitVisuals.registerParticles(TTMobTraits.SICKLY.getKey(), ChampionTraitVisuals::sickly);
         MobTraitVisuals.registerParticles(TTMobTraits.VENOMOUS.getKey(), ChampionTraitVisuals::venomous);
-        MobTraitVisuals.registerTint(TTMobTraits.VENOMOUS.getKey(), VENOMOUS_TINT);
         MobTraitVisuals.registerParticles(TTMobTraits.VAMPIRIC.getKey(), ChampionTraitVisuals::vampiric);
-        MobTraitVisuals.registerTint(TTMobTraits.VAMPIRIC.getKey(), VAMPIRIC_TINT);
         MobTraitVisuals.registerParticles(TTMobTraits.INFESTED.getKey(), ChampionTraitVisuals::infested);
     }
 
@@ -200,7 +186,7 @@ public final class ChampionTraitVisuals {
         if (!passes(random, HALF_GATE)) {
             return;
         }
-        level.addParticle(new FlameFanParticleOptions(spread(random, GRIM_SCALE_BASE, GRIM_SCALE_SPREAD), NO_LIFT, GRIM_ALPHA), x, y, z, 0.0, GRIM_DRIFT, 0.0);
+        level.addParticle(new FlameFanParticleOptions(spread(random, GRIM_SCALE_BASE, GRIM_SCALE_SPREAD), NO_LIFT, GRIM_ALPHA), x, y, z, 0.0, SINK, 0.0);
     }
 
     private static void warded(LivingEntity mob, Level level, RandomSource random, double x, double y, double z) {
@@ -241,7 +227,7 @@ public final class ChampionTraitVisuals {
         if (!passes(random, HALF_GATE)) {
             return;
         }
-        int color = ARGB.colorFromFloat(OPAQUE, SICKLY_RED, spread(random, SICKLY_GREEN_BASE, SICKLY_GREEN_SPREAD), spread(random, SICKLY_BLUE_BASE, SICKLY_BLUE_SPREAD));
+        int color = ARGB.colorFromFloat(OPAQUE, TOXIC_RED, spread(random, TOXIC_GREEN_BASE, TOXIC_SPREAD), spread(random, TOXIC_BLUE_BASE, TOXIC_SPREAD));
         float scale = spread(random, SICKLY_SCALE_BASE, SICKLY_SCALE_SPREAD);
         level.addParticle(new FluxSwirlParticleOptions(color, scale, SICKLY_END_SCALE), x, y, z, 0.0, SINK, 0.0);
     }
@@ -250,7 +236,7 @@ public final class ChampionTraitVisuals {
         if (!passes(random, HALF_GATE)) {
             return;
         }
-        level.addParticle(TTParticles.colorOf(TTParticles.GOO_DRIP, VENOM_RED, spread(random, VENOM_GREEN_BASE, VENOM_GREEN_SPREAD), spread(random, VENOM_BLUE_BASE, VENOM_BLUE_SPREAD)), x, y, z, 0.0,
+        level.addParticle(TTParticles.colorOf(TTParticles.GOO_DRIP, TOXIC_RED, spread(random, TOXIC_GREEN_BASE, TOXIC_SPREAD), spread(random, TOXIC_BLUE_BASE, TOXIC_SPREAD)), x, y, z, 0.0,
                 RISE_SLOW, 0.0);
     }
 
@@ -266,6 +252,8 @@ public final class ChampionTraitVisuals {
             return;
         }
         double centerY = (mob.getBoundingBox().minY + mob.getBoundingBox().maxY) * HALF;
-        level.addParticle(TTParticles.TAINT_SPLOSION.get(), mob.getX(), centerY, mob.getZ(), 0.0, 0.0, 0.0);
+        double spreadX = mob.getX() + (random.nextFloat() - HALF) * mob.getBbWidth();
+        double spreadZ = mob.getZ() + (random.nextFloat() - HALF) * mob.getBbWidth();
+        level.addParticle(TTParticles.TAINT_SPLOSION.get(), spreadX, centerY, spreadZ, 0.0, 0.0, 0.0);
     }
 }

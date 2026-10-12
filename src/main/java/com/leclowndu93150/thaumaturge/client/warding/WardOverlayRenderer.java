@@ -42,21 +42,18 @@ public final class WardOverlayRenderer {
     private static final float SPAN = 1.0F + OUTSET + OUTSET;
     private static final float HALF = 0.5F;
 
-    private static final float OWNED_RED_BASE = 0.55F;
-    private static final float OWNED_GREEN_BASE = 0.3F;
-    private static final float OWNED_BLUE_BASE = 0.02F;
-    private static final float OWNED_ALPHA = 0.85F;
-    private static final float FOREIGN_RED_BASE = 0.55F;
-    private static final float FOREIGN_GREEN_BASE = 0.1F;
-    private static final float FOREIGN_BLUE_BASE = 0.06F;
-    private static final float FOREIGN_ALPHA = 0.42F;
-    private static final float PULSE = 0.07F;
-    private static final float RED_PERIOD = 11.0F;
-    private static final float GREEN_PERIOD = 17.0F;
-    private static final float BLUE_PERIOD = 23.0F;
-    private static final float PHASE_X = 0.9F;
-    private static final float PHASE_Y = 1.7F;
-    private static final float PHASE_Z = 1.3F;
+    private static final float OWNED_RED_BASE = 0.8F;
+    private static final float OWNED_GREEN_BASE = 0.7F;
+    private static final float OWNED_BLUE_BASE = 0.28F;
+    private static final float OWNED_ALPHA = 0.5F;
+    private static final float FOREIGN_RED_BASE = 0.8F;
+    private static final float FOREIGN_GREEN_BASE = 0.28F;
+    private static final float FOREIGN_BLUE_BASE = 0.28F;
+    private static final float FOREIGN_ALPHA = 0.25F;
+    private static final float PULSE = 0.2F;
+    private static final float RED_TIME_DIVISOR = 2.0F;
+    private static final float GREEN_TIME_DIVISOR = 3.0F;
+    private static final float BLUE_TIME_DIVISOR = 4.0F;
     private static final Direction[] FACES = Direction.values();
 
     private static final int[][] FACE_BASE = {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {0, 1, 1}, {0, 1, 0}, {1, 1, 1}};
@@ -105,10 +102,9 @@ public final class WardOverlayRenderer {
     private static void drawWard(VertexConsumer buffer, Matrix4f pose, TextureAtlasSprite[] sprites, BlockPos.MutableBlockPos neighbour, BlockPos.MutableBlockPos cursor, BlockPos pos, Vec3 cam, float time) {
         boolean owned = ClientWardHolder.isOwned(pos);
         Predicate<BlockPos> sameOwner = other -> ClientWardHolder.isWarded(other) && ClientWardHolder.isOwned(other) == owned;
-        float phase = pos.getX() * PHASE_X + pos.getY() * PHASE_Y + pos.getZ() * PHASE_Z;
-        float red = shimmer(owned ? OWNED_RED_BASE : FOREIGN_RED_BASE, time, RED_PERIOD, phase);
-        float green = shimmer(owned ? OWNED_GREEN_BASE : FOREIGN_GREEN_BASE, time, GREEN_PERIOD, phase);
-        float blue = shimmer(owned ? OWNED_BLUE_BASE : FOREIGN_BLUE_BASE, time, BLUE_PERIOD, phase);
+        float red = shimmer(owned ? OWNED_RED_BASE : FOREIGN_RED_BASE, time, RED_TIME_DIVISOR, pos.getX());
+        float green = shimmer(owned ? OWNED_GREEN_BASE : FOREIGN_GREEN_BASE, time, GREEN_TIME_DIVISOR, pos.getY());
+        float blue = shimmer(owned ? OWNED_BLUE_BASE : FOREIGN_BLUE_BASE, time, BLUE_TIME_DIVISOR, pos.getZ());
         float alpha = owned ? OWNED_ALPHA : FOREIGN_ALPHA;
         for (Direction face : FACES) {
             neighbour.setWithOffset(pos, face);
@@ -122,8 +118,8 @@ public final class WardOverlayRenderer {
         }
     }
 
-    private static float shimmer(float base, float time, float period, float phase) {
-        return Mth.clamp(base + PULSE * Mth.sin(time * Mth.TWO_PI / period + phase), 0.0F, 1.0F);
+    private static float shimmer(float base, float time, float divisor, float phase) {
+        return Mth.clamp(base + PULSE * Mth.sin(time / divisor + phase), 0.0F, 1.0F);
     }
 
     private static TextureAtlasSprite sprite(TextureAtlasSprite[] cache, int corner, int state) {

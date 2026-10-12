@@ -8,71 +8,70 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.renderer.state.level.QuadParticleRenderState;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import org.jspecify.annotations.Nullable;
 
 public final class WispParticle extends TTParticle {
-    private static final int LIFETIME_BASE = 40;
-    private static final int LIFETIME_RANGE = 20;
-    private static final float SIZE = 0.22F;
-    private static final float SHADE_BASE = 0.03F;
-    private static final float SHADE_TINT = 0.09F;
-    private static final float PEAK_ALPHA = 0.3F;
+    private static final double LIFETIME_NUMERATOR = 40.0;
+    private static final double LIFETIME_DIVISOR_MIN = 0.7;
+    private static final double LIFETIME_DIVISOR_RANGE = 0.3;
+    private static final float SIZE_BASE = 0.04F;
+    private static final float SIZE_RANGE = 0.04F;
+    private static final float HITBOX = 0.01F;
+    private static final float SHADE_MAX = 0.05F;
+    private static final float PEAK_ALPHA = 0.2F;
     private static final double FADE_DISTANCE = 32.0;
-    private static final double SIDEWAYS_SPEED = 0.015;
-    private static final double SINK_SPEED = -0.008;
-    private static final float DRAG = 0.95F;
-    private static final int TICKS_PER_FRAME = 3;
+    private static final double SIDEWAYS_SPEED = 0.03;
+    private static final double SINK_SPEED = -0.05;
+    private static final float DRAG = 0.98F;
 
     private final @Nullable TargetEntityResolver ownerResolver;
-    private final int frameOffset;
     private float ageAlpha = PEAK_ALPHA;
 
     private WispParticle(ClientLevel level, double x, double y, double z, WispParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         this.ownerResolver = options.entityId() == WispParticleOptions.NO_ENTITY ? null : new TargetEntityResolver(options.entityId());
         setColor(shade(), shade(), shade());
-        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
-        this.quadSize = SIZE;
+        this.lifetime = (int) (LIFETIME_NUMERATOR / (LIFETIME_DIVISOR_MIN + this.random.nextDouble() * LIFETIME_DIVISOR_RANGE));
+        this.quadSize = SIZE_BASE + this.random.nextFloat() * SIZE_RANGE;
+        setSize(HITBOX, HITBOX);
         this.alpha = PEAK_ALPHA;
         this.friction = DRAG;
-        this.hasPhysics = true;
         this.xd = this.random.nextGaussian() * SIDEWAYS_SPEED;
         this.yd = SINK_SPEED;
         this.zd = this.random.nextGaussian() * SIDEWAYS_SPEED;
-        this.frameOffset = this.random.nextInt(TICKS_PER_FRAME * sheetFrames());
-        setSpin(this.random.nextFloat(), 0.0F);
     }
 
     private float shade() {
-        return SHADE_BASE + this.random.nextFloat() * SHADE_TINT;
+        return this.random.nextFloat() * SHADE_MAX;
     }
 
     @Override
     protected void update() {
-        frame((this.age + this.frameOffset) / TICKS_PER_FRAME % sheetFrames());
+        frame(this.age % sheetFrames());
         this.ageAlpha = PEAK_ALPHA * (1.0F - progress());
         followOwner();
     }
 
     private void followOwner() {
-        if (this.ownerResolver == null || this.onGround) {
+        if (this.ownerResolver == null) {
             return;
         }
         Entity owner = this.ownerResolver.resolve(this.level);
         if (owner == null || owner.isRemoved()) {
             return;
         }
-        move(owner.getX() - owner.xo, 0.0, owner.getZ() - owner.zo);
+        this.x += owner.getX() - owner.xo;
+        this.z += owner.getZ() - owner.zo;
     }
 
     @Override
     public void extract(QuadParticleRenderState state, Camera camera, float partialTick) {
         double distance = Math.sqrt(camera.position().distanceToSqr(this.x, this.y, this.z));
-        this.alpha = this.ageAlpha * (float) Mth.clamp(1.0 - distance / FADE_DISTANCE, 0.0, 1.0);
+        double ratio = Math.min(distance / FADE_DISTANCE, 1.0);
+        this.alpha = Mth.clamp(this.ageAlpha * (float) (1.0 - ratio * ratio), 0.0F, 1.0F);
         if (this.alpha > 0.0F) {
             super.extract(state, camera, partialTick);
         }
@@ -81,11 +80,6 @@ public final class WispParticle extends TTParticle {
     @Override
     public SingleQuadParticle.Layer getLayer() {
         return TTParticleLayers.translucent(this.sheet);
-    }
-
-    @Override
-    protected int getLightCoords(float partialTick) {
-        return LightCoordsUtil.FULL_BRIGHT;
     }
 
     public static final class Provider implements ParticleProvider<WispParticleOptions> {

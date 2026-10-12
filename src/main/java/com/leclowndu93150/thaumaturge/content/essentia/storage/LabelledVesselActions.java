@@ -11,7 +11,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -21,8 +20,7 @@ public final class LabelledVesselActions {
     private static final float LABEL_VOLUME = 1.0F;
     private static final float NEUTRAL_PITCH = 1.0F;
     private static final float POUR_JAR_VOLUME = 0.4F;
-    private static final float POUR_FILL_VOLUME = 0.6F;
-    private static final float POUR_FILL_BASE_PITCH = 0.85F;
+    private static final float POUR_FILL_VOLUME = 0.5F;
     private static final float POUR_FILL_SPREAD = 0.3F;
 
     private LabelledVesselActions() {}
@@ -34,11 +32,11 @@ public final class LabelledVesselActions {
 
     public static void pourOut(Level level, BlockPos pos, int amount) {
         if (amount > 0) {
-            AuraHelper.addFlux(level, pos, amount);
+            AuraHelper.polluteAura(level, pos, amount, true);
         }
         RandomSource random = level.getRandom();
         level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, POUR_JAR_VOLUME, NEUTRAL_PITCH);
-        level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, POUR_FILL_VOLUME, POUR_FILL_BASE_PITCH + random.nextFloat() * POUR_FILL_SPREAD);
+        level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, POUR_FILL_VOLUME, NEUTRAL_PITCH + (random.nextFloat() - random.nextFloat()) * POUR_FILL_SPREAD);
     }
 
     public static void playLabelSound(Level level, BlockPos pos) {
@@ -49,13 +47,13 @@ public final class LabelledVesselActions {
         if (!(labelStack.getItem() instanceof ILabel label) || existingFilter != null) {
             return null;
         }
-        if (amount > 0 && heldAspect != null) {
-            return heldAspect;
+        ResourceKey<IAspect> labelled = label.getFilteredAspect(labelStack);
+        if (amount <= 0) {
+            return labelled;
         }
-        return label.getFilteredAspect(labelStack);
-    }
-
-    public static Direction labelSideFacing(Player player) {
-        return player.getDirection().getOpposite();
+        if (heldAspect == null || labelled != null && !labelled.equals(heldAspect)) {
+            return null;
+        }
+        return heldAspect;
     }
 }

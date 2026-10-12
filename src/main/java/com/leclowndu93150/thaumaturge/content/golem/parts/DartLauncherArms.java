@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumaturge.api.golems.parts.IGolemArmAbility;
 import com.leclowndu93150.thaumaturge.content.entity.EntityGolemDart;
 import com.leclowndu93150.thaumaturge.content.golem.ai.ShootingCadence;
 import com.leclowndu93150.thaumaturge.content.golem.ai.StandAndShootGoal;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,8 +25,8 @@ public final class DartLauncherArms implements IGolemArmAbility {
     private static final float LAUNCH_SPEED = 1.6F;
     private static final float INACCURACY = 3.0F;
     private static final float SHOT_VOLUME = 1.0F;
-    private static final float SHOT_PITCH = 1.0F;
-    private static final float SHOT_PITCH_SPREAD = 0.1F;
+    private static final float SHOT_PITCH_SCALE = 0.4F;
+    private static final float SHOT_PITCH_FLOOR = 0.8F;
 
     @Override
     public @Nullable Goal createRangedGoal(RangedAttackMob mob) {
@@ -36,13 +35,13 @@ public final class DartLauncherArms implements IGolemArmAbility {
 
     @Override
     public void onRangedAttack(IGolemAPI golem, LivingEntity target, float power) {
-        if (!(golem.level() instanceof ServerLevel level)) {
+        if (golem.level().isClientSide()) {
             return;
         }
         LivingEntity body = golem.asEntity();
         RandomSource random = body.getRandom();
         double damage = body.getAttributeValue(Attributes.ATTACK_DAMAGE) / DAMAGE_DIVISOR + power + random.nextGaussian() * DAMAGE_DEVIATION;
         EntityGolemDart.loose(body, target, damage, power * power, LAUNCH_SPEED, INACCURACY);
-        level.playSound(null, body.getX(), body.getY(), body.getZ(), SoundEvents.ARROW_SHOOT, body.getSoundSource(), SHOT_VOLUME, random.triangle(SHOT_PITCH, SHOT_PITCH_SPREAD));
+        body.playSound(SoundEvents.ARROW_SHOOT, SHOT_VOLUME, 1.0F / (random.nextFloat() * SHOT_PITCH_SCALE + SHOT_PITCH_FLOOR));
     }
 }

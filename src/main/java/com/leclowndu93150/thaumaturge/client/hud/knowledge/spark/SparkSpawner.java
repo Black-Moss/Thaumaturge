@@ -4,16 +4,16 @@ import net.minecraft.util.RandomSource;
 
 public final class SparkSpawner {
     private static final int MAX_CHANNEL = 255;
-    private static final float ODDS_BASE = 2.0F;
+    private static final float ODDS_BASE = 1.0F;
     private static final float ODDS_SPAN = 10.0F;
-    private static final double POSITION_SPREAD = 4.0;
-    private static final double VELOCITY_SPREAD = 0.8;
-    private static final int DELAY_RANGE = 4;
-    private static final int LIFE_BASE = 26;
-    private static final int LIFE_RANGE = 12;
-    private static final float STAR_CHANCE = 0.25F;
-    private static final int GREEN_BASE = 196;
-    private static final int BLUE_BASE = 90;
+    private static final double POSITION_SPREAD = 5.0;
+    private static final double VELOCITY_SPREAD = 1.0;
+    private static final int DELAY_RANGE = 5;
+    private static final int LIFE_BASE = 32;
+    private static final int LIFE_RANGE = 8;
+    private static final float STAR_CHANCE = 0.2F;
+    private static final int GREEN_BASE = 189;
+    private static final int BLUE_BASE = 64;
 
     public void maybeSpawn(SparkSystem system, RandomSource random, float lifeFraction, float x, float y) {
         SparkPool pool = system.pool();

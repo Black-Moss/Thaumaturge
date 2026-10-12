@@ -10,10 +10,10 @@ import net.minecraft.util.RandomSource;
 public final class FireMoteParticle extends TTParticle {
     private static final float BYTE_RANGE = 255.0F;
     private static final float SIZE_UNIT = 0.1F;
-    private static final int LIFETIME = 14;
-    private static final int EXTRA_AGE_ODDS = 5;
-    private static final float SPIN_PER_TICK = 0.32F;
-    private static final float START_ROLL = (float) (Math.PI / 6.0);
+    private static final int LIFETIME = 16;
+    private static final int EXTRA_AGE_ODDS = 6;
+    private static final float SPIN_PER_TICK = 1.0F;
+    private static final float START_ROLL = (float) (Math.PI * 2.0);
 
     private final ParticleSheet moteSheet;
     private final boolean translucent;

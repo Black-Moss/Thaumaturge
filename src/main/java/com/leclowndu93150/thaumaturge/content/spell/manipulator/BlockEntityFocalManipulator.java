@@ -16,9 +16,6 @@ import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -35,7 +32,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -59,28 +55,27 @@ public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity
     private static final float TIER_VIS_DIVISOR = 5.0F;
     private static final int WORK_INTERVAL = 20;
     private static final float VIS_PER_SECOND = 20.0F;
-    private static final float MIN_ANCHOR_REQUEST = 1.0F;
-    private static final float DRAIN_EPSILON = 0.01F;
     private static final int CHARGER_RADIUS_CHUNKS = 1;
-    private static final double SPARKLE_SPREAD = 2.0;
-    private static final double SPARKLE_RISE = 2.0;
+    private static final int CHARGER_DRAIN_COUNT = 9;
+    private static final int CHUNK_SIZE = 16;
+    private static final int SPARKLE_RANGE = 3;
     private static final double BLOCK_CENTRE = 0.5;
     private static final double DROP_HEIGHT = 1.0;
     private static final float START_VOLUME = 1.0F;
     private static final float DONE_VOLUME = 1.0F;
     private static final float SOUND_PITCH = 1.0F;
-    private static final float ABORT_VOLUME = 0.5F;
+    private static final float ABORT_VOLUME = 0.33F;
     private static final int SHIMMER_DELAY = 0;
-    private static final int SHIMMER_PER_TICK = 2;
-    private static final double SHIMMER_HEIGHT = 1.0;
-    private static final double SHIMMER_SPREAD = 0.18;
-    private static final double SHIMMER_DRIFT = 0.004;
-    private static final int SHIMMER_COLOR = ARGB.colorFromFloat(1.0F, 0.78F, 0.88F, 1.0F);
-    private static final float SHIMMER_ALPHA = 0.7F;
-    private static final float SHIMMER_SCALE_BASE = 0.08F;
-    private static final float SHIMMER_SCALE_RANGE = 0.06F;
+    private static final double SHIMMER_HEIGHT = 1.4;
+    private static final double SHIMMER_SPREAD = 0.3;
+    private static final float SHIMMER_OPACITY = 1.0F;
+    private static final float SHIMMER_RED_BASE = 0.5F;
+    private static final float SHIMMER_COLOUR_RANGE = 0.4F;
+    private static final float SHIMMER_ALPHA = 0.8F;
+    private static final float SHIMMER_SCALE_BASE = 0.3F;
+    private static final float SHIMMER_SCALE_RANGE = 0.3F;
     private static final int SHIMMER_AGE_BASE = 6;
-    private static final int SHIMMER_AGE_RANGE = 8;
+    private static final int SHIMMER_AGE_RANGE = 5;
 
     private final FocusSlot items = new FocusSlot();
     private Spell draft = Spell.empty();
@@ -146,7 +141,7 @@ public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity
         }
         SpellSummary summary = Spells.analyze(draft, tier.get(), world.registryAccess(), player);
         AspectList cost = FocusItems.aspects(summary, world.registryAccess());
-        if (cost.isEmpty() || !InscriptionCheck.of(player, true, false, summary, cost).ready()
+        if (!InscriptionCheck.of(player, true, false, summary, cost).ready()
                 || NeoForge.EVENT_BUS.post(new SpellInscribeEvent(player, worldPosition, focus, draft, summary)).isCanceled()) {
             return false;
         }
@@ -165,33 +160,30 @@ public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, BlockEntityFocalManipulator table) {
-        if (!(level instanceof ServerLevel server) || ++table.pulse < WORK_INTERVAL) {
+        if (!(level instanceof ServerLevel server) || !table.inscribing() || ++table.pulse < WORK_INTERVAL) {
             return;
         }
         table.pulse = 0;
-        if (table.inscribing()) {
-            table.work(server, pos);
-        }
+        table.work(server, pos);
     }
 
     public static void clientTick(Level level, BlockPos pos, BlockState state, BlockEntityFocalManipulator table) {
-        if (!table.inscribing() || table.focusStack().isEmpty()) {
+        if (!table.inscribing()) {
             return;
         }
         RandomSource random = level.getRandom();
-        for (int i = 0; i < SHIMMER_PER_TICK; i++) {
-            double x = pos.getX() + BLOCK_CENTRE + random.nextGaussian() * SHIMMER_SPREAD;
-            double y = pos.getY() + SHIMMER_HEIGHT + random.nextGaussian() * SHIMMER_SPREAD;
-            double z = pos.getZ() + BLOCK_CENTRE + random.nextGaussian() * SHIMMER_SPREAD;
-            float scale = SHIMMER_SCALE_BASE + random.nextFloat() * SHIMMER_SCALE_RANGE;
-            int age = SHIMMER_AGE_BASE + random.nextInt(SHIMMER_AGE_RANGE);
-            ShieldSparkParticleOptions spark = new ShieldSparkParticleOptions(SHIMMER_COLOR, SHIMMER_ALPHA, scale, age, SHIMMER_DELAY, true);
-            level.addParticle(spark, x, y, z, random.nextGaussian() * SHIMMER_DRIFT, random.nextGaussian() * SHIMMER_DRIFT, random.nextGaussian() * SHIMMER_DRIFT);
-        }
+        double x = pos.getX() + BLOCK_CENTRE + (random.nextFloat() - random.nextFloat()) * SHIMMER_SPREAD;
+        double y = pos.getY() + SHIMMER_HEIGHT + (random.nextFloat() - random.nextFloat()) * SHIMMER_SPREAD;
+        double z = pos.getZ() + BLOCK_CENTRE + (random.nextFloat() - random.nextFloat()) * SHIMMER_SPREAD;
+        int color = ARGB.colorFromFloat(SHIMMER_OPACITY, SHIMMER_RED_BASE + random.nextFloat() * SHIMMER_COLOUR_RANGE, 1.0F - random.nextFloat() * SHIMMER_COLOUR_RANGE,
+                1.0F - random.nextFloat() * SHIMMER_COLOUR_RANGE);
+        float scale = SHIMMER_SCALE_BASE + random.nextFloat() * SHIMMER_SCALE_RANGE;
+        int age = SHIMMER_AGE_BASE + random.nextInt(SHIMMER_AGE_RANGE);
+        level.addParticle(new ShieldSparkParticleOptions(color, SHIMMER_ALPHA, scale, age, SHIMMER_DELAY, true), x, y, z, 0.0, 0.0, 0.0);
     }
 
     private void work(ServerLevel server, BlockPos pos) {
-        if (focusStack().isEmpty()) {
+        if (!FocusItems.isFocus(focusStack())) {
             clearInscription();
             play(server, TTSounds.WANDFAIL.get(), ABORT_VOLUME);
             setChangedAndSync();
@@ -201,8 +193,8 @@ public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity
         if (drawn > 0.0F) {
             vis -= drawn;
             RandomSource random = server.getRandom();
-            Vec3 from = new Vec3(pos.getX() + BLOCK_CENTRE + (random.nextDouble() * 2.0 - 1.0) * SPARKLE_SPREAD, pos.getY() + random.nextDouble() * SPARKLE_RISE,
-                    pos.getZ() + BLOCK_CENTRE + (random.nextDouble() * 2.0 - 1.0) * SPARKLE_SPREAD);
+            Vec3 from = new Vec3(pos.getX() + (random.nextInt(SPARKLE_RANGE) - random.nextInt(SPARKLE_RANGE)), pos.getY() + random.nextInt(SPARKLE_RANGE),
+                    pos.getZ() + (random.nextInt(SPARKLE_RANGE) - random.nextInt(SPARKLE_RANGE)));
             EffectDispatch.spawnVisSparkle(server, from, new Vec3(pos.getX() + BLOCK_CENTRE, pos.getY() + DROP_HEIGHT, pos.getZ() + BLOCK_CENTRE));
             setChangedAndSync();
         }
@@ -212,38 +204,20 @@ public final class BlockEntityFocalManipulator extends AbstractSyncedBlockEntity
     }
 
     private float drawAura(ServerLevel server, float wanted) {
-        List<BlockPos> anchors = anchors(server);
-        if (anchors.isEmpty()) {
-            return 0.0F;
-        }
-        float share = Math.max(MIN_ANCHOR_REQUEST, wanted / anchors.size());
+        boolean charged = server.getBlockState(worldPosition.above()).is(TTBlocks.ARCANE_WORKBENCH_CHARGER.get());
+        int radius = charged ? CHARGER_RADIUS_CHUNKS : 0;
+        float share = charged ? wanted / CHARGER_DRAIN_COUNT : wanted;
         float owed = wanted;
-        boolean progressed = true;
-        while (owed > DRAIN_EPSILON && progressed) {
-            progressed = false;
-            for (BlockPos anchor : anchors) {
-                if (owed <= DRAIN_EPSILON) {
-                    break;
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                if (owed <= 0.0F) {
+                    return wanted;
                 }
-                float drained = AuraHelper.drainVis(server, anchor, Math.min(owed, share), false);
-                owed -= drained;
-                progressed |= drained > DRAIN_EPSILON;
+                BlockPos source = worldPosition.offset(dx * CHUNK_SIZE, 0, dz * CHUNK_SIZE);
+                owed -= AuraHelper.drainVis(server, source, Math.min(share, owed), false);
             }
         }
         return wanted - owed;
-    }
-
-    private List<BlockPos> anchors(ServerLevel server) {
-        List<BlockPos> anchors = new ArrayList<>();
-        if (server.getBlockState(worldPosition.above()).is(TTBlocks.ARCANE_WORKBENCH_CHARGER.get())) {
-            int y = worldPosition.getY();
-            ChunkPos.rangeClosed(ChunkPos.containing(worldPosition), CHARGER_RADIUS_CHUNKS).forEach(chunk -> anchors.add(chunk.getMiddleBlockPosition(y)));
-        } else {
-            anchors.add(worldPosition);
-        }
-        anchors.removeIf(anchor -> !server.hasChunkAt(anchor));
-        anchors.sort(Comparator.comparingLong(BlockPos::asLong));
-        return anchors;
     }
 
     private void complete(ServerLevel server) {

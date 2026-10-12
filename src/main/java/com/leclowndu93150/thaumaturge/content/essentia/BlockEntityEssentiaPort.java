@@ -24,7 +24,7 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
     private static final int INTAKE_SUCTION = 128;
     private static final EssentiaPull INTAKE_PULL = EssentiaPull.any(INTAKE_SUCTION);
     private static final int SINGLE_POINT = 1;
-    private static final int VISUAL_EXTENSION = 10;
+    private static final int VISUAL_EXTENSION = WORK_INTERVAL;
     private static final long SEARCH_BACKOFF_TICKS = 200L;
 
     private final boolean input;
@@ -69,17 +69,18 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
             return false;
         }
         Holder<IAspect> aspect = tube.heldAspect(tubeFace);
-        if (aspect == null || tube.extract(aspect, SINGLE_POINT, tubeFace, false) != SINGLE_POINT) {
+        if (aspect == null || tube.extract(aspect, SINGLE_POINT, tubeFace, true) != SINGLE_POINT) {
             return false;
         }
-        if (sources.insert(server, aspect, VISUAL_EXTENSION)) {
-            return true;
+        if (!sources.insert(server, aspect, VISUAL_EXTENSION)) {
+            searchFailed = true;
+            return false;
         }
-        searchFailed = true;
-        if (tube.insert(aspect, SINGLE_POINT, tubeFace, false) != SINGLE_POINT) {
-            AuraHelper.addFlux(server, worldPosition, SINGLE_POINT);
+        if (tube.extract(aspect, SINGLE_POINT, tubeFace, false) != SINGLE_POINT) {
+            sources.drain(server, aspect, VISUAL_EXTENSION);
+            return false;
         }
-        return false;
+        return true;
     }
 
     private boolean pullFromSources(ServerLevel server, BlockPos pos, IEssentiaConduit tube, Direction tubeFace) {

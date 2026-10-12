@@ -32,7 +32,6 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
     private static final int ATTACK_INTERVAL_MIN = 20;
     private static final int ATTACK_INTERVAL_MAX = 40;
     private static final double MOVE_DAMPING = 15.0;
-    private static final double KNOCKBACK_SHARE = 0.05;
 
     public EntityTurretCrossbowAdvanced(EntityType<? extends EntityTurretCrossbowAdvanced> type, Level level) {
         super(type, level);
@@ -55,11 +54,6 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
         goalSelector.addGoal(LOOK_PRIORITY, new WatchTargetGoal(this));
         targetSelector.addGoal(RETALIATE_PRIORITY, retaliateGoal(this));
         targetSelector.addGoal(SCAN_PRIORITY, scanGoal(this, this::acceptsTarget));
-    }
-
-    @Override
-    protected boolean mayRetaliateAgainst(LivingEntity attacker) {
-        return attacker != this && attacker.isAlive() && kindAllowed(attacker);
     }
 
     private boolean acceptsTarget(LivingEntity candidate, ServerLevel level) {
@@ -184,10 +178,5 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
     @Override
     protected double moveDamping() {
         return MOVE_DAMPING;
-    }
-
-    @Override
-    protected double knockbackShare() {
-        return KNOCKBACK_SHARE;
     }
 }

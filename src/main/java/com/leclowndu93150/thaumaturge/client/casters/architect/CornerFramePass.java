@@ -7,7 +7,7 @@ import org.joml.Matrix4f;
 
 public final class CornerFramePass extends AbstractFacePass {
     private static final Identifier TEXTURE = ParticleTextures.FRAME_CORNER;
-    private static final float ALPHA = 0.55F;
+    private static final float ALPHA = 0.66F;
 
     @Override
     protected Identifier texture() {

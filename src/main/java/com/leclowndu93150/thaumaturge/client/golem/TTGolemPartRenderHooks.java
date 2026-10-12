@@ -48,12 +48,17 @@ public final class TTGolemPartRenderHooks {
         private static final float HINGE_Y = 0.01F;
         private static final float HINGE_Z = 0.0F;
         private static final float MAX_OPEN_DEGREES = 34.0F;
+        private static final float REST_DROP = -1.5F / 16.0F;
 
         @Override
         public void posePiece(String piece, GolemPartRenderView golem, PoseStack pose, GolemPartModel.LimbSide side) {
             float direction = FRONT_HALF.equals(piece) ? 1.0F : BACK_HALF.equals(piece) ? -1.0F : 0.0F;
             float swingProgress = golem.swingProgress();
-            if (direction == 0.0F || swingProgress <= 0.0F) {
+            if (direction == 0.0F) {
+                return;
+            }
+            pose.translate(0.0F, REST_DROP, 0.0F);
+            if (swingProgress <= 0.0F) {
                 return;
             }
             float swing = swingProgress * swingProgress;
@@ -64,11 +69,10 @@ public final class TTGolemPartRenderHooks {
 
     private static final class GrinderSpin implements GolemPartRenderHook {
         private static final String GRINDER = "grinder";
-        private static final float HUB_Y = 0.0F;
-        private static final float HUB_Z = 0.0F;
-        private static final float LEFT_LAG_DEGREES = 25.0F;
-        private static final float IDLE_DEGREES_PER_TICK = 2.5F;
-        private static final float SWING_DEGREES = 720.0F;
+        private static final float AXLE_DROP = -1.0F / 16.0F;
+        private static final float LEFT_LAG_DEGREES = 22.0F;
+        private static final float IDLE_DEGREES_PER_TICK = 12.5F;
+        private static final float SWING_DEGREES = 180.0F;
 
         @Override
         public void posePiece(String piece, GolemPartRenderView golem, PoseStack pose, GolemPartModel.LimbSide side) {
@@ -77,12 +81,12 @@ public final class TTGolemPartRenderHooks {
             }
             float spin = spin(golem);
             float angle = side == GolemPartModel.LimbSide.LEFT ? -(spin + LEFT_LAG_DEGREES) : spin;
-            rotateAboutX(pose, HUB_Y, HUB_Z, angle);
+            pose.translate(0.0F, AXLE_DROP, 0.0F);
+            pose.mulPose(Axis.XP.rotationDegrees(angle));
         }
 
         private static float spin(GolemPartRenderView golem) {
-            float swingLeft = 1.0F - golem.swingProgress();
-            return IDLE_DEGREES_PER_TICK * golem.ageInTicks() + SWING_DEGREES * (1.0F - swingLeft * swingLeft * swingLeft);
+            return IDLE_DEGREES_PER_TICK * golem.ageInTicks() + SWING_DEGREES * golem.swingProgress();
         }
     }
 
@@ -108,40 +112,31 @@ public final class TTGolemPartRenderHooks {
 
     private static final class WheelRoll implements GolemPartRenderHook {
         private static final String WHEEL = "wheel";
-        private static final float AXLE_Y = 0.0F;
-        private static final float AXLE_Z = 0.0F;
+        private static final float WHEEL_DROP = -2.5F / 16.0F;
 
         @Override
         public void posePiece(String piece, GolemPartRenderView golem, PoseStack pose, GolemPartModel.LimbSide side) {
             if (WHEEL.equals(piece)) {
-                rotateAboutX(pose, AXLE_Y, AXLE_Z, -golem.wheelRotation());
+                pose.translate(0.0F, WHEEL_DROP, 0.0F);
+                pose.mulPose(Axis.XP.rotationDegrees(-golem.wheelRotation()));
             }
         }
     }
 
     private static final class BasketCargo implements GolemPartRenderHook {
-        private static final String BASKET = "basket";
-        private static final float SEAT_Z = 0.38F;
-        private static final float BLOCK_SEAT_Y = 0.15F;
-        private static final float BLOCK_SCALE = 0.5F;
-        private static final float FLAT_SEAT_Y = 0.07F;
-        private static final float FLAT_SCALE = 0.6F;
-        private static final float LAY_FLAT_DEGREES = 90.0F;
+        private static final String CARGO = "cargo";
+        private static final float SEAT_Y = 3.0F / 16.0F;
+        private static final float SEAT_Z = 6.5F / 16.0F;
+        private static final float ITEM_SCALE = 0.45F;
 
         @Override
         public void decoratePiece(String piece, GolemPartRenderView golem, PoseStack pose, SubmitNodeCollector collector, GolemPartModel.LimbSide side) {
-            if (!BASKET.equals(piece) || !golem.hasSecondHandItem()) {
+            if (!CARGO.equals(piece) || !golem.hasSecondHandItem()) {
                 return;
             }
             pose.pushPose();
-            if (golem.secondHandItemIsBlock()) {
-                pose.translate(0.0F, BLOCK_SEAT_Y, SEAT_Z);
-                pose.scale(BLOCK_SCALE, BLOCK_SCALE, BLOCK_SCALE);
-            } else {
-                pose.translate(0.0F, FLAT_SEAT_Y, SEAT_Z);
-                pose.mulPose(Axis.XP.rotationDegrees(LAY_FLAT_DEGREES));
-                pose.scale(FLAT_SCALE, FLAT_SCALE, FLAT_SCALE);
-            }
+            pose.translate(0.0F, SEAT_Y, SEAT_Z);
+            pose.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
             golem.secondHandItem().submit(pose, collector, golem.lightCoords(), OverlayTexture.NO_OVERLAY, golem.outlineColor());
             pose.popPose();
         }
@@ -149,10 +144,11 @@ public final class TTGolemPartRenderHooks {
 
     private static final class ShoulderMirror implements GolemPartRenderHook {
         private static final float HALF_TURN_DEGREES = 180.0F;
+        private static final String OUTER_SUFFIX = "_outer";
 
         @Override
         public void posePiece(String piece, GolemPartRenderView golem, PoseStack pose, GolemPartModel.LimbSide side) {
-            if (side == GolemPartModel.LimbSide.LEFT) {
+            if (side == GolemPartModel.LimbSide.LEFT && piece.endsWith(OUTER_SUFFIX)) {
                 pose.mulPose(Axis.YP.rotationDegrees(HALF_TURN_DEGREES));
             }
         }

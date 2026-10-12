@@ -14,13 +14,13 @@ public final class EssentiaStreamInstance extends StreamInstance {
     private static final int REROUTE_PERIOD = 40;
     private static final float SNAPSHOT_RADIUS_SCALE = 1.0F;
     private static final int MIN_TRAIL_CAPACITY = 20;
-    private static final double TICKS_PER_ROUTE_BLOCK = 20.0;
-    private static final double DIRECTED_LAUNCH_SPEED = 0.08;
-    private static final float DIRECTED_LAUNCH_WOBBLE = 0.02F;
-    private static final float FREE_LAUNCH_WOBBLE = 0.06F;
+    private static final double TICKS_PER_ROUTE_BLOCK = 21.0;
+    private static final double DIRECTED_LAUNCH_SPEED = 0.05;
+    private static final float DIRECTED_LAUNCH_WOBBLE = 0.005F;
+    private static final float FREE_LAUNCH_WOBBLE = 0.015F;
     private static final int MIN_EXTENSION_STEP = 5;
-    private static final double STEP_LIMIT = 0.1;
-    private static final double PULL_FORCE = 0.012;
+    private static final double STEP_LIMIT = 0.05;
+    private static final double PULL_FORCE = 0.01;
     private static final float SNAPSHOT_WOBBLE = 0.03F;
 
     private final EssentiaRoute route;
@@ -77,7 +77,7 @@ public final class EssentiaStreamInstance extends StreamInstance {
 
     @Override
     protected void afterStep(ClientLevel level) {
-        if (this.age % REROUTE_PERIOD == 0) {
+        if ((this.age + 1) % REROUTE_PERIOD == 0) {
             tryDetour(level);
         }
         this.dripEmitter.dripFromTrail(level, this.trail);

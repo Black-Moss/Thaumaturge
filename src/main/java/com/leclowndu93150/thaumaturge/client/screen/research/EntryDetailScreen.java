@@ -150,7 +150,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     private List<PageParser.Page> composePages(@Nullable Player player, int displayedStage, List<ResearchAddendum> addenda) {
         IResearchStage shown = model.stages().get(displayedStage);
         int knowledgeRows = showsKnowledgeGrid(player) ? KnowledgeGridRenderer.activeTypeCount(player) : 0;
-        return PageTextLayout.compose(font, shown, addenda, knowledgeRows);
+        return PageTextLayout.compose(font, shown, addenda, knowledgeRows, model.stages().size(), model.progressStage(player));
     }
 
     private boolean showsKnowledgeGrid(@Nullable Player player) {

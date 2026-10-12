@@ -223,7 +223,6 @@ public class BlockEntityNode extends AbstractSyncedBlockEntity implements IAspec
             return;
         }
         energized = value;
-        centivis.clear();
         if (value) {
             aspectsBaseOriginal = aspectsBase;
             aspectsBase = NodeRules.toPrimals(aspectsBase);
@@ -245,7 +244,7 @@ public class BlockEntityNode extends AbstractSyncedBlockEntity implements IAspec
 
     public void beginJarring(int ticks) {
         jarring = ticks;
-        changed();
+        setChanged();
     }
 
     public void applyPrimordialPearl(RandomSource random, boolean researched) {
@@ -317,14 +316,6 @@ public class BlockEntityNode extends AbstractSyncedBlockEntity implements IAspec
         }
     }
 
-    void collapse(ServerLevel serverLevel, BlockPos pos) {
-        if (getBlockState().getBlock() instanceof NodeHostBlock) {
-            removeDepleted(serverLevel, pos);
-        } else {
-            serverLevel.destroyBlock(pos, true);
-        }
-    }
-
     public void serverTick(Level tickLevel, BlockPos pos) {
         if (!(tickLevel instanceof ServerLevel serverLevel)) {
             return;
@@ -380,7 +371,7 @@ public class BlockEntityNode extends AbstractSyncedBlockEntity implements IAspec
     }
 
     private void tickJarring(ServerLevel serverLevel, BlockPos pos) {
-        tickDirty = true;
+        setChanged();
         if (--jarring == 0) {
             NodeJarRitual.completeJar(serverLevel, pos, this);
         }

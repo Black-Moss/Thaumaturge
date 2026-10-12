@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.entity.BrainModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.JarBrineModel;
-import com.leclowndu93150.thaumaturge.client.render.blockentity.JarBrainRenderState;
 import com.leclowndu93150.thaumaturge.client.render.blockentity.JarBrainRenderer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.serialization.MapCodec;
@@ -26,13 +25,11 @@ public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRend
     private static final Identifier BRINE_TEXTURE = TTIds.rl("textures/entity/jarbrine.png");
     private static final int BRINE_ORDER = 1;
     private static final float BRAIN_LIFT = 0.0F;
-    private static final float BRAIN_YAW_DEGREES = 155.0F;
-    private static final int OUTLINE_NONE = 0;
+    private static final float BRAIN_YAW_DEGREES = -90.0F;
     private static final float[][] EXTENT_CORNERS = {{0.1875F, 0.0625F, 0.1875F}, {0.8125F, 0.6875F, 0.8125F}};
 
     private final BrainModel brain;
     private final JarBrineModel brine;
-    private final JarBrainRenderState restPose = new JarBrainRenderState();
 
     public JarBrainItemSpecialRenderer(BrainModel brain, JarBrineModel brine) {
         this.brain = brain;
@@ -52,7 +49,8 @@ public final class JarBrainItemSpecialRenderer implements NoDataSpecialModelRend
     }
 
     private void submitBrain(PoseStack poseStack, SubmitNodeCollector collector, int light) {
-        collector.submitModel(brain, restPose, poseStack, BRAIN_TEXTURE, light, OverlayTexture.NO_OVERLAY, OUTLINE_NONE, null);
+        RenderType type = RenderTypes.entityCutout(BRAIN_TEXTURE);
+        collector.submitModelPart(brain.root(), poseStack, type, light, OverlayTexture.NO_OVERLAY, null);
     }
 
     private void submitBrine(PoseStack poseStack, SubmitNodeCollector collector, int light) {

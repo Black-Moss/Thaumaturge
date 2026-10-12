@@ -8,12 +8,12 @@ public final class VoidStreamInstance extends StreamInstance {
     private static final int WHITE = 0xFFFFFF;
     private static final int STREAM_LENGTH = 40;
     private static final int AGE_FACTOR = 2;
-    private static final float LAUNCH_AMPLITUDE = 0.1F;
-    private static final double MOTION_LIMIT = 0.12;
-    private static final double PULL = 0.015;
-    private static final double JITTER = 0.01;
+    private static final float LAUNCH_AMPLITUDE = 0.025F;
+    private static final double MOTION_LIMIT = 0.04;
+    private static final double PULL = 0.01;
+    private static final double JITTER = 0.015;
     private static final double SHRINK_RANGE = 0.5;
-    private static final float SNAPSHOT_WOBBLE = 0.015F;
+    private static final float SNAPSHOT_WOBBLE = 0.01F;
 
     private final Vec3 target;
 
@@ -51,7 +51,7 @@ public final class VoidStreamInstance extends StreamInstance {
     }
 
     @Override
-    protected void colour(float[] out, int slot) {
+    protected void colour(float[] out, int wave) {
         out[0] = 1.0F;
         out[1] = 1.0F;
         out[2] = 1.0F;

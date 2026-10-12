@@ -5,11 +5,9 @@ import net.minecraft.world.phys.Vec3;
 public final class HeadMotion {
     private static final double RISE_PER_TICK = 0.002;
     private static final double DAMPING = 0.985;
-    private static final double SEED_RATE_X = 0.73;
-    private static final double SEED_RATE_Y = 0.41;
-    private static final double SEED_RATE_Z = 1.13;
-    private static final double SEED_PHASE_Y = 1.9;
-    private static final double SEED_PHASE_Z = 4.1;
+    private static final double SEED_DIVISOR_X = 4.0;
+    private static final double SEED_DIVISOR_Y = 3.0;
+    private static final double SEED_DIVISOR_Z = 2.0;
 
     private double x;
     private double y;
@@ -25,9 +23,9 @@ public final class HeadMotion {
     }
 
     public void launch(Vec3 heading, int waveSeed, double wobble, double verticalBoost) {
-        this.motionX = heading.x + wobble * Math.sin(waveSeed * SEED_RATE_X);
-        this.motionY = heading.y + wobble * Math.sin(waveSeed * SEED_RATE_Y + SEED_PHASE_Y) + verticalBoost;
-        this.motionZ = heading.z + wobble * Math.sin(waveSeed * SEED_RATE_Z + SEED_PHASE_Z);
+        this.motionX = heading.x + wobble * Math.sin(waveSeed / SEED_DIVISOR_X);
+        this.motionY = heading.y + wobble * Math.sin(waveSeed / SEED_DIVISOR_Y) + verticalBoost;
+        this.motionZ = heading.z + wobble * Math.sin(waveSeed / SEED_DIVISOR_Z);
     }
 
     public void advance() {

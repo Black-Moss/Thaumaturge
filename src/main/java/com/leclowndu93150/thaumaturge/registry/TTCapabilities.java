@@ -61,7 +61,6 @@ public final class TTCapabilities {
         EssentiaCapabilities.registerConduit(event, TTBlockEntities.CENTRIFUGE.get(), (be, side) -> be);
         EssentiaCapabilities.registerConduit(event, TTBlockEntities.ESSENTIA_CRYSTALIZER.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
         EssentiaCapabilities.registerConduit(event, TTBlockEntities.ESSENTIA_RESERVOIR.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
-        event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.ESSENTIA_RESERVOIR.get(), (be, side) -> be);
         EssentiaCapabilities.registerConduit(event, TTBlockEntities.FLUX_SCRUBBER.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
         EssentiaCapabilities.registerConduit(event, TTBlockEntities.POTION_SPRAYER.get(), (be, side) -> be);
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.HUNGRY_CHEST.get(), (be, side) -> VanillaContainerWrapper.of(be));
@@ -75,7 +74,6 @@ public final class TTCapabilities {
         EssentiaCapabilities.registerConduit(event, TTBlockEntities.THAUMATORIUM_TOP.get(), (be, side) -> be);
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.THAUMATORIUM.get(), (be, side) -> be.catalyst());
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.MIRROR_ESSENTIA.get(), (be, side) -> be);
-        event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.MIRROR.get(), (be, side) -> be.inbox());
     }
 
     private static void essentiaTransport(RegisterCapabilitiesEvent event) {

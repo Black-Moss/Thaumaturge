@@ -35,10 +35,10 @@ final class NodeUpkeep {
     private static final float GREEDY_GROWTH_DIVISOR = 1.5F;
     private static final int PALE_CLEARS_ODDS = 100;
     private static final int DONOR_SHRINK_ODDS = 3;
-    private static final float ZAP_LOUDNESS = 0.12F;
+    private static final float ZAP_LOUDNESS = 0.1F;
     private static final float ZAP_LOW_PITCH = 1.0F;
-    private static final float ZAP_PITCH_RISE = 0.25F;
-    private static final float PULL_BOLT_WIDTH = 0.2F;
+    private static final float ZAP_PITCH_RISE = 0.2F;
+    private static final float PULL_BOLT_WIDTH = 0.3F;
     private static final int DECAY_EVERY = 1200;
     private static final int DECAY_DROP_ODDS = 20;
     private static final int DECAY_WORSEN_ODDS = 5;
@@ -126,7 +126,7 @@ final class NodeUpkeep {
         if (!node.allowDischarge() || node.lock == BlockEntityNode.LOCK_BASIC || !pullDue(node, random)) {
             return;
         }
-        BlockPos spot = NodeRules.scatter(pos, PULL_REACH, random);
+        BlockPos spot = NodeRules.scatter(pos, PULL_REACH + 1, random);
         if (spot.equals(pos) || !level.hasChunkAt(spot) || !(level.getBlockEntity(spot) instanceof BlockEntityNode donor) || !canDonate(donor, node)) {
             return;
         }
@@ -136,9 +136,6 @@ final class NodeUpkeep {
         absorb(node, donor, aspect, random);
         donor.refillWait = donor.refillInterval() / 2;
         donor.changed();
-        if (donor.held.isEmpty() && !donor.isEnergized()) {
-            donor.collapse(level, spot);
-        }
         level.playSound(null, spot, TTSounds.ZAP.get(), SoundSource.BLOCKS, ZAP_LOUDNESS, ZAP_LOW_PITCH + random.nextFloat() * ZAP_PITCH_RISE);
         Effects.boltStrike(level, Vec3.atCenterOf(spot)).to(Vec3.atCenterOf(pos)).width(PULL_BOLT_WIDTH).send();
         node.invalidateRefill();
@@ -150,9 +147,10 @@ final class NodeUpkeep {
             return false;
         }
         if (modifier == NodeModifier.PALE) {
-            return node.tickCounter % PALE_PULL_EVERY == 0 && random.nextBoolean();
+            boolean intervalDue = node.kind() == NodeType.HUNGRY || node.tickCounter % PALE_PULL_EVERY == 0;
+            return intervalDue && random.nextBoolean();
         }
-        if (modifier == NodeModifier.BRIGHT || node.kind() == NodeType.HUNGRY) {
+        if (modifier == NodeModifier.BRIGHT) {
             return true;
         }
         return node.tickCounter % STEADY_PULL_EVERY == 0;
@@ -206,17 +204,16 @@ final class NodeUpkeep {
             int remaining = slot.amount() - 1;
             if (remaining > 0 && random.nextInt(DECAY_DROP_ODDS) != 0) {
                 node.aspectsBase = node.aspectsBase.remove(aspect, 1);
-                continue;
+                break;
             }
             node.aspectsBase = node.aspectsBase.without(aspect);
             node.held = node.held.without(aspect);
             worsenAfterLoss(node, random);
             break;
         }
-        if (!touched) {
-            return false;
+        if (touched) {
+            node.invalidateRefill();
         }
-        node.invalidateRefill();
         if (node.aspectsBase.isEmpty()) {
             node.removeDepleted(level, pos);
             return true;
@@ -246,23 +243,28 @@ final class NodeUpkeep {
         boolean advanced = node.lock == BlockEntityNode.LOCK_ADVANCED;
         boolean locked = node.lock != BlockEntityNode.LOCK_NONE;
         if (node.kind() == NodeType.UNSTABLE) {
-            if (!random.nextBoolean()) {
+            if (random.nextBoolean() && handleUnstable(node, level, pos, random, locked, advanced)) {
                 return;
             }
-            if (!locked) {
-                shedPrimal(node, level, pos, random);
-            } else if (random.nextInt(advanced ? UNSTABLE_SETTLE_ADVANCED_ODDS : UNSTABLE_SETTLE_BASIC_ODDS) == 0) {
-                node.reclassify(NodeType.NORMAL);
-                node.invalidateRefill();
-            }
-            return;
         }
         if (locked && node.trait() == NodeModifier.FADING && random.nextInt(advanced ? FADING_RECOVER_ADVANCED_ODDS : FADING_RECOVER_BASIC_ODDS) == 0) {
             node.assignTrait(NodeModifier.PALE);
         }
     }
 
-    private static void shedPrimal(BlockEntityNode node, ServerLevel level, BlockPos pos, RandomSource random) {
+    private static boolean handleUnstable(BlockEntityNode node, ServerLevel level, BlockPos pos, RandomSource random, boolean locked, boolean advanced) {
+        if (!locked) {
+            return shedPrimal(node, level, pos, random);
+        }
+        if (random.nextInt(advanced ? UNSTABLE_SETTLE_ADVANCED_ODDS : UNSTABLE_SETTLE_BASIC_ODDS) == 0) {
+            node.reclassify(NodeType.NORMAL);
+            node.invalidateRefill();
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean shedPrimal(BlockEntityNode node, ServerLevel level, BlockPos pos, RandomSource random) {
         List<Holder<IAspect>> primals = new ArrayList<>();
         for (AspectInstance entry : node.held.entries()) {
             if (entry.aspect().value().isPrimal()) {
@@ -270,15 +272,16 @@ final class NodeUpkeep {
             }
         }
         if (primals.isEmpty()) {
-            return;
+            return false;
         }
         Holder<IAspect> shed = primals.get(random.nextInt(primals.size()));
         ResourceKey<IAspect> key = shed.unwrapKey().orElse(null);
         if (key == null) {
-            return;
+            return false;
         }
         node.held = node.held.reduce(shed, 1);
         node.changed();
         level.addFreshEntity(new EntityAspectOrb(level, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, key, 1));
+        return true;
     }
 }

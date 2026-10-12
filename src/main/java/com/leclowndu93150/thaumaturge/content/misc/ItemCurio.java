@@ -37,10 +37,10 @@ public final class ItemCurio extends Item {
     private static final int TEMPORARY_WARP = 5;
     private static final int PERMANENT_WARP = 1;
     private static final float PERMANENT_WARP_CHANCE = 0.5F;
-    private static final int GRANT_ROUNDS = 2;
     private static final float SOUND_VOLUME = 0.5F;
-    private static final float SOUND_PITCH = 0.45F;
-    private static final float SOUND_PITCH_SPREAD = 0.1F;
+    private static final float SOUND_PITCH_NUMERATOR = 0.4F;
+    private static final float SOUND_PITCH_SLOPE = 0.4F;
+    private static final float SOUND_PITCH_OFFSET = 0.8F;
     private static final String RITES_UNREADABLE_KEY = "message.thaumaturge.curio.crimson_rites";
     private static final String KNOWLEDGE_GAINED_KEY = "message.thaumaturge.curio.knowledge_gained";
 
@@ -61,16 +61,14 @@ public final class ItemCurio extends Item {
             return InteractionResult.SUCCESS;
         }
         RandomSource random = reader.getRandom();
-        float pitch = SOUND_PITCH + (random.nextFloat() - random.nextFloat()) * SOUND_PITCH_SPREAD;
-        level.playSound(null, reader.getX(), reader.getY(), reader.getZ(), TTSounds.LEARN.get(), SoundSource.PLAYERS, SOUND_VOLUME, pitch);
+        float pitch = SOUND_PITCH_NUMERATOR / (level.getRandom().nextFloat() * SOUND_PITCH_SLOPE + SOUND_PITCH_OFFSET);
+        level.playSound(null, reader.getX(), reader.getY(), reader.getZ(), TTSounds.LEARN.get(), SoundSource.NEUTRAL, SOUND_VOLUME, pitch);
         if (variant.demandsWarp() && !unlockRites(reader)) {
             reader.sendSystemMessage(Component.translatable(RITES_UNREADABLE_KEY).withStyle(ChatFormatting.DARK_PURPLE));
             return InteractionResult.FAIL;
         }
-        for (int round = 0; round < GRANT_ROUNDS; round++) {
-            OBSERVATION_GRANT.award(reader);
-            THEORY_GRANT.award(reader);
-        }
+        OBSERVATION_GRANT.award(reader);
+        THEORY_GRANT.award(reader);
         if (variant.warping()) {
             WarpHelper.addWarp(reader, NORMAL_WARP, WarpType.NORMAL);
             WarpHelper.addWarp(reader, TEMPORARY_WARP, WarpType.TEMPORARY);
@@ -85,21 +83,13 @@ public final class ItemCurio extends Item {
     }
 
     private static boolean unlockRites(ServerPlayer reader) {
-        if (totalWarp(reader) <= RITES_WARP_THRESHOLD) {
+        if (WarpHelper.getActualWarp(reader) <= RITES_WARP_THRESHOLD) {
             return false;
         }
         if (!PlayerResearchAccess.of(reader).knows(RITES_RESEARCH)) {
             ResearchManager.complete(reader, RITES_RESEARCH);
         }
         return true;
-    }
-
-    private static int totalWarp(ServerPlayer reader) {
-        int total = 0;
-        for (WarpType type : WarpType.values()) {
-            total += WarpHelper.getWarp(reader).get(type);
-        }
-        return total;
     }
 
     @Override

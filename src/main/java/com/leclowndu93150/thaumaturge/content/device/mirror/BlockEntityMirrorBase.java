@@ -34,7 +34,7 @@ public abstract class BlockEntityMirrorBase extends AbstractSyncedBlockEntity {
     public boolean paired;
     public @Nullable GlobalPos link;
     public int stress;
-    protected int count;
+    protected int count = BASE_INTERVAL;
     protected int inc = BASE_INTERVAL;
 
     protected BlockEntityMirrorBase(BlockEntityType<?> type, BlockPos pos, BlockState state) {

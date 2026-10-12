@@ -7,23 +7,22 @@ import org.jspecify.annotations.Nullable;
 
 public final class StreamSnapshotBuilder {
     private static final int MIN_POINTS = 3;
-    private static final int PINNED_TAIL_POINTS = 2;
-    private static final int TAIL_BLEND_POINTS = 4;
-    private static final int HEAD_TAPER_POINTS = 5;
+    private static final int TAIL_TAPER_POINTS = 10;
+    private static final int TAIL_TAPER_OFFSET = 12;
+    private static final double TAIL_TAPER_SPAN = 10.0;
     private static final double QUARTER_TURN = Math.PI / 2.0;
-    private static final double RIPPLE_DEPTH = 0.12;
-    private static final double RIPPLE_SPACING = 0.6;
-    private static final double RIPPLE_SPEED = 0.25;
-    private static final double SHIMMER_RATE_X = 0.11;
-    private static final double SHIMMER_RATE_Y = 0.087;
-    private static final double SHIMMER_RATE_Z = 0.13;
-    private static final double SHIMMER_SPACING_X = 0.45;
-    private static final double SHIMMER_SPACING_Y = 0.37;
-    private static final double SHIMMER_SPACING_Z = 0.52;
-    private static final double ORIGIN_PHASE = 1.7;
-    private static final float TEX_SLICE = 0.08F;
-    private static final float FLOW_SLICES_PER_TICK = 1.5F;
-    private static final int SERIAL_BASE = PINNED_TAIL_POINTS - 1;
+    private static final int SLOT_SHOULDER = 2;
+    private static final int SLOT_MID = 3;
+    private static final int SLOT_FULL = 4;
+    private static final double SHOULDER_BASE_FACTOR = 0.5;
+    private static final double MID_BLEND_DIVISOR = 2.0;
+    private static final double FULL_BLEND_DIVISOR = 3.0;
+    private static final double RIPPLE_DEPTH = 0.2;
+    private static final double RIPPLE_DIVISOR = 3.0;
+    private static final double WOBBLE_DIVISOR_X = 6.0;
+    private static final double WOBBLE_DIVISOR_Y = 7.0;
+    private static final double WOBBLE_DIVISOR_Z = 8.0;
+    private static final float TEX_SLICE = 0.075F;
     private static final int AXES = 3;
     private static final int CHANNELS = 4;
 
@@ -37,25 +36,21 @@ public final class StreamSnapshotBuilder {
             return null;
         }
         fit(count);
-        boolean dissolving = trail.isDissolving();
-        int newestSerial = SERIAL_BASE + (dissolving ? trail.dissolveStartAge() : frame.age());
-        int oldestSerial = newestSerial - (count - 1);
-        float time = frame.age() + request.partialTick();
-        double phase = (frame.originX() + frame.originY() + frame.originZ()) * ORIGIN_PHASE;
         double wobble = request.wobble();
         for (int index = 0; index < count; index++) {
             TrailPoint point = trail.get(index);
-            int serial = oldestSerial + index;
-            int slot = request.newestFirst() ? count - 1 - index : index;
+            int behind = count - 1 - index;
+            int wave = behind + frame.age();
+            int slot = request.newestFirst() ? behind : index;
             double[] out = this.points[slot];
-            out[0] = point.x() + wobble * Math.sin(time * SHIMMER_RATE_X + serial * SHIMMER_SPACING_X + phase);
-            out[1] = point.y() + wobble * Math.sin(time * SHIMMER_RATE_Y + serial * SHIMMER_SPACING_Y + phase);
-            out[2] = point.z() + wobble * Math.sin(time * SHIMMER_RATE_Z + serial * SHIMMER_SPACING_Z + phase);
-            this.radii[slot] = point.radius() * taper(index, count) * ripple(serial, time) * request.radiusMultiplier();
-            colouring.colour(this.colours[slot], serial);
+            out[0] = point.x() + wobble * Math.sin(wave / WOBBLE_DIVISOR_X);
+            out[1] = point.y() + wobble * Math.sin(wave / WOBBLE_DIVISOR_Y);
+            out[2] = point.z() + wobble * Math.sin(wave / WOBBLE_DIVISOR_Z);
+            double radius = point.radius() * ripple(wave) * request.radiusMultiplier() * tailFactor(behind, count);
+            this.radii[slot] = anchor(slot, radius, frame.baseRadius());
+            colouring.colour(this.colours[slot], wave);
         }
-        float flow = dissolving ? (frame.age() - trail.dissolveStartAge() + request.partialTick()) * FLOW_SLICES_PER_TICK * TEX_SLICE : 0.0F;
-        float start = request.newestFirst() ? flow - newestSerial * TEX_SLICE : oldestSerial * TEX_SLICE - flow;
+        float start = trail.isDissolving() ? TEX_SLICE * (frame.age() - trail.dissolveStartAge() + request.partialTick()) : 0.0F;
         return new Snapshot(this.points, this.colours, this.radii, frame.originX(), frame.originY(), frame.originZ(), TEX_SLICE, Mth.frac(start));
     }
 
@@ -68,23 +63,30 @@ public final class StreamSnapshotBuilder {
         this.radii = new double[count];
     }
 
-    private static double taper(int index, int count) {
-        if (index < PINNED_TAIL_POINTS) {
-            return 0.0;
+    private static double tailFactor(int behind, int count) {
+        if (behind <= count - TAIL_TAPER_POINTS) {
+            return 1.0;
         }
-        double factor = 1.0;
-        int fromTail = index - PINNED_TAIL_POINTS + 1;
-        if (fromTail <= TAIL_BLEND_POINTS) {
-            factor = Mth.smoothstep(fromTail / (double) (TAIL_BLEND_POINTS + 1));
-        }
-        int fromHead = count - 1 - index;
-        if (fromHead < HEAD_TAPER_POINTS) {
-            factor = Math.min(factor, Math.sin(fromHead / (double) HEAD_TAPER_POINTS * QUARTER_TURN));
-        }
-        return factor;
+        return Math.max(0.0, Math.cos((behind - (count - TAIL_TAPER_OFFSET)) / TAIL_TAPER_SPAN * QUARTER_TURN));
     }
 
-    private static double ripple(int serial, float time) {
-        return 1.0 + RIPPLE_DEPTH * Math.sin(serial * RIPPLE_SPACING - time * RIPPLE_SPEED);
+    private static double anchor(int slot, double radius, double base) {
+        if (slot < SLOT_SHOULDER) {
+            return 0.0;
+        }
+        if (slot == SLOT_SHOULDER) {
+            return (SHOULDER_BASE_FACTOR * base + radius) / MID_BLEND_DIVISOR;
+        }
+        if (slot == SLOT_MID) {
+            return (base + radius) / MID_BLEND_DIVISOR;
+        }
+        if (slot == SLOT_FULL) {
+            return (base + MID_BLEND_DIVISOR * radius) / FULL_BLEND_DIVISOR;
+        }
+        return radius;
+    }
+
+    private static double ripple(int wave) {
+        return 1.0 + RIPPLE_DEPTH * Math.sin(wave / RIPPLE_DIVISOR);
     }
 }

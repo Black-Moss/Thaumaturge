@@ -7,7 +7,7 @@ import net.minecraft.util.RandomSource;
 
 final class FluxPocketScatter {
     private static final int SPOT_ATTEMPTS = 50;
-    private static final double REACH = 4.0;
+    private static final int SPREAD_BOUND = 5;
 
     private FluxPocketScatter() {}
 
@@ -30,6 +30,6 @@ final class FluxPocketScatter {
     }
 
     private static int clusteredOffset(RandomSource random) {
-        return (int) Math.round(random.triangle(0.0, REACH));
+        return random.nextInt(SPREAD_BOUND) - random.nextInt(SPREAD_BOUND);
     }
 }

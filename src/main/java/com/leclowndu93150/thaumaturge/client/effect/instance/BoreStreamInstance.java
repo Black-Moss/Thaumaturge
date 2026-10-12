@@ -7,12 +7,12 @@ import org.jspecify.annotations.Nullable;
 
 public final class BoreStreamInstance extends StreamInstance {
     private static final float RADIUS_MULTIPLIER = 1.0F;
-    private static final int MIN_LENGTH = 6;
+    private static final int MIN_LENGTH = 5;
     private static final int AGE_PER_LENGTH = 10;
-    private static final float LAUNCH_AMPLITUDE = 0.5F;
-    private static final double SPEED_DIVISOR = 8.0;
-    private static final double PULL_DIVISOR = 20.0;
-    private static final float SNAPSHOT_WOBBLE = 0.04F;
+    private static final float LAUNCH_AMPLITUDE = 0.15F;
+    private static final double SPEED_DIVISOR = 10.0;
+    private static final double PULL_DIVISOR = 10.0;
+    private static final float SNAPSHOT_WOBBLE = 0.03F;
 
     private final int targetEntityId;
 

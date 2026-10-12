@@ -25,7 +25,7 @@ public final class WarpCheck {
 
     public static void run(ServerPlayer player) {
         PlayerWarpState state = WarpLedger.state(player);
-        state.reduce(WarpType.TEMPORARY, TEMPORARY_FADE);
+        WarpLedger.change(player, -TEMPORARY_FADE, WarpType.TEMPORARY);
         WarpReading reading = WarpReading.of(state, WarpGear.worn(player));
         RandomSource random = player.getRandom();
         if (reading.primed() && random.nextDouble() < reading.fireChance()) {

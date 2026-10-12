@@ -12,23 +12,24 @@ import com.leclowndu93150.thaumaturge.server.TTFakePlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class BreakBehavior extends CellWorkBehavior {
-    public static final SealSetting SILK_TOUCH = new SealSetting("silk_touch", "gui.thaumaturge.seal.setting.silk", false).readingAlso("psilk");
+    public static final SealSetting SILK_TOUCH = new SealSetting("psilk", "gui.thaumaturge.seal.setting.silk", false);
 
-    private static final int STAGGER = 61;
+    private static final int STAGGER = 42;
     private static final float WORK_PER_HARDNESS = 10.0F;
     private static final int STRIKE_POWER = 21;
     private static final int SILK_STRIKE_POWER = 7;
     private static final int NO_FORTUNE = 0;
     private static final int BREAK_XP = 1;
-    private static final float STRIKE_VOLUME = 0.25F;
-    private static final float STRIKE_PITCH = 0.5F;
-    private static final int CRACK_STAGES = 10;
+    private static final float STRIKE_VOLUME_OFFSET = 0.7F;
+    private static final float STRIKE_VOLUME_DIVISOR = 8.0F;
+    private static final float STRIKE_PITCH_SCALE = 0.5F;
+    private static final float CRACK_STAGE_SCALE = 9.0F;
     private static final int CRACK_CLEARED = -1;
 
     public BreakBehavior() {
@@ -63,8 +64,11 @@ public final class BreakBehavior extends CellWorkBehavior {
         if (task.data() > strike) {
             task.setData(task.data() - strike);
             keepAlive(task);
-            level.playSound(null, pos, state.getSoundType().getBreakSound(), SoundSource.BLOCKS, STRIKE_VOLUME, STRIKE_PITCH);
-            level.destroyBlockProgress(crackId, pos, crackStage(workFor(level, pos, state), task.data()));
+            SoundType sound = state.getSoundType();
+            float volume = (sound.getVolume() + STRIKE_VOLUME_OFFSET) / STRIKE_VOLUME_DIVISOR;
+            float pitch = sound.getPitch() * STRIKE_PITCH_SCALE;
+            level.playSound(null, pos, sound.getBreakSound(), SoundSource.BLOCKS, volume, pitch);
+            level.destroyBlockProgress(crackId, pos, crackStage(state.getDestroySpeed(level, pos) * WORK_PER_HARDNESS, task.data()));
             return false;
         }
         BlockBreakerEngine.harvestBlock(level, TTFakePlayer.GOLEM.at(level, golem.asEntity()), pos, silk, NO_FORTUNE);
@@ -74,15 +78,11 @@ public final class BreakBehavior extends CellWorkBehavior {
     }
 
     private static int workFor(Level level, BlockPos pos, BlockState state) {
-        return Mth.ceil(state.getDestroySpeed(level, pos) * WORK_PER_HARDNESS);
+        return (int) (state.getDestroySpeed(level, pos) * WORK_PER_HARDNESS);
     }
 
-    private static int crackStage(int total, int remaining) {
-        if (total <= 0) {
-            return 0;
-        }
-        float done = (float) (total - remaining) / total;
-        return Mth.clamp(Mth.floor(done * CRACK_STAGES), 0, CRACK_STAGES - 1);
+    private static int crackStage(float total, int remaining) {
+        return (int) (CRACK_STAGE_SCALE * (1.0F - remaining / total));
     }
 
     private static boolean passesFilter(Level level, ISealEntity seal, BlockPos pos, BlockState state) {

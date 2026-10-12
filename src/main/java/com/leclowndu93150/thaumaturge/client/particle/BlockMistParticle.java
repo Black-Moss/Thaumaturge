@@ -9,15 +9,15 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
 public final class BlockMistParticle extends TTParticle {
-    private static final int LIFETIME_BASE = 52;
-    private static final int LIFETIME_RANGE = 16;
-    private static final float GRAVITY = 0.02F;
+    private static final int LIFETIME_BASE = 50;
+    private static final int LIFETIME_RANGE = 25;
+    private static final float GRAVITY = 0.1F;
     private static final float START_SIZE = 0.5F;
     private static final float END_SIZE = 0.1F;
-    private static final float PEAK_ALPHA = 0.45F;
-    private static final float[] FADE_CURVE = {0.0F, PEAK_ALPHA, PEAK_ALPHA * 0.75F, PEAK_ALPHA * 0.5F, PEAK_ALPHA * 0.25F, 0.0F};
-    private static final float SPIN_SPEED = 0.2F;
-    private static final double WIND_SCALE = 4.0E-4;
+    private static final float PEAK_ALPHA = 0.5F;
+    private static final float[] FADE_CURVE = {0.0F, PEAK_ALPHA, PEAK_ALPHA * 0.8F, PEAK_ALPHA * 0.6F, PEAK_ALPHA * 0.4F, PEAK_ALPHA * 0.2F, 0.0F};
+    private static final float SPIN_SPEED = 1.0F;
+    private static final double WIND_SCALE = 1.0E-3;
 
     private BlockMistParticle(ParticleSheet sheet, ClientLevel level, Vec3 origin, Vec3 motion, ColorParticleOption tint) {
         super(level, origin.x, origin.y, origin.z, motion.x, motion.y, motion.z, sheet);

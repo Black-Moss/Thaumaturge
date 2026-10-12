@@ -27,11 +27,11 @@ public enum RollSalt {
     }
 
     private static final class RollRanges {
-        static final int TILT = 15;
-        static final int START_SCATTER = 24;
-        static final int END_SCATTER = 7;
+        static final int TILT = 12;
+        static final int START_SCATTER = 32;
+        static final int END_SCATTER = 8;
         static final int FULL_TURN = 360;
-        static final int GREEN = 56;
-        static final int BLUE = 146;
+        static final int GREEN = 67;
+        static final int BLUE = 192;
     }
 }

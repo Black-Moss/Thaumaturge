@@ -153,7 +153,7 @@ public class BlockAlembic extends BaseEntityBlock implements LabelTarget {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (!player.isShiftKeyDown()) {
+        if (!player.isCrouching()) {
             return InteractionResult.PASS;
         }
         if (alembic.aspectFilterKey() != null && hit.getDirection() == alembic.spoutSide()) {

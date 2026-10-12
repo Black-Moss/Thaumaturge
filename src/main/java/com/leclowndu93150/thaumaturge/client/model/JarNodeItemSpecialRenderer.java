@@ -18,9 +18,10 @@ import org.jspecify.annotations.Nullable;
 
 public final class JarNodeItemSpecialRenderer implements SpecialModelRenderer<NodeData> {
     private static final float CENTER_X = 0.5F;
-    private static final float CENTER_Y = 0.34F;
+    private static final float CENTER_Y = 0.4F;
     private static final float CENTER_Z = 0.5F;
-    private static final float ITEM_ALPHA = 0.7F;
+    private static final float ITEM_SIZE = 1.0F;
+    private static final float ITEM_ALPHA = 0.5F;
     private static final float PLANE_TURN_DEGREES = 90.0F;
     private static final int ORDER_BASE_A = 0;
     private static final int ORDER_BASE_B = 64;
@@ -61,9 +62,9 @@ public final class JarNodeItemSpecialRenderer implements SpecialModelRenderer<No
         state.modifier = data.modifier().orElse(null);
         state.visible = true;
         state.jarred = true;
-        state.size = NodeRenderer.JARRED_SIZE;
+        state.size = ITEM_SIZE;
         state.frameSeed = FRAME_SEED;
-        state.alpha = ITEM_ALPHA * NodeRenderer.modifierFactor(state.modifier, state.ticks);
+        state.alpha = Math.min(1.0F, ITEM_ALPHA * NodeRenderer.modifierFactor(state.modifier, state.ticks));
         NodeRenderer.fillLayers(state, data.aspects());
         return state;
     }

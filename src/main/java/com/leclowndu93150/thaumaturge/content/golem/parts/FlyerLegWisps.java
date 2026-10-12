@@ -8,12 +8,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
 public final class FlyerLegWisps implements IGolemPartAbility {
-    private static final int GROUNDED_ONE_IN = 6;
-    private static final double BASE_LIFT = 0.15D;
-    private static final double FOOTPRINT_SHARE = 0.6D;
-    private static final double CENTER = 0.5D;
-    private static final double SINK_SPEED = 0.025D;
-    private static final double SIDEWAYS_DRIFT = 0.008D;
+    private static final int GROUNDED_PERIOD = 5;
+    private static final double TRAIL_LIFT = 0.1D;
+    private static final double DRIFT_DIVISOR = 100.0D;
+    private static final double SINK_SPEED = 0.1D;
 
     @Override
     public void tick(IGolemAPI golem) {
@@ -22,14 +20,11 @@ public final class FlyerLegWisps implements IGolemPartAbility {
             return;
         }
         LivingEntity body = golem.asEntity();
-        RandomSource random = level.getRandom();
-        if (body.onGround() && random.nextInt(GROUNDED_ONE_IN) != 0) {
+        if (body.onGround() && body.tickCount % GROUNDED_PERIOD != 0) {
             return;
         }
-        double footprint = body.getBbWidth() * FOOTPRINT_SHARE;
-        double x = body.getX() + (random.nextDouble() - CENTER) * footprint;
-        double z = body.getZ() + (random.nextDouble() - CENTER) * footprint;
-        double y = body.getBoundingBox().minY + BASE_LIFT;
-        level.addParticle(TTParticles.GOLEM_TRAIL.get(), x, y, z, random.triangle(0.0D, SIDEWAYS_DRIFT), -SINK_SPEED, random.triangle(0.0D, SIDEWAYS_DRIFT));
+        RandomSource random = level.getRandom();
+        level.addParticle(TTParticles.GOLEM_TRAIL.get(), body.getX(), body.getY() + TRAIL_LIFT, body.getZ(), random.nextGaussian() / DRIFT_DIVISOR, -SINK_SPEED,
+                random.nextGaussian() / DRIFT_DIVISOR);
     }
 }

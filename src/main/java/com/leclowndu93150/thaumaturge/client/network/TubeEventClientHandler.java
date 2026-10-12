@@ -11,16 +11,15 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public final class TubeEventClientHandler {
-    private static final float HISS_VOLUME = 0.25F;
-    private static final float HISS_PITCH_BASE = 1.6F;
-    private static final float HISS_PITCH_SPREAD = 0.4F;
-    private static final float CREAK_VOLUME = 0.6F;
-    private static final float CREAK_PITCH_BASE = 1.15F;
-    private static final float CREAK_PITCH_SPREAD = 0.15F;
+    private static final float HISS_VOLUME = 0.1F;
+    private static final float HISS_PITCH_BASE = 1.0F;
+    private static final float HISS_PITCH_SPREAD = 0.1F;
+    private static final float CREAK_VOLUME = 1.0F;
+    private static final float CREAK_PITCH_BASE = 1.3F;
+    private static final float CREAK_PITCH_SPREAD = 0.2F;
 
     private TubeEventClientHandler() {}
 
@@ -38,16 +37,11 @@ public final class TubeEventClientHandler {
             return;
         }
         BlockPos pos = payload.pos();
-        BlockEntity blockEntity = level.getBlockEntity(pos);
-        if (!(blockEntity instanceof BlockEntityTube tube)) {
-            return;
+        if (level.getBlockEntity(pos) instanceof BlockEntityTube tube) {
+            tube.triggerVent(payload.color());
         }
-        boolean alreadyVenting = tube.ventingTicks() > 0;
-        tube.triggerVent(payload.color());
-        if (!alreadyVenting) {
-            RandomSource random = level.getRandom();
-            playSound(level, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, HISS_VOLUME, HISS_PITCH_BASE + random.nextFloat() * HISS_PITCH_SPREAD);
-        }
+        RandomSource random = level.getRandom();
+        playSound(level, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, HISS_VOLUME, HISS_PITCH_BASE + random.nextFloat() * HISS_PITCH_SPREAD);
     }
 
     private static void creak(ClientboundTubeCreakPayload payload) {

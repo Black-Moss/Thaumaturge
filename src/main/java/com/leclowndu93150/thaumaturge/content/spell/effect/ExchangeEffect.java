@@ -26,7 +26,7 @@ public final class ExchangeEffect extends AbstractEffectBehavior implements IFoc
     private static final float DEFAULT_VIS_COST = 0.25F;
     private static final float DEFAULT_SILK_VIS = 0.25F;
     private static final float DEFAULT_FORTUNE_VIS = 0.1F;
-    private static final int SWAP_TINT = 0x7AA721;
+    private static final int SWAP_TINT = 0x7AA621;
     private static final int NO_SPREAD = 0;
 
     public static final MapCodec<ExchangeEffect> CODEC = RecordCodecBuilder.mapCodec(i -> i.group(Codec.FLOAT.optionalFieldOf("vis_cost", DEFAULT_VIS_COST).forGetter(ExchangeEffect::visCost),
@@ -82,7 +82,7 @@ public final class ExchangeEffect extends AbstractEffectBehavior implements IFoc
         int fortune = Math.round(stats.get(SpellStats.FORTUNE));
         float cost = visCost + (silk ? silkVis : 0.0F) + fortune * fortuneVis;
         ctx.fx().impact(ctx.part().fx(), Vec3.atCenterOf(pos), ctx.color());
-        BlockBreakerEngine.swapper(pos, null, picked, player).consumeTarget().lifespan(NO_SPREAD).pickupDrops().silkTouch(silk).fortune(fortune).showFx(SWAP_TINT, false)
+        BlockBreakerEngine.swapper(pos, level.getBlockState(pos), picked, player).consumeTarget().lifespan(NO_SPREAD).pickupDrops().silkTouch(silk).fortune(fortune).showFx(SWAP_TINT, false)
                 .visCost(cost, TTAspects.PERMUTATIO).queue(level);
     }
 }

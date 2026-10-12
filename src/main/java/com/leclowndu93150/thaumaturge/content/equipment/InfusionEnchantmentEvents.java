@@ -20,7 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,7 +33,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -76,9 +74,9 @@ public final class InfusionEnchantmentEvents {
     private static final float ARC_SOUND_PITCH_SPREAD = 0.2F;
     private static final double HALF = 2.0;
     private static final int SOUNDING_WEAR = 5;
-    private static final float SOUNDING_VOLUME = 0.4F;
-    private static final float SOUNDING_PITCH_BASE = 0.45F;
-    private static final float SOUNDING_PITCH_SPREAD = 0.1F;
+    private static final float SOUNDING_VOLUME = 0.2F;
+    private static final float SOUNDING_PITCH_BASE = 0.2F;
+    private static final float SOUNDING_PITCH_SPREAD = 0.2F;
     private static final double BLOCK_CENTER = 0.5;
     private static final int TOOL_WEAR = 1;
     private static final float EFFECTIVE_SPEED = 1.0F;
@@ -86,12 +84,11 @@ public final class InfusionEnchantmentEvents {
     private static final double REFINING_CHANCE_STEP = 0.125;
     private static final double REFINING_ORE_WEIGHT = 1.0;
     private static final float REFINING_VOLUME = 0.2F;
-    private static final float REFINING_PITCH_BASE = 0.75F;
+    private static final float REFINING_PITCH_BASE = 0.7F;
     private static final float REFINING_PITCH_SPREAD = 0.2F;
     private static final int LAMPLIGHT_THRESHOLD = 10;
     private static final int LIGHT_FALLOFF = 1;
-    private static final int CUBE_SIDE = 3;
-    private static final int CUBE_CELLS = CUBE_SIDE * CUBE_SIDE * CUBE_SIDE;
+    private static final int PLANE_RADIUS = 1;
     private static final int ESSENCE_ROLL_BOUND = InfusionEnchantment.ESSENCE.maxLevel();
     private static final int ESSENCE_SKIP_MIN = 1;
     private static final int ESSENCE_SKIP_OPTIONS = 2;
@@ -163,7 +160,10 @@ public final class InfusionEnchantmentEvents {
         float damage = (float) (attacker.getAttributeValue(Attributes.ATTACK_DAMAGE) * ARC_DAMAGE_FRACTION);
         Vec3 facing = horizontalFacing(attacker);
         int struck = 0;
-        for (Mob victim : victims.subList(0, Math.min(rank, victims.size()))) {
+        for (Mob victim : victims) {
+            if (struck >= rank) {
+                break;
+            }
             DamageSource source = attacker.damageSources().playerAttack(attacker);
             if (victim.hurtServer(level, source, damage)) {
                 EnchantmentHelper.doPostAttackEffects(level, victim, source);
@@ -189,18 +189,13 @@ public final class InfusionEnchantmentEvents {
         Player player = event.getEntity();
         ItemStack tool = event.getItemStack();
         int rank = cappedLevel(tool, InfusionEnchantment.SOUNDING);
-        if (!player.isShiftKeyDown() || rank < 1) {
-            return;
-        }
-        event.setCanceled(true);
-        event.setCancellationResult(InteractionResult.SUCCESS);
-        if (!(event.getLevel() instanceof ServerLevel level) || !(player instanceof ServerPlayer viewer)) {
+        if (!player.isShiftKeyDown() || rank < 1 || !(event.getLevel() instanceof ServerLevel level) || !(player instanceof ServerPlayer viewer)) {
             return;
         }
         BlockPos pos = event.getPos();
         tool.hurtAndBreak(SOUNDING_WEAR, viewer, event.getHand().asEquipmentSlot());
         float pitch = SOUNDING_PITCH_BASE + level.getRandom().nextFloat() * SOUNDING_PITCH_SPREAD;
-        level.playSound(null, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, SoundEvents.NOTE_BLOCK_BASEDRUM, SoundSource.BLOCKS, SOUNDING_VOLUME, pitch);
+        level.playSound(null, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, TTSounds.WANDFAIL.get(), SoundSource.BLOCKS, SOUNDING_VOLUME, pitch);
         SoundingScan.perform(level, viewer, pos, rank);
     }
 
@@ -277,7 +272,7 @@ public final class InfusionEnchantmentEvents {
         }
         BlockState broken = event.getState();
         Item cluster = RefiningResults.clusterFor(broken);
-        if (cluster == null || !(tool.isCorrectToolForDrops(broken) || isSilkTouch(level, tool))) {
+        if (cluster == null) {
             return;
         }
         double chance = (REFINING_CHANCE_BASE + rank) * REFINING_CHANCE_STEP * REFINING_ORE_WEIGHT;
@@ -288,7 +283,7 @@ public final class InfusionEnchantmentEvents {
 
     private static void refineChime(ServerLevel level, BlockPos pos) {
         float pitch = REFINING_PITCH_BASE + level.getRandom().nextFloat() * REFINING_PITCH_SPREAD;
-        level.playSound(null, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.BLOCKS, REFINING_VOLUME, pitch);
+        level.playSound(null, pos.getX() + BLOCK_CENTER, pos.getY() + BLOCK_CENTER, pos.getZ() + BLOCK_CENTER, SoundEvents.EXPERIENCE_ORB_PICKUP, SoundSource.PLAYERS, REFINING_VOLUME, pitch);
     }
 
     private static int swapForClusters(ServerLevel level, Collection<ItemEntity> drops, Item cluster, double chance) {
@@ -319,7 +314,7 @@ public final class InfusionEnchantmentEvents {
 
     private static ItemEntity nuggetAt(ServerLevel level, BlockPos pos) {
         Vec3 center = Vec3.atCenterOf(pos);
-        return new ItemEntity(level, center.x, center.y, center.z, new ItemStack(TTItems.NUGGET_QUARTZ.get()), 0.0, 0.0, 0.0);
+        return new ItemEntity(level, center.x, center.y, center.z, new ItemStack(TTItems.NUGGET_QUARTZ.get()));
     }
 
     private static void follow(ServerLevel level, Collection<ItemEntity> drops, Player collector) {
@@ -369,18 +364,26 @@ public final class InfusionEnchantmentEvents {
         return swungFace != null ? swungFace : Direction.getApproximateNearest(player.getLookAngle());
     }
 
-    private static Vec3i cell(int index) {
-        return new Vec3i(index / (CUBE_SIDE * CUBE_SIDE) - 1, index / CUBE_SIDE % CUBE_SIDE - 1, index % CUBE_SIDE - 1);
-    }
-
     private static Map<Direction.Axis, List<Vec3i>> planeSteps() {
         Map<Direction.Axis, List<Vec3i>> steps = new EnumMap<>(Direction.Axis.class);
-        for (Direction.Axis axis : Direction.Axis.values()) {
-            List<Vec3i> plane = IntStream.range(0, CUBE_CELLS).mapToObj(InfusionEnchantmentEvents::cell)
-                    .filter(cell -> axis.choose(cell.getX(), cell.getY(), cell.getZ()) == 0 && !cell.equals(Vec3i.ZERO)).toList();
-            steps.put(axis, plane);
-        }
+        steps.put(Direction.Axis.X, plane(Direction.Axis.Z, Direction.Axis.Y));
+        steps.put(Direction.Axis.Y, plane(Direction.Axis.X, Direction.Axis.Z));
+        steps.put(Direction.Axis.Z, plane(Direction.Axis.X, Direction.Axis.Y));
         return steps;
+    }
+
+    private static List<Vec3i> plane(Direction.Axis outer, Direction.Axis inner) {
+        Direction outerStep = Direction.get(Direction.AxisDirection.POSITIVE, outer);
+        Direction innerStep = Direction.get(Direction.AxisDirection.POSITIVE, inner);
+        List<Vec3i> plane = new ArrayList<>();
+        for (int along = -PLANE_RADIUS; along <= PLANE_RADIUS; along++) {
+            for (int across = -PLANE_RADIUS; across <= PLANE_RADIUS; across++) {
+                if (along != 0 || across != 0) {
+                    plane.add(BlockPos.ZERO.relative(outerStep, along).relative(innerStep, across));
+                }
+            }
+        }
+        return List.copyOf(plane);
     }
 
     private static boolean canBeSpedUp(ServerLevel level, BlockPos pos, ItemStack tool) {
@@ -389,8 +392,9 @@ public final class InfusionEnchantmentEvents {
     }
 
     private static void harvestAdjacent(ServerLevel level, Player player, ItemStack tool, BlockPos pos) {
-        if (canBeSpedUp(level, pos, tool) && EnchantMining.harvestBlock(level, player, pos, false)) {
+        if (canBeSpedUp(level, pos, tool)) {
             tool.hurtAndBreak(TOOL_WEAR, player, EquipmentSlot.MAINHAND);
+            EnchantMining.harvestBlock(level, player, pos, false);
         }
     }
 
@@ -421,12 +425,6 @@ public final class InfusionEnchantmentEvents {
     private static ItemEntity crystalDrop(ServerLevel level, LivingEntity dead, Player killer, boolean collector, AspectInstance picked) {
         ItemStack crystal = EssentiaCrystalAccess.create(picked.aspect(), 1);
         return collector ? new EntityFollowingItem(level, dead.getX(), dead.getEyeY(), dead.getZ(), crystal, killer) : new ItemEntity(level, dead.getX(), dead.getEyeY(), dead.getZ(), crystal);
-    }
-
-    private static void discardRandom(RandomSource random, List<AspectInstance> pool, int count) {
-        for (int removed = 0; removed < count && !pool.isEmpty(); removed++) {
-            pool.remove(random.nextInt(pool.size()));
-        }
     }
 
     private record NuggetChance(Predicate<BlockState> match, double chance) {

@@ -8,7 +8,6 @@ import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
-import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,8 +19,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -51,9 +49,6 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
     private static final int MIN_COOLDOWN = 5;
     private static final int COOLDOWN_RANGE = 100;
     private static final int HORIZONTAL_COUNT = 4;
-    private static final float BUBBLE_VOLUME = 0.3F;
-    private static final float BUBBLE_PITCH_LOW = 0.9F;
-    private static final float BUBBLE_PITCH_RANGE = 0.3F;
 
     private final AdvancedFurnaceNozzle[] nozzles = new AdvancedFurnaceNozzle[HORIZONTAL_COUNT];
     private final BlockPos.MutableBlockPos formedCursor = new BlockPos.MutableBlockPos();
@@ -105,12 +100,15 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
 
     private void runCycle(ServerLevel server, BlockPos pos) {
         boolean dirty = false;
-        if (cooldown > 0) {
-            cooldown--;
-            dirty = true;
-        }
         if (server.getGameTime() % POWER_INTERVAL == 0) {
             dirty |= rechargeReserves(server, pos);
+        }
+        if (cooldown > 0) {
+            cooldown--;
+            if (cooldown == 0) {
+                cycleDuration = 0;
+            }
+            dirty = true;
         }
         if (cooldown == 0 && tryProcessInput(server, pos)) {
             changed();
@@ -150,10 +148,8 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
         aspects = aspects.add(content);
         input = ItemStack.EMPTY;
         inputAspects = null;
-        cooldown = MIN_COOLDOWN + COOLDOWN_RANGE * (MAX_POWER - heat) / MAX_POWER;
+        cooldown = MIN_COOLDOWN + Math.round((1.0F - (float) heat / MAX_POWER) * COOLDOWN_RANGE);
         cycleDuration = cooldown;
-        float pitch = BUBBLE_PITCH_LOW + server.getRandom().nextFloat() * BUBBLE_PITCH_RANGE;
-        server.playSound(null, pos, TTSounds.BUBBLE.get(), SoundSource.BLOCKS, BUBBLE_VOLUME, pitch);
         return true;
     }
 
@@ -280,7 +276,7 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         if (level instanceof ServerLevel server) {
             if (!input.isEmpty()) {
-                server.addFreshEntity(new ItemEntity(server, pos.getX(), pos.getY(), pos.getZ(), input.copy()));
+                Containers.dropItemStack(server, pos.getX(), pos.getY(), pos.getZ(), input);
             }
             int stored = aspects.totalAmount();
             if (stored > 0) {

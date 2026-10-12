@@ -20,8 +20,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +35,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class EntityFireBat extends Monster {
     private static final EntityDataAccessor<Boolean> HANGING = SynchedEntityData.defineId(EntityFireBat.class, EntityDataSerializers.BOOLEAN);
-    private static final TargetingConditions HANG_DISTURBANCE = TargetingConditions.forNonCombat().range(4.0);
+    private static final double HANG_WAKE_RANGE = 4.0;
     private static final String HANG_KEY = "hang";
     private static final String DAMAGE_BONUS_KEY = "damBonus";
     private static final String LIFETIME_KEY = "SummonLife";
@@ -47,6 +47,7 @@ public final class EntityFireBat extends Monster {
     private static final int ATTACK_PRIORITY = 4;
     private static final int WANDER_PRIORITY = 5;
     private static final int LOOK_PRIORITY = 7;
+    private static final int RETALIATE_PRIORITY = 1;
     private static final int PLAYER_PRIORITY = 2;
     private static final int PLAYER_SCAN_INTERVAL = 10;
     private static final int SPAWN_LIGHT_BOUND = 7;
@@ -108,6 +109,7 @@ public final class EntityFireBat extends Monster {
         this.goalSelector.addGoal(ATTACK_PRIORITY, new FireBatAttackGoal(this));
         this.goalSelector.addGoal(WANDER_PRIORITY, new FlyingWanderGoal(this, false, this::isFlying));
         this.goalSelector.addGoal(LOOK_PRIORITY, new Ghast.GhastLookGoal(this));
+        this.targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(PLAYER_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, PLAYER_SCAN_INTERVAL, false, false, this::isNotOwner));
     }
 
@@ -203,7 +205,7 @@ public final class EntityFireBat extends Monster {
     }
 
     private void hangOrLeave(ServerLevel level, boolean ceiling) {
-        if (!ceiling || level.getNearestPlayer(HANG_DISTURBANCE, this) != null) {
+        if (!ceiling || level.getNearestPlayer(this, HANG_WAKE_RANGE) != null) {
             takeOff(level);
             return;
         }

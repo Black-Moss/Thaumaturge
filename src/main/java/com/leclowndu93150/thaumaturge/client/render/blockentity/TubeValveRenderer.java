@@ -30,7 +30,8 @@ public final class TubeValveRenderer implements BlockEntityRenderer<BlockEntityT
     private static final float HALF_TURN = 180.0F;
     private static final float FULL_TURN = 360.0F;
     private static final float SPIN_RATIO = 1.5F;
-    private static final float SINK_TRAVEL = 0.11F;
+    private static final float SINK_REST = 0.03F;
+    private static final float SINK_TRAVEL = 0.09F;
     private static final int OUTLINE_NONE = 0;
 
     public TubeValveRenderer(BlockEntityRendererProvider.Context context) {}
@@ -64,7 +65,7 @@ public final class TubeValveRenderer implements BlockEntityRenderer<BlockEntityT
         poseStack.pushPose();
         poseStack.translate(CENTER, CENTER, CENTER);
         orient(poseStack, state.facing);
-        poseStack.translate(0.0F, -closed * SINK_TRAVEL, 0.0F);
+        poseStack.translate(0.0F, -(SINK_REST + closed * SINK_TRAVEL), 0.0F);
         poseStack.mulPose(Axis.YN.rotationDegrees(state.rotation * SPIN_RATIO));
         poseStack.translate(-CENTER, -CENTER, -CENTER);
         collector.submitMultiLayerBlockModel(poseStack, state.parts, false, NO_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, OUTLINE_NONE);

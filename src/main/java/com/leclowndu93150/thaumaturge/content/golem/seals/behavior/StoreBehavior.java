@@ -23,12 +23,15 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 public final class StoreBehavior implements ISealBehavior {
-    public static final SealSetting ONLY_EXISTING = new SealSetting("only_existing", "gui.thaumaturge.seal.setting.exist", false);
+    public static final SealSetting ONLY_EXISTING = new SealSetting("pexist", "gui.thaumaturge.seal.setting.exist", false);
 
     private static final int STAGGER = 47;
     private static final int CHECK_PERIOD = 20;
     private static final double LOOSE_RANGE = 1.5;
-    private static final double TOSS_SPREAD = 0.02;
+    private static final double TOSS_DRAW = 0.1;
+    private static final double TOSS_HORIZONTAL_FACTOR = 0.2;
+    private static final double TOSS_BASE_Y = 0.2;
+    private static final double TOSS_VERTICAL_FACTOR = 0.5;
     private static final int STORE_XP = 1;
 
     private final SealClock clock = new SealClock(STAGGER);
@@ -122,9 +125,13 @@ public final class StoreBehavior implements ISealBehavior {
 
     private static int drop(ServerLevel level, ISealEntity seal, ItemStack given) {
         RandomSource random = level.getRandom();
-        Vec3 toss = new Vec3(random.triangle(0.0, TOSS_SPREAD), 0.0, random.triangle(0.0, TOSS_SPREAD));
+        Vec3 toss = new Vec3(tossDraw(random) * TOSS_HORIZONTAL_FACTOR, TOSS_BASE_Y * TOSS_VERTICAL_FACTOR, tossDraw(random) * TOSS_HORIZONTAL_FACTOR);
         LooseItems.spawn(level, LooseItems.inFrontOf(seal.pos().pos(), seal.pos().face()), given, toss);
         return given.getCount();
+    }
+
+    private static double tossDraw(RandomSource random) {
+        return random.nextDouble() * 2 * TOSS_DRAW - TOSS_DRAW;
     }
 
     private static @Nullable Load loadOf(ISealEntity seal, IGolemAPI golem) {

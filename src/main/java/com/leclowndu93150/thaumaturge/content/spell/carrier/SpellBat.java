@@ -9,9 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
@@ -45,7 +43,6 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
     private static final double TARGET_RANGE = 12.0;
     private static final double ROOST_ARRIVAL = 2.0;
     private static final int ROOST_SPAN = 6;
-    private static final int ROOST_WIDTH = 2 * ROOST_SPAN + 1;
     private static final int ROOST_DEPTH_BELOW = 2;
     private static final int ROOST_HEIGHT = 6;
     private static final double STRIKE_REACH = 2.5;
@@ -54,17 +51,16 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
     private static final float STRIKE_COST = 1.0F;
     private static final double CRUISE_HORIZONTAL = 0.5;
     private static final double CRUISE_VERTICAL = 0.7;
-    private static final double VERTICAL_DAMPING = 0.4;
-    private static final double STEER_RATE = 0.3;
+    private static final double VERTICAL_DAMPING = 0.6;
+    private static final double STEER_RATE = 0.1;
     private static final float FORWARD_INPUT = 0.5F;
     private static final float QUARTER_TURN = 90.0F;
     private static final int ROOST_REROLL_ODDS = 30;
-    private static final double AURA_SPREAD = 0.3;
-    private static final double BODY_HALF = 0.5;
+    private static final double AURA_SPREAD = 0.125;
     private static final float SOUND_VOLUME = 0.1F;
-    private static final float STRIKE_VOLUME = 0.6F;
-    private static final float STRIKE_PITCH_BASE = 1.4F;
-    private static final float STRIKE_PITCH_RANGE = 0.3F;
+    private static final float STRIKE_VOLUME = 0.5F;
+    private static final float STRIKE_PITCH_BASE = 0.9F;
+    private static final float STRIKE_PITCH_RANGE = 0.2F;
     private static final float DEGREES_PER_RADIAN = 180.0F / (float) Math.PI;
 
     public final AnimationState flyAnimationState = new AnimationState();
@@ -208,14 +204,15 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
     }
 
     private void emitAura() {
-        Vec3 centre = getBoundingBox().getCenter();
-        double spread = AURA_SPREAD + getBbWidth() * BODY_HALF;
-        Vec3 at = centre.add(random.nextGaussian() * spread, random.nextGaussian() * spread, random.nextGaussian() * spread);
+        double x = getX() + random.nextGaussian() * AURA_SPREAD;
+        double y = getY() + getBbHeight() / 2.0 + random.nextGaussian() * AURA_SPREAD;
+        double z = getZ() + random.nextGaussian() * AURA_SPREAD;
+        Vec3 at = new Vec3(x, y, z);
         CarrierPayload.particle(level(), charge.look(), at, Vec3.ZERO);
     }
 
     private boolean shouldExpire() {
-        return level().getDifficulty() == Difficulty.PEACEFUL || tickCount > MAX_AGE || charge.isSpent() || getOwner() == null;
+        return tickCount > MAX_AGE || charge.isSpent() || getOwner() == null;
     }
 
     @Override
@@ -246,21 +243,17 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
         fly(aim);
         double reach = Math.max(STRIKE_REACH, STRIKE_WIDTH_FACTOR * target.getBbWidth());
         boolean ready = tickCount >= strikeReadyAt;
-        if (ready && getBoundingBox().getCenter().distanceTo(aim) <= reach && overlapsHeight(target) && hasLineOfSight(target)) {
+        if (ready && distanceTo(target) < reach && hasLineOfSight(target)) {
             strike(level, target, aim);
         }
     }
 
-    private boolean overlapsHeight(LivingEntity target) {
-        return getBoundingBox().minY < target.getBoundingBox().maxY && target.getBoundingBox().minY < getBoundingBox().maxY;
-    }
-
     private void strike(ServerLevel level, LivingEntity target, Vec3 aim) {
         strikeReadyAt = tickCount + STRIKE_COOLDOWN;
-        Vec3 heading = aim.subtract(getBoundingBox().getCenter());
+        Vec3 heading = aim.subtract(position());
         charge.resume(level, List.of(SpellTarget.entity(target, heading)));
         float pitch = STRIKE_PITCH_BASE + random.nextFloat() * STRIKE_PITCH_RANGE;
-        level.playSound(null, getX(), getY(), getZ(), AMBIENT_SOUND, SoundSource.HOSTILE, STRIKE_VOLUME, pitch);
+        playSound(HURT_SOUND, STRIKE_VOLUME, pitch);
         float left = getHealth() - STRIKE_COST;
         if (left > 0.0F) {
             setHealth(left);
@@ -288,9 +281,9 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
             roost = null;
         }
         if (roost == null || roost.closerToCenterThan(position(), ROOST_ARRIVAL) || random.nextInt(ROOST_REROLL_ODDS) == 0) {
-            int dx = random.nextInt(ROOST_WIDTH) - ROOST_SPAN;
+            int dx = random.nextInt(ROOST_SPAN + 1) - random.nextInt(ROOST_SPAN + 1);
             int dy = random.nextInt(ROOST_HEIGHT) - ROOST_DEPTH_BELOW;
-            int dz = random.nextInt(ROOST_WIDTH) - ROOST_SPAN;
+            int dz = random.nextInt(ROOST_SPAN + 1) - random.nextInt(ROOST_SPAN + 1);
             roost = BlockPos.containing(getX() + dx, getY() + dy, getZ() + dz);
         }
         return Vec3.atCenterOf(roost);

@@ -32,8 +32,8 @@ public class EntityCultistPortalLesser extends Monster {
     private static final double PLAYER_RANGE = 32.0;
     private static final double CULTIST_RANGE = 32.0;
     private static final int ACTIVATION_INTERVAL = 10;
-    private static final int FIRST_ATTEMPT_DELAY = 100;
-    private static final int ATTEMPT_DELAY_MIN = 50;
+    private static final int FIRST_ATTEMPT_DELAY = 101;
+    private static final int ATTEMPT_DELAY_MIN = 51;
     private static final int ATTEMPT_DELAY_SPREAD = 50;
     private static final int HARD_CULTIST_CAP = 6;
     private static final int NORMAL_CULTIST_CAP = 4;
@@ -96,7 +96,7 @@ public class EntityCultistPortalLesser extends Monster {
         if (--this.spawnCountdown > 0) {
             return;
         }
-        this.spawnCountdown = ATTEMPT_DELAY_MIN + this.random.nextInt(ATTEMPT_DELAY_SPREAD + 1);
+        this.spawnCountdown = ATTEMPT_DELAY_MIN + this.random.nextInt(ATTEMPT_DELAY_SPREAD);
         if (this.mayBringCultist(server)) {
             this.bringCultist(server);
         }
@@ -122,7 +122,7 @@ public class EntityCultistPortalLesser extends Monster {
         }
         CultistPortals.pulse(server, this);
         CultistPortals.summon(this, server, arrival);
-        this.hurtServer(server, server.damageSources().magic(), SPAWN_DAMAGE_BASE + this.random.nextInt(SPAWN_DAMAGE_SPREAD));
+        this.hurtServer(server, server.damageSources().fellOutOfWorld(), SPAWN_DAMAGE_BASE + this.random.nextInt(SPAWN_DAMAGE_SPREAD));
     }
 
     @Override

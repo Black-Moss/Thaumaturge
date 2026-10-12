@@ -37,15 +37,15 @@ public final class CrossbowModel extends EntityModel<TurretCrossbowRenderState> 
     private static final float LEG_HALF = 2.0F;
     private static final float LEG_THICKNESS = 4.0F;
     private static final float LEG_LENGTH = 22.0F;
-    private static final float LEG_SPLAY = 0.48F;
+    private static final float LEG_SPLAY = 0.5F;
     private static final float LEG_FIRST_YAW = Mth.PI / 4.0F;
     private static final float QUARTER_TURN = Mth.HALF_PI;
     private static final float FOOT_HALF = 2.5F;
     private static final float FOOT_SIZE = 5.0F;
     private static final float FOOT_HEIGHT = 3.0F;
     private static final float FOOT_SINK = 1.0F;
-    private static final float CART_LEG_SPLAY = 0.08F;
-    private static final float CART_LEG_LIFT = 5.0F;
+    private static final float CART_LEG_SPLAY = 0.1F;
+    private static final float CART_LEG_LIFT = 8.0F;
 
     private static final float STOCK_HALF_WIDTH = 4.0F;
     private static final float STOCK_HEIGHT = 4.0F;
@@ -88,17 +88,18 @@ public final class CrossbowModel extends EntityModel<TurretCrossbowRenderState> 
     private static final float LIMB_TIP_LENGTH = 4.0F;
     private static final float LIMB_TIP_HEIGHT = 2.0F;
     private static final float LIMB_TIP_DEPTH = 2.0F;
-    private static final float BOW_SWEEP = 0.4F;
+    private static final float BOW_SWEEP = 0.2443461F;
     private static final float LIMB_SWEEP = 0.35F;
     private static final float TIP_SWEEP = 0.3F;
-    private static final float BOW_FLEX = 0.35F;
+    private static final float BOW_FLEX = 0.2F;
     private static final float LIMB_FLEX = 0.25F;
     private static final float TIP_FLEX = 0.15F;
+    private static final float ROCK_FREQUENCY = 2.0F * Mth.PI;
 
     private static final float LOADER_Y = -2.0F;
     private static final float LOADER_Z = -4.0F;
-    private static final float LOADER_LEAN = -1.0F;
-    private static final float LOADER_ROCK = 0.45F;
+    private static final float LOADER_LEAN = -0.5585054F;
+    private static final float LOADER_ROCK = 0.5F;
     private static final float UPRIGHT_INNER_X = 4.25F;
     private static final float UPRIGHT_WIDTH = 2.0F;
     private static final float UPRIGHT_HEIGHT = 18.0F;
@@ -109,7 +110,6 @@ public final class CrossbowModel extends EntityModel<TurretCrossbowRenderState> 
     private static final float LOADER_BAR_THICKNESS = 2.0F;
 
     private final ModelPart[] legs = new ModelPart[LEG_NAMES.length];
-    private final ModelPart[] feet = new ModelPart[LEG_NAMES.length];
     private final ModelPart aim;
     private final ModelPart bowRight;
     private final ModelPart limbRight;
@@ -124,7 +124,6 @@ public final class CrossbowModel extends EntityModel<TurretCrossbowRenderState> 
         ModelPart stand = root.getChild(STAND);
         for (int i = 0; i < LEG_NAMES.length; i++) {
             legs[i] = stand.getChild(LEG_NAMES[i]);
-            feet[i] = legs[i].getChild(FOOT);
         }
         this.aim = root.getChild(AIM);
         this.bowRight = aim.getChild(BOW_RIGHT);
@@ -146,7 +145,7 @@ public final class CrossbowModel extends EntityModel<TurretCrossbowRenderState> 
                     CubeListBuilder.create().texOffs(LEG_UV[i][0], LEG_UV[i][1]).addBox(-LEG_HALF, 0.0F, -LEG_HALF, LEG_THICKNESS, LEG_LENGTH, LEG_THICKNESS),
                     PartPose.offsetAndRotation(0.0F, LEG_HIP_Y, 0.0F, LEG_SPLAY, LEG_FIRST_YAW + i * QUARTER_TURN, 0.0F));
             leg.addOrReplaceChild(FOOT, CubeListBuilder.create().texOffs(FOOT_UV[i][0], FOOT_UV[i][1]).addBox(-FOOT_HALF, -FOOT_SINK, -FOOT_HALF, FOOT_SIZE, FOOT_HEIGHT, FOOT_SIZE),
-                    PartPose.offsetAndRotation(0.0F, LEG_LENGTH, 0.0F, -LEG_SPLAY, 0.0F, 0.0F));
+                    PartPose.offset(0.0F, LEG_LENGTH, 0.0F));
         }
         PartDefinition aim = root.addOrReplaceChild(AIM,
                 CubeListBuilder.create().texOffs(2, 2).addBox(-STOCK_HALF_WIDTH, -STOCK_HEIGHT, -STOCK_HALF_LENGTH, STOCK_WIDTH, STOCK_HEIGHT, STOCK_LENGTH).texOffs(88, 2)
@@ -181,8 +180,8 @@ public final class CrossbowModel extends EntityModel<TurretCrossbowRenderState> 
                 PartPose.offsetAndRotation(side * LIMB_TWO_LENGTH, 0.0F, 0.0F, 0.0F, -side * TIP_SWEEP, 0.0F));
     }
 
-    private static float snap(float progress) {
-        return progress <= 0.0F ? 0.0F : Mth.sin(Mth.PI * Mth.sqrt(Math.min(progress, 1.0F)));
+    private static float rock(float progress) {
+        return progress <= 0.0F ? 0.0F : Mth.sin(ROCK_FREQUENCY * Mth.sqrt(Math.min(progress, 1.0F)));
     }
 
     @Override
@@ -190,19 +189,20 @@ public final class CrossbowModel extends EntityModel<TurretCrossbowRenderState> 
         super.setupAnim(state);
         aim.yRot = state.yRot * Mth.DEG_TO_RAD;
         aim.xRot = state.xRot * Mth.DEG_TO_RAD;
-        float flex = snap(state.swingAnim);
+        float flex = rock(state.swingAnim);
         bowRight.yRot -= BOW_FLEX * flex;
         limbRight.yRot -= LIMB_FLEX * flex;
         tipRight.yRot -= TIP_FLEX * flex;
         bowLeft.yRot += BOW_FLEX * flex;
         limbLeft.yRot += LIMB_FLEX * flex;
         tipLeft.yRot += TIP_FLEX * flex;
-        loader.xRot += LOADER_ROCK * snap(state.loadProgress);
-        if (state.ridingMinecart) {
-            for (int i = 0; i < legs.length; i++) {
+        loader.xRot += LOADER_ROCK * rock(state.loadProgress);
+        for (int i = 0; i < legs.length; i++) {
+            if (state.ridingMinecart) {
                 legs[i].xRot = CART_LEG_SPLAY;
                 legs[i].y -= CART_LEG_LIFT;
-                feet[i].xRot = -CART_LEG_SPLAY;
+            } else {
+                legs[i].xRot = LEG_SPLAY;
             }
         }
     }

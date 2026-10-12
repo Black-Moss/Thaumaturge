@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import org.jspecify.annotations.Nullable;
 
-public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float costMult, float stabilityReplenish, List<BlockPos> problemBlocks) {
+public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float costMult, float stabilityReplenish) {
     private static final int BASE_CYCLE_TIME = 10;
     private static final float BASE_COST_MULTIPLIER = 1.0F;
     private static final int ALTAR_DEPTH = 2;
@@ -22,7 +22,6 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
 
     public MatrixEnvironment {
         pedestals = List.copyOf(pedestals);
-        problemBlocks = List.copyOf(problemBlocks);
     }
 
     public static MatrixEnvironment survey(Level level, BlockPos matrix) {
@@ -40,7 +39,7 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
             cost += entry.cost();
             stability += entry.stability();
         }
-        return new MatrixEnvironment(spots, cycle, cost, stability, stabilisers.problemBlocks());
+        return new MatrixEnvironment(spots, cycle, cost, stability);
     }
 
     public static boolean validLocation(Level level, BlockPos matrix) {

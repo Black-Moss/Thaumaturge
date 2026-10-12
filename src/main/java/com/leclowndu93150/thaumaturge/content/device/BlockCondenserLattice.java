@@ -51,7 +51,7 @@ public final class BlockCondenserLattice extends Block {
     private static final float CLEAN_SOUND_VOLUME = 0.5F;
     private static final float CLEAN_SOUND_PITCH = 1.0F;
     private static final int CRYSTAL_AMOUNT = 1;
-    private static final double FACE_SHIFT_DIVISOR = 1.6;
+    private static final double FACE_SHIFT_DIVISOR = 3.0;
     private static final VoxelShape CORE = Shapes.or(Block.box(5.0, 6.0, 6.0, 11.0, 10.0, 10.0), Block.box(6.0, 5.0, 6.0, 10.0, 11.0, 10.0), Block.box(6.0, 6.0, 5.0, 10.0, 10.0, 11.0));
     private static final VoxelShape CONDUIT_ROD = Block.box(7.0, 1.0, 7.0, 9.0, 5.0, 9.0);
     private static final VoxelShape COUPLING_COLLAR = Block.box(6.0, 0.0, 6.0, 10.0, 1.0, 10.0);

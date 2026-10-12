@@ -17,7 +17,6 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.ARGB;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -31,17 +30,14 @@ public abstract class StreamInstance implements IFXInstance {
     private static final float OPAQUE_ALPHA = 1.0F;
     private static final double DEFAULT_SHRINK_RANGE = 1.0;
     private static final float RADIUS_SCATTER = 0.15F;
-    private static final double PULSE_CENTRE = 0.9;
-    private static final double PULSE_DEPTH = 0.1;
-    private static final double PULSE_RATE = 0.35;
-    private static final double PULSE_SEED_PHASE = 0.9;
+    private static final double PULSE_CENTRE = 0.75;
+    private static final double PULSE_DEPTH = 0.25;
+    private static final double PULSE_DIVISOR = 2.0;
     private static final double PULL_FULL_DISTANCE = 1.0;
     private static final double PULL_DISTANCE_FLOOR = 0.05;
-    private static final double TICKS_PER_BLOCK = 20.0;
-    private static final float SHADE_FLOOR = 0.8F;
-    private static final float SHADE_SPACING = 0.45F;
-    private static final float SHADE_SPEED = 0.2F;
-    private static final float HALF = 0.5F;
+    private static final double TICKS_PER_BLOCK = 21.0;
+    private static final double SHADE_DEPTH = 0.1;
+    private static final double SHADE_DIVISOR = 2.0;
 
     protected final double originX;
     protected final double originY;
@@ -131,8 +127,8 @@ public abstract class StreamInstance implements IFXInstance {
         if (distance > ARRIVAL_EPSILON) {
             double pull = pullStrength(distance) / Math.max(PULL_DISTANCE_FLOOR, Math.min(PULL_FULL_DISTANCE, distance));
             this.head.accelerate(this.step.directionX() * pull, this.step.directionY() * pull, this.step.directionZ() * pull);
+            this.head.accelerate(steerJitter(level), steerJitter(level), steerJitter(level));
         }
-        this.head.accelerate(steerJitter(level), steerJitter(level), steerJitter(level));
     }
 
     private SizingResult size() {
@@ -142,7 +138,7 @@ public abstract class StreamInstance implements IFXInstance {
         if (rule.applies(distance)) {
             base *= (float) rule.factor(distance);
         }
-        double pulse = PULSE_CENTRE + PULSE_DEPTH * Math.sin(this.age * PULSE_RATE + this.waveSeed * PULSE_SEED_PHASE);
+        double pulse = PULSE_CENTRE + PULSE_DEPTH * Math.sin((this.waveSeed + this.age + 1) / PULSE_DIVISOR);
         return new SizingResult(base * pulse, base);
     }
 
@@ -151,7 +147,7 @@ public abstract class StreamInstance implements IFXInstance {
         if (this.radiusBase > MIN_RADIUS) {
             this.trailBuffer.append(new TrailPoint(sizing.pointRadius(), this.head.x() - this.originX, this.head.y() - this.originY, this.head.z() - this.originZ));
         } else {
-            this.trailBuffer.markDissolveStart(this.age);
+            this.trailBuffer.markDissolveStart(this.age + 1);
             this.length--;
             onDissolve(level);
         }
@@ -180,8 +176,8 @@ public abstract class StreamInstance implements IFXInstance {
         return new RangeShrink(shrinkRange());
     }
 
-    protected void colour(float[] out, int slot) {
-        float shade = SHADE_FLOOR + (1.0F - SHADE_FLOOR) * (HALF + HALF * Mth.sin(slot * SHADE_SPACING - this.age * SHADE_SPEED));
+    protected void colour(float[] out, int wave) {
+        float shade = (float) (1.0 - SHADE_DEPTH * Math.sin(wave / SHADE_DIVISOR));
         out[0] = Math.min(1.0F, this.colorR * shade);
         out[1] = Math.min(1.0F, this.colorG * shade);
         out[2] = Math.min(1.0F, this.colorB * shade);
@@ -192,7 +188,7 @@ public abstract class StreamInstance implements IFXInstance {
         double dx = x2 - x1;
         double dy = y2 - y1;
         double dz = z2 - z1;
-        return Math.max(1, Mth.ceil(Math.sqrt(dx * dx + dy * dy + dz * dz) * TICKS_PER_BLOCK));
+        return Math.max(1, (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * TICKS_PER_BLOCK));
     }
 
     protected void onDissolve(ClientLevel level) {}

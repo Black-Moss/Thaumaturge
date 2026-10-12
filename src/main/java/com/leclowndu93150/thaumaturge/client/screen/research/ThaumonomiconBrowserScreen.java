@@ -60,16 +60,16 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private static final int HOVER_BOX_NEAR = -2;
     private static final int HOVER_BOX_FAR = 18;
     private static final double INERTIA_SNAP_SQUARED = 4.0;
-    private static final double INERTIA_FACTOR = 0.6;
-    private static final double PARALLAX_BASE = 0.14;
-    private static final double PARALLAX_OVERLAY = 0.3;
-    private static final int BOUND_NEAR_PAD = 20;
-    private static final int BOUND_FAR_PAD = 52;
+    private static final double INERTIA_FACTOR = 0.85;
+    private static final double PARALLAX_BASE_DIVISOR = 2.0;
+    private static final double PARALLAX_OVERLAY_DIVISOR = 1.5;
+    private static final int BOUND_NEAR_PAD = 24;
+    private static final int BOUND_FAR_PAD = 48;
 
-    private static final int COLOR_PARENT_DONE = 0xFFD2D2D2;
-    private static final int COLOR_PARENT_OPEN = 0xFF5C5C5C;
-    private static final int COLOR_SIBLING_DONE = 0xFF92A2BE;
-    private static final int COLOR_SIBLING_OPEN = 0xFF4C5870;
+    private static final int COLOR_PARENT_DONE = 0xFF999999;
+    private static final int COLOR_PARENT_OPEN = 0xFF333333;
+    private static final int COLOR_SIBLING_DONE = 0xFF4C4C66;
+    private static final int COLOR_SIBLING_OPEN = 0xFF2F2F3F;
 
     private static final float LAYER_PARENT_DONE = 3.0F;
     private static final float LAYER_PARENT_OPEN = 2.0F;
@@ -95,8 +95,8 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private static final int TAB_FIRST_Y = TAB_Y_BASE + TAB_PITCH;
     private static final int TAB_CENTRING_DIVISOR = 2;
     private static final int TINT_WHITE = 0xFFFFFFFF;
-    private static final int TAB_FRAME_ACTIVE_TINT = 0xFF86E0F2;
-    private static final int TAB_ICON_DIM_TINT = 0xBFA4A4A4;
+    private static final int TAB_FRAME_ACTIVE_TINT = 0xFF99FFFF;
+    private static final int TAB_ICON_DIM_TINT = 0xCCA8A8A8;
     private static final int BADGE_SIZE = 32;
     private static final float BADGE_SCALE = 0.25F;
     private static final int BADGE_TINT = 0xB3FFFFFF;
@@ -287,6 +287,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         }
         for (Tab tab : layoutTabs()) {
             if (tab.category() != active && inRect(mx, my, tab.x(), tab.y() + tab.shift(), TAB_ICON_SIZE, TAB_ICON_SIZE)) {
+                playSound(TTSounds.CLACK, CLACK_VOLUME);
                 selectCategory(tab.category());
                 return true;
             }
@@ -341,18 +342,17 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         CategoryRef category = Objects.requireNonNull(active);
         int drawnX = drawnPosition(axisX.previous(), axisX.current(), partialTick, boundLeft, boundRight);
         int drawnY = drawnPosition(axisY.previous(), axisY.current(), partialTick, boundTop, boundBottom);
-        double shiftX = drawnX / (double) zoom - (boundLeft + boundRight) / 2.0;
-        double shiftY = drawnY / (double) zoom - (boundTop + boundBottom) / 2.0;
-        graphics.enableScissor(BACKGROUND_OFFSET, BACKGROUND_OFFSET, BACKGROUND_OFFSET + viewWidth() + BACKGROUND_EXTRA, BACKGROUND_OFFSET + viewHeight() + BACKGROUND_EXTRA);
-        drawParallax(graphics, category.data().background(), shiftX * PARALLAX_BASE, shiftY * PARALLAX_BASE);
+        float shrink = 1.0F / zoom;
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(shrink, shrink);
+        drawParallax(graphics, category.data().background(), drawnX, drawnY, PARALLAX_BASE_DIVISOR);
         Optional<Identifier> overlay = category.data().overlayBackground();
         if (overlay.isPresent()) {
-            drawParallax(graphics, overlay.get(), shiftX * PARALLAX_OVERLAY, shiftY * PARALLAX_OVERLAY);
+            drawParallax(graphics, overlay.get(), drawnX, drawnY, PARALLAX_OVERLAY_DIVISOR);
         }
-        graphics.disableScissor();
+        graphics.pose().popMatrix();
         graphics.enableScissor(MARGIN, MARGIN, MARGIN + viewWidth(), MARGIN + viewHeight());
         List<EntryNode> nodes = model().entriesOf(category.id());
-        float shrink = 1.0F / zoom;
         graphics.pose().pushMatrix();
         graphics.pose().scale(shrink, shrink);
         drawConnectors(graphics, nodes, MARGIN - drawnX, MARGIN - drawnY);
@@ -362,13 +362,12 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         graphics.disableScissor();
     }
 
-    private void drawParallax(GuiGraphicsExtractor graphics, Identifier texture, double offsetX, double offsetY) {
-        int reachX = (int) Math.ceil(Math.abs(offsetX));
-        int reachY = (int) Math.ceil(Math.abs(offsetY));
-        int span = Math.max(viewWidth(), viewHeight()) + BACKGROUND_EXTRA + 2 * Math.max(reachX, reachY);
-        int left = MARGIN + (viewWidth() - span) / 2 - (int) Math.round(offsetX);
-        int top = MARGIN + (viewHeight() - span) / 2 - (int) Math.round(offsetY);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, left, top, 0.0F, 0.0F, span, span, 1, 1, 1, 1);
+    private void drawParallax(GuiGraphicsExtractor graphics, Identifier texture, int locX, int locY, double divisor) {
+        int left = (int) (BACKGROUND_OFFSET * zoom);
+        int top = (int) (BACKGROUND_OFFSET * zoom);
+        int w = (int) ((viewWidth() + BACKGROUND_EXTRA) * zoom);
+        int h = (int) ((viewHeight() + BACKGROUND_EXTRA) * zoom);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, left, top, (float) (locX / divisor), (float) (locY / divisor), w, h, TEX, TEX);
     }
 
     private List<Tab> layoutTabs() {
@@ -527,7 +526,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     }
 
     private void selectCategory(CategoryRef category) {
-        playSound(TTSounds.CLACK, CLACK_VOLUME);
         setSearchMode(false);
         active = category;
         computeBounds();
@@ -554,8 +552,11 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
 
     private void updateDrag(int mouseX, int mouseY) {
         boolean down = GLFW.glfwGetMouseButton(minecraft.getWindow().handle(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-        if (!down || !inViewport(mouseX, mouseY)) {
+        if (!down) {
             drag.release();
+            return;
+        }
+        if (!inViewport(mouseX, mouseY)) {
             return;
         }
         if (drag.isHeld()) {

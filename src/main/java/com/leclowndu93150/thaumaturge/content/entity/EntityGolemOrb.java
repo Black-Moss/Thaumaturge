@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
-import com.leclowndu93150.thaumaturge.content.particle.SparkParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -8,7 +7,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -32,21 +30,13 @@ public class EntityGolemOrb extends ThrowableProjectile {
     private static final float WHITE_DAMAGE_FACTOR = 0.6F;
     private static final double LAUNCH_DROP = 0.1;
     private static final double AIM_HEIGHT_FRACTION = 0.6;
-    private static final double STEER_GAIN = 0.3;
-    private static final double STEER_MIN_DISTANCE = 1.0;
+    private static final double STEER_GAIN = 0.2;
     private static final double MAX_AXIS_SPEED = 0.25;
     private static final double DEFLECT_SPEED = 0.9;
     private static final float PICK_RADIUS = 0.5F;
     private static final float SOUND_VOLUME = 1.0F;
     private static final float SOUND_PITCH_BASE = 1.0F;
     private static final float SOUND_PITCH_SPREAD = 0.2F;
-    private static final int RED_SPARK_COLOR = 0xFF5040;
-    private static final int WHITE_SPARK_COLOR = 0xD8E4FF;
-    private static final float SPARK_ALPHA = 0.9F;
-    private static final float SPARK_SCALE = 2.0F;
-    private static final int SPARK_COUNT = 8;
-    private static final double SPARK_SPREAD = 0.15;
-    private static final double SPARK_SPEED = 0.02;
 
     public EntityGolemOrb(EntityType<? extends EntityGolemOrb> type, Level level) {
         super(type, level);
@@ -96,22 +86,23 @@ public class EntityGolemOrb extends ThrowableProjectile {
             discard();
             return;
         }
-        LivingEntity target = target();
+        super.tick();
+        LivingEntity target = isRemoved() ? null : target();
         if (target != null) {
             home(target);
         }
-        super.tick();
     }
 
     private void home(LivingEntity target) {
-        Vec3 aim = new Vec3(target.getX(), target.getY() + target.getBbHeight() * AIM_HEIGHT_FRACTION, target.getZ());
-        Vec3 offset = aim.subtract(position());
-        double distance = offset.length();
-        if (distance <= 0.0) {
+        double dx = target.getX() - getX();
+        double dy = target.getY() - getY();
+        double dz = target.getZ() - getZ();
+        double squared = dx * dx + dy * dy + dz * dz;
+        if (squared <= 0.0) {
             return;
         }
-        Vec3 steer = offset.scale(STEER_GAIN / (distance * Math.max(distance, STEER_MIN_DISTANCE)));
-        Vec3 motion = getDeltaMovement().add(steer);
+        double aimY = target.getY() + target.getBbHeight() * AIM_HEIGHT_FRACTION - getY();
+        Vec3 motion = getDeltaMovement().add(dx / squared * STEER_GAIN, aimY / squared * STEER_GAIN, dz / squared * STEER_GAIN);
         setDeltaMovement(capAxis(motion.x), capAxis(motion.y), capAxis(motion.z));
     }
 
@@ -128,7 +119,7 @@ public class EntityGolemOrb extends ThrowableProjectile {
     protected void onHit(HitResult hitResult) {
         super.onHit(hitResult);
         if (level() instanceof ServerLevel server && !isRemoved()) {
-            impact(server, hitResult.getLocation());
+            impact(server);
         }
     }
 
@@ -141,16 +132,17 @@ public class EntityGolemOrb extends ThrowableProjectile {
         }
     }
 
-    private void impact(ServerLevel level, Vec3 at) {
+    private void impact(ServerLevel level) {
         playVaried(level, TTSounds.SHOCK.get());
-        SparkParticleOptions spark = new SparkParticleOptions(isRed() ? RED_SPARK_COLOR : WHITE_SPARK_COLOR, SPARK_ALPHA, SPARK_SCALE);
-        level.sendParticles(spark, at.x, at.y, at.z, SPARK_COUNT, SPARK_SPREAD, SPARK_SPREAD, SPARK_SPREAD, SPARK_SPEED);
         discard();
     }
 
     private void playVaried(ServerLevel level, SoundEvent sound) {
+        if (isSilent()) {
+            return;
+        }
         float pitch = SOUND_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * SOUND_PITCH_SPREAD;
-        level.playSound(null, getX(), getY(), getZ(), sound, SoundSource.HOSTILE, SOUND_VOLUME, pitch);
+        level.playSound(null, getX(), getY(), getZ(), sound, getSoundSource(), SOUND_VOLUME, pitch);
     }
 
     @Override

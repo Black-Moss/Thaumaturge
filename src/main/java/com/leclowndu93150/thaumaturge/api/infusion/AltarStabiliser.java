@@ -10,15 +10,18 @@ import net.minecraft.world.level.block.Block;
  * <p>The survey looks at every column within 8 blocks of the matrix on both horizontal axes, except the matrix column
  * itself, from 3 blocks above the matrix down to 7 blocks below it. A position counts as a stabiliser when its block is
  * in the block tag {@code thaumaturge:infusion_stabilisers}, or when its block implements this interface and
- * {@link #stabilisesNow} returns {@code true}. Tagged blocks that do not implement this interface are worth
- * {@link #STANDARD_PAIR_VALUE} and never ask for a symmetry penalty.
+ * {@link #stabilisesNow} returns {@code true}. This test only selects the positions the survey scans as candidates.
+ * Tagged blocks that do not implement this interface are worth {@link #STANDARD_PAIR_VALUE} and never ask for a
+ * symmetry penalty.
  *
  * <p>Each stabiliser is paired with its mirror, the position reflected through the matrix column at the same height,
- * and each pair is scored once:
+ * and each pair is scored once. The mirror is scored by its own values, whether or not it stabilises at the moment
+ * of the survey: a mirror block that implements this interface reports its {@link #countsAs identity},
+ * {@link #pairValue pair value} and penalty hooks, and any other mirror block is worth {@link #STANDARD_PAIR_VALUE}.
  * <ul>
  * <li>When the two sides do not {@link #countsAs count as} the same block, or their {@link #pairValue pair values}
- * differ, the pair subtracts the larger value and the stabiliser is reported as a problem block. An empty mirror is
- * worth {@link #STANDARD_PAIR_VALUE}.</li>
+ * differ, the pair subtracts the larger value and the stabiliser is reported as a problem block. A mirror that does
+ * not implement this interface, or that lies in an unloaded chunk, is worth {@link #STANDARD_PAIR_VALUE}.</li>
  * <li>When the sides match and either side {@link #penalisesPairWith penalises the pair}, the pair subtracts the larger
  * of the two {@link #penaltyValue penalty values} and is reported as a problem block.</li>
  * <li>Otherwise the pair adds its value, multiplied by 0.75 for every earlier matched, unpenalised pair of the same
@@ -51,8 +54,8 @@ public interface AltarStabiliser {
     /**
      * Tests whether the block at the position acts as a stabiliser at the moment of the survey.
      *
-     * <p>A block that returns {@code false} is skipped entirely, so it neither adds to nor takes from the altar's
-     * stability.
+     * <p>A block that returns {@code false} is not scanned as a candidate. It can still be scored as the mirror of
+     * another candidate, using its own {@link #countsAs identity} and {@link #pairValue pair value}.
      *
      * @param level the level the block is in
      * @param pos the position of this block

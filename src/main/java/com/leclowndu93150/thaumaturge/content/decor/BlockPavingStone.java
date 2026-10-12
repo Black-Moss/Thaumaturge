@@ -17,7 +17,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -37,12 +36,13 @@ public final class BlockPavingStone extends BaseEntityBlock {
     private static final int STEP_EFFECT_TICKS = 40;
     private static final int COLUMN_HEIGHT = 2;
     private static final double RUNE_CENTER = 0.5;
-    private static final double RUNE_HEIGHT = 1.05;
-    private static final RuneStyle POWERED_STYLE = new RuneStyle(0.3F, 0.4F, 0.2F, 0.25F, 0.85F, 0.15F, 2, 8, -0.06F);
-    private static final RuneStyle ACTIVE_STYLE = new RuneStyle(0.85F, 0.15F, 0.0F, 0.2F, 0.0F, 0.15F, 4, 8, -0.06F);
-    private static final RuneStyle WARNING_STYLE = new RuneStyle(0.8F, 0.2F, 0.2F, 0.3F, 0.6F, 0.4F, 1, 10, 0.0F);
+    private static final double RUNE_HEIGHT = 1.2;
+    private static final RuneStyle POWERED_STYLE = new RuneStyle(0.2F, 0.4F, 0.0F, 0.3F, 0.8F, 0.2F, 4, 20, -0.02F);
+    private static final RuneStyle ACTIVE_STYLE = new RuneStyle(0.9F, 0.1F, 0.0F, 0.3F, 0.0F, 0.3F, 6, 24, -0.02F);
+    private static final RuneStyle WARNING_STYLE = new RuneStyle(0.6F, 0.4F, 0.0F, 0.0F, 0.3F, 0.7F, 1, 20, 0.0F);
     private static final double WARNING_RANGE = 1.0;
-    private static final double WARNING_MIN_SPREAD = 0.75;
+    private static final double WARNING_BASE_HEIGHT = 1.1;
+    private static final double WARNING_MIN_SPREAD = 0.8;
 
     private final boolean barrier;
 
@@ -114,10 +114,9 @@ public final class BlockPavingStone extends BaseEntityBlock {
         if (intruders.isEmpty()) {
             return;
         }
-        LivingEntity intruder = intruders.get(random.nextInt(intruders.size()));
-        double base = pos.getY() + RUNE_HEIGHT;
-        double spread = Math.max(WARNING_MIN_SPREAD, intruder.getEyeY() - base);
-        emitRune(level, pos.getX() + RUNE_CENTER, base + random.nextDouble() * spread, pos.getZ() + RUNE_CENTER, random, WARNING_STYLE);
+        LivingEntity intruder = intruders.get(0);
+        double spread = Math.max(WARNING_MIN_SPREAD, intruder.getEyeHeight());
+        emitRune(level, pos.getX() + RUNE_CENTER, pos.getY() + WARNING_BASE_HEIGHT + random.nextDouble() * spread, pos.getZ() + RUNE_CENTER, random, WARNING_STYLE);
     }
 
     private static void emitRune(Level level, double x, double y, double z, RandomSource random, RuneStyle style) {

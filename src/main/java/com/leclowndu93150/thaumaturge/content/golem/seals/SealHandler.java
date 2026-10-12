@@ -68,7 +68,6 @@ public final class SealHandler {
         Direction face = pos.face();
         ItemEntity item = new ItemEntity(level, block.getX() + BLOCK_CENTER + face.getStepX() * DROP_OFFSET, block.getY() + BLOCK_CENTER + face.getStepY() * DROP_OFFSET,
                 block.getZ() + BLOCK_CENTER + face.getStepZ() * DROP_OFFSET, new ItemStack(seal.type().placer()));
-        item.setDefaultPickUpDelay();
         level.addFreshEntity(item);
     }
 

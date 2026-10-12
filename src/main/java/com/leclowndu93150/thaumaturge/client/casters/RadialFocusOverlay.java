@@ -23,7 +23,6 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Ease;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 import net.minecraft.world.entity.player.Inventory;
@@ -44,26 +43,26 @@ public final class RadialFocusOverlay implements GuiLayer {
     private static final Identifier RING_TWO = TTScreenTextures.RADIAL_OUTER;
     private static final int RING_TEXTURE_SIZE = 256;
     private static final float RING_ART_OFFSET_DEGREES = 90.0F;
-    private static final float RING_ONE_FACTOR = 4.2F;
-    private static final float RING_TWO_FACTOR = 4.4F;
-    private static final float RING_ONE_PERIOD_TICKS = 640.0F;
-    private static final float RING_TWO_PERIOD_TICKS = 900.0F;
-    private static final int RING_TINT = 0xA0C0C0C8;
+    private static final float RING_ONE_FACTOR = 2.75F;
+    private static final float RING_TWO_FACTOR = 2.55F;
+    private static final float RING_ONE_PERIOD_TICKS = 720.0F;
+    private static final float RING_TWO_PERIOD_TICKS = 720.0F;
+    private static final int RING_TINT = 0x80808080;
 
-    private static final float BASE_RADIUS = 26.0F;
-    private static final float RADIUS_PER_ENTRY = 3.0F;
+    private static final float BASE_RADIUS = 16.0F;
+    private static final float RADIUS_PER_ENTRY = 2.5F;
     private static final float START_DEGREES = -90.0F;
-    private static final float SWING_DEGREES = 50.0F;
-    private static final float PICKER_MS = 170.0F;
+    private static final float PICKER_MS = 150.0F;
     private static final float FRAME_CLAMP_MS = 100.0F;
 
     private static final int HOVER_MARGIN = 2;
-    private static final float HOVER_SCALE_MAX = 1.45F;
-    private static final float HOVER_GROW_MS = 110.0F;
-    private static final float HOVER_DECAY_MS = 320.0F;
+    private static final float HOVER_SCALE_MAX = 1.3F;
+    private static final float HOVER_GROW_MS = 45.0F;
+    private static final float HOVER_DECAY_MS = 75.0F;
     private static final float REST_SCALE = 1.0F;
+    private static final float CENTRE_ICON_FACTOR = 1.0F;
 
-    private static final int TOOLTIP_OFFSET_X = -24;
+    private static final int TOOLTIP_OFFSET_X = -4;
     private static final int TOOLTIP_OFFSET_Y = 20;
 
     private static final int ITEM_SIZE = 16;
@@ -215,14 +214,14 @@ public final class RadialFocusOverlay implements GuiLayer {
         int centreY = graphics.guiHeight() / 2;
         int cursorX = (int) mc.mouseHandler.getScaledXPos(mc.getWindow());
         int cursorY = (int) mc.mouseHandler.getScaledYPos(mc.getWindow());
-        float radius = (BASE_RADIUS + RADIUS_PER_ENTRY * entries.size()) * Ease.outCubic(pickerScale);
+        float width = BASE_RADIUS + RADIUS_PER_ENTRY * entries.size();
         float time = player.tickCount + partialTick;
-        drawRing(graphics, RING_ONE, centreX, centreY, radius * RING_ONE_FACTOR, time / RING_ONE_PERIOD_TICKS * FULL_TURN_DEGREES);
-        drawRing(graphics, RING_TWO, centreX, centreY, radius * RING_TWO_FACTOR, -time / RING_TWO_PERIOD_TICKS * FULL_TURN_DEGREES);
-        drawEntries(graphics, mc, centreX, centreY, radius, cursorX, cursorY);
+        drawRing(graphics, RING_ONE, centreX, centreY, width * RING_ONE_FACTOR * pickerScale, time / RING_ONE_PERIOD_TICKS * FULL_TURN_DEGREES);
+        drawRing(graphics, RING_TWO, centreX, centreY, width * RING_TWO_FACTOR * pickerScale, -time / RING_TWO_PERIOD_TICKS * FULL_TURN_DEGREES);
+        drawEntries(graphics, mc, centreX, centreY, width, cursorX, cursorY);
         if (!socketed.isEmpty()) {
             handleCentre(mc, socketed, cursorX - centreX, cursorY - centreY);
-            drawIcon(graphics, socketed, centreX, centreY, pickerScale);
+            drawIcon(graphics, socketed, centreX, centreY, CENTRE_ICON_FACTOR);
         }
         if (!tooltipStack.isEmpty()) {
             drawTooltip(graphics, mc, tooltipStack, centreX + TOOLTIP_OFFSET_X, centreY + TOOLTIP_OFFSET_Y);
@@ -234,13 +233,13 @@ public final class RadialFocusOverlay implements GuiLayer {
             return;
         }
         float step = FULL_TURN_DEGREES / entries.size();
-        float swing = (1.0F - Ease.outCubic(pickerScale)) * SWING_DEGREES;
+        float startDegrees = START_DEGREES * pickerScale;
         boolean testing = selectionOpen();
         int index = 0;
         for (Map.Entry<String, FocusEntry> mapEntry : entries.entrySet()) {
-            float radians = (START_DEGREES + index * step - swing) * Mth.DEG_TO_RAD;
-            float iconX = centreX + Mth.cos(radians) * width;
-            float iconY = centreY + Mth.sin(radians) * width;
+            float radians = (startDegrees + index * step) * Mth.DEG_TO_RAD;
+            float iconX = centreX + (int) (Mth.cos(radians) * width) * pickerScale;
+            float iconY = centreY + (int) (Mth.sin(radians) * width) * pickerScale;
             FocusEntry entry = mapEntry.getValue();
             if (testing) {
                 testEntry(mc, mapEntry.getKey(), entry, cursorX - Math.round(iconX), cursorY - Math.round(iconY));

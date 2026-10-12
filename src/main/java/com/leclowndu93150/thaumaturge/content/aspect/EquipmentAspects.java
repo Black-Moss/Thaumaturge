@@ -18,8 +18,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
+import net.minecraft.world.item.ShearsItem;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.equipment.Equippable;
 
@@ -81,7 +81,7 @@ final class EquipmentAspects {
     }
 
     private static boolean isToolLike(ItemStack stack) {
-        return stack.is(Items.SHEARS) || TOOL_TAGS.stream().anyMatch(stack::is);
+        return stack.getItem() instanceof ShearsItem || TOOL_TAGS.stream().anyMatch(stack::is);
     }
 
     private static int toolAmount(int durability) {

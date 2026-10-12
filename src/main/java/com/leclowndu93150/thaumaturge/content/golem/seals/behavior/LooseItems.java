@@ -9,12 +9,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
 final class LooseItems {
+    private static final double PUSH_SPEED = 0.3;
+
     private LooseItems() {}
 
     static void spawn(ServerLevel level, Vec3 at, ItemStack stack, Vec3 motion) {
         if (!stack.isEmpty()) {
             level.addFreshEntity(new ItemEntity(level, at.x, at.y, at.z, stack, motion.x, motion.y, motion.z));
         }
+    }
+
+    static Vec3 pushToward(Direction direction) {
+        return new Vec3(direction.getStepX(), direction.getStepY(), direction.getStepZ()).scale(PUSH_SPEED);
     }
 
     static Vec3 inFrontOf(BlockPos pos, Direction face) {

@@ -6,7 +6,6 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -24,16 +23,16 @@ public final class EntityGrapple extends ThrowableProjectile {
     private static final int MAX_FLIGHT_TICKS = 30;
     private static final int NO_GRAPPLE = -1;
     private static final double START_HEIGHT_DROP = 0.1;
-    private static final double FLIGHT_GRAVITY = 0.01;
+    private static final double FLIGHT_GRAVITY = 0.03;
     private static final double RENDER_DISTANCE_SQR = 64.0 * 64.0;
-    private static final double EASE_RANGE = 8.0;
-    private static final double FAR_TUG = 0.1;
-    private static final double NEAR_TUG = 0.02;
+    private static final double TUG_RANGE = 8.0;
+    private static final double TUG_DIVISOR = 5.0;
+    private static final double FAR_TUG = 0.2;
     private static final double MAX_TUG = 0.25;
-    private static final double LIFT = 0.06;
-    private static final double BOOST = 0.42;
+    private static final double LIFT = 0.033;
+    private static final double BOOST = 0.4;
     private static final float AMPLITUDE_GROWTH = 0.02F;
-    private static final float AMPLITUDE_DECAY = 0.6F;
+    private static final float AMPLITUDE_DECAY = 0.66F;
 
     public float ampl;
 
@@ -136,7 +135,7 @@ public final class EntityGrapple extends ThrowableProjectile {
         if (owner instanceof ServerPlayer player) {
             ((ServerGamePacketListenerImplAccessor) player.connection).setAboveGroundTickCount(0);
         }
-        Vec3 offset = position().subtract(owner.getEyePosition());
+        Vec3 offset = position().subtract(owner.position());
         double distance = offset.length();
         Vec3 tug = distance > 0.0 ? offset.scale(Math.min(tugStrength(distance), MAX_TUG) / distance) : Vec3.ZERO;
         double hop = boosted ? 0.0 : BOOST;
@@ -145,9 +144,7 @@ public final class EntityGrapple extends ThrowableProjectile {
     }
 
     private static double tugStrength(double distance) {
-        double t = Math.min(distance / EASE_RANGE, 1.0);
-        double eased = t * t * (3.0 - 2.0 * t);
-        return Mth.lerp(eased, NEAR_TUG, FAR_TUG);
+        return distance < TUG_RANGE ? 1.0 / (TUG_DIVISOR * (TUG_RANGE - distance)) : FAR_TUG;
     }
 
     public InteractionHand getHand() {

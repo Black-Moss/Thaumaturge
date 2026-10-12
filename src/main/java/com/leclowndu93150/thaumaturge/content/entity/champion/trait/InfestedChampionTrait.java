@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.content.entity.EntityTaintCrawler;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -16,8 +15,7 @@ public final class InfestedChampionTrait extends AbstractChampionTrait {
     private static final double SPAWN_HEIGHT_SHARE = 0.5;
     private static final float FULL_TURN_DEGREES = 360.0F;
     private static final float GORE_VOLUME = 0.5F;
-    private static final float GORE_PITCH_BASE = 0.9F;
-    private static final float GORE_PITCH_SPREAD = 0.2F;
+    private static final float GORE_PITCH = 1.0F;
 
     @Override
     public float onHurt(LivingEntity mob, @Nullable LivingEntity attacker, DamageSource source, float amount) {
@@ -36,7 +34,6 @@ public final class InfestedChampionTrait extends AbstractChampionTrait {
         double y = host.getY() + host.getBbHeight() * SPAWN_HEIGHT_SHARE;
         crawler.snapTo(host.getX(), y, host.getZ(), random.nextFloat() * FULL_TURN_DEGREES, 0.0F);
         level.addFreshEntity(crawler);
-        float pitch = GORE_PITCH_BASE + random.nextFloat() * GORE_PITCH_SPREAD;
-        level.playSound(null, host.getX(), host.getY(), host.getZ(), TTSounds.GORE.get(), SoundSource.HOSTILE, GORE_VOLUME, pitch);
+        host.playSound(TTSounds.GORE.get(), GORE_VOLUME, GORE_PITCH);
     }
 }

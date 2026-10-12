@@ -20,10 +20,10 @@ public final class BlockTaintGeyser extends AbstractTaintBlock {
 
     private static final int SWARM_ONE_IN = 5;
     private static final double PLAYER_RANGE = 32.0;
-    private static final double SWARM_SPACING = 32.0;
+    private static final double SWARM_BOX_SIZE = 64.0;
     private static final double CELL_CENTRE = 0.5;
-    private static final double HOVER_HEIGHT = 1.2;
-    private static final float FULL_TURN_DEGREES = 360.0F;
+    private static final double HOVER_HEIGHT = 1.25;
+    private static final int FULL_TURN_DEGREES = 360;
     private static final float POLLUTION_AMOUNT = 1.0F;
     private static final float POLLUTION_FLUX_RATIO = 0.25F;
 
@@ -64,7 +64,7 @@ public final class BlockTaintGeyser extends AbstractTaintBlock {
         if (swarm == null) {
             return false;
         }
-        swarm.snapTo(pos.getX() + CELL_CENTRE, pos.getY() + HOVER_HEIGHT, pos.getZ() + CELL_CENTRE, random.nextFloat() * FULL_TURN_DEGREES, 0.0F);
+        swarm.snapTo(pos.getX() + CELL_CENTRE, pos.getY() + HOVER_HEIGHT, pos.getZ() + CELL_CENTRE, (float) random.nextInt(FULL_TURN_DEGREES), 0.0F);
         return level.addFreshEntity(swarm);
     }
 
@@ -73,6 +73,6 @@ public final class BlockTaintGeyser extends AbstractTaintBlock {
         if (!level.hasNearbyAlivePlayer(centre.x, centre.y, centre.z, PLAYER_RANGE)) {
             return false;
         }
-        return level.getEntitiesOfClass(EntityTaintSwarm.class, new AABB(pos).inflate(SWARM_SPACING)).isEmpty();
+        return level.getEntitiesOfClass(EntityTaintSwarm.class, AABB.ofSize(centre, SWARM_BOX_SIZE, SWARM_BOX_SIZE, SWARM_BOX_SIZE)).isEmpty();
     }
 }

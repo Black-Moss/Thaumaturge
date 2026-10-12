@@ -39,10 +39,8 @@ public final class InvHelper {
     @Deprecated(since = "1.1.0", forRemoval = true)
     public static final InvFilter BASE_TAGS = new InvFilter(ItemMatch.ITEM_OR_TAG, true);
 
-    private static final double EJECT_REACH = 0.75;
-    private static final double BLOCKED_STEP_BACK = 1.0;
-    private static final double EJECT_SPEED = 0.15;
-    private static final double ITEM_HALF_HEIGHT = 0.125;
+    private static final double EJECT_REACH = 1.0;
+    private static final double EJECT_SPEED = 0.3;
     private static final double EYE_FRACTION = 0.5;
 
     private InvHelper() {}
@@ -256,9 +254,9 @@ public final class InvHelper {
      *
      * <p>The stack is first offered to the inventory exposed by the neighbour on that side, through its facing side. When such an
      * inventory exists, whatever it refuses is returned to the caller. When none exists, the stack is dropped as an item entity: it
-     * appears laterally centred on that face of the origin block, three quarters of a block out from the origin's centre, or one block
-     * further back when the neighbour is a full solid block, and it moves straight outward at a modest speed with the normal pickup
-     * delay.
+     * appears horizontally centred on the origin block, one block out along the face, at the floor level of the origin block plus
+     * the vertical step of the face. When the neighbour is a full solid block it appears at the origin's horizontal centre and floor
+     * level instead. It moves straight outward at 0.3 blocks per tick and has no pickup delay.
      *
      * @param level the level
      * @param pos   the origin block
@@ -273,8 +271,8 @@ public final class InvHelper {
     }
 
     /**
-     * Drops a copy of a stack at an entity, at its horizontal position and half its eye height above its feet, with no motion. Does
-     * nothing on the client or for an empty stack.
+     * Drops a copy of a stack at an entity, at its horizontal position and half its eye height above its feet. The item gets the
+     * usual small random hop (up to 0.1 sideways, 0.2 up). Does nothing on the client or for an empty stack.
      *
      * @param level  the level
      * @param stack  the stack to drop; not modified
@@ -286,7 +284,7 @@ public final class InvHelper {
             return;
         }
         double y = entity.getY() + entity.getEyeHeight() * EYE_FRACTION;
-        level.addFreshEntity(new ItemEntity(level, entity.getX(), y, entity.getZ(), stack.copy(), 0.0, 0.0, 0.0));
+        level.addFreshEntity(new ItemEntity(level, entity.getX(), y, entity.getZ(), stack.copy()));
     }
 
     /**
@@ -738,13 +736,12 @@ public final class InvHelper {
 
     private static void spawnEjected(Level level, BlockPos pos, Direction side, ItemStack stack) {
         BlockPos ahead = pos.relative(side);
-        double reach = level.getBlockState(ahead).isCollisionShapeFullBlock(level, ahead) ? EJECT_REACH - BLOCKED_STEP_BACK : EJECT_REACH;
+        boolean blocked = level.getBlockState(ahead).isCollisionShapeFullBlock(level, ahead);
         Vec3 outward = new Vec3(side.getStepX(), side.getStepY(), side.getStepZ());
-        Vec3 spot = Vec3.atCenterOf(pos).add(outward.scale(reach));
+        Vec3 floorCentre = Vec3.atBottomCenterOf(pos);
+        Vec3 spot = blocked ? floorCentre : floorCentre.add(outward.scale(EJECT_REACH));
         Vec3 motion = outward.scale(EJECT_SPEED);
-        ItemEntity entity = new ItemEntity(level, spot.x, spot.y - ITEM_HALF_HEIGHT, spot.z, stack, motion.x, motion.y, motion.z);
-        entity.setDefaultPickUpDelay();
-        level.addFreshEntity(entity);
+        level.addFreshEntity(new ItemEntity(level, spot.x, spot.y, spot.z, stack, motion.x, motion.y, motion.z));
     }
 
     private static int acceptedCount(Level level, BlockPos pos, Direction side, ItemStack stack) {

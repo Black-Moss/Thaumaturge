@@ -68,9 +68,9 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
     private static final int SEARCH_W = 55;
     private static final int SEARCH_HINT_X = 146;
     private static final int SEARCH_HINT_Y = 197;
-    private static final int SEARCH_HINT_COLOR = 0xFF4E4A52;
-    private static final int COUNT_LABEL_COLOR = 0xFF38343C;
-    private static final float CLACK_VOLUME = 0.35F;
+    private static final int SEARCH_HINT_COLOR = 0xFF222222;
+    private static final int COUNT_LABEL_COLOR = 0xFF333333;
+    private static final float CLACK_VOLUME = 0.66F;
 
     private static final long REFRESH_INTERVAL_MS = 1000L;
     private static final int MIN_REQUEST = 1;

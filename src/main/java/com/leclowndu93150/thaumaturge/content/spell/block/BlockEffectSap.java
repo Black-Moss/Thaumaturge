@@ -34,24 +34,22 @@ public final class BlockEffectSap extends Block {
     private static final int SLOWNESS_AMPLIFIER = 1;
     private static final int HUNGER_AMPLIFIER = 1;
 
-    private static final float SPARK_MAX_RISE = 0.25F;
-    private static final double SPARK_FLOOR_OFFSET = 0.05;
-    private static final float SPARK_MIN_SCALE = 2.0F;
-    private static final float SPARK_SCALE_PER_RISE = 14.0F;
-    private static final float SPARK_ALPHA = 0.7F;
-    private static final float SPARK_RED_LOW = 0.22F;
-    private static final float SPARK_RED_SPAN = 0.12F;
-    private static final float SPARK_GREEN_LOW = 0.04F;
-    private static final float SPARK_GREEN_SPAN = 0.06F;
-    private static final float SPARK_BLUE_LOW = 0.30F;
-    private static final float SPARK_BLUE_SPAN = 0.15F;
-    private static final float OPAQUE = 1.0F;
+    private static final float SPARK_MAX_HEIGHT_ROLL = 0.33F;
+    private static final double SPARK_FLOOR_OFFSET = 0.1515;
+    private static final double SPARK_RISE_PER_ROLL = 0.5;
+    private static final float SPARK_MIN_SCALE = 3.0F;
+    private static final float SPARK_SCALE_PER_ROLL = 6.0F;
+    private static final float SPARK_ALPHA = 1.0F;
+    private static final float SPARK_RED_LOW = 0.2F;
+    private static final float SPARK_RED_SPAN = 0.1F;
+    private static final float SPARK_GREEN = 0.0F;
+    private static final float SPARK_BLUE_LOW = 0.5F;
+    private static final float SPARK_BLUE_SPAN = 0.2F;
 
-    private static final int CRACKLE_CHANCE_DENOMINATOR = 70;
-    private static final float CRACKLE_VOLUME = 0.15F;
-    private static final float CRACKLE_PITCH_LOW = 0.7F;
-    private static final float CRACKLE_PITCH_SPAN = 0.3F;
-    private static final double BLOCK_CENTRE = 0.5;
+    private static final int CRACKLE_CHANCE_DENOMINATOR = 50;
+    private static final float CRACKLE_VOLUME = 0.25F;
+    private static final float CRACKLE_PITCH_BASE = 1.0F;
+    private static final float CRACKLE_PITCH_SPREAD = 0.2F;
 
     public BlockEffectSap(BlockBehaviour.Properties properties) {
         super(properties);
@@ -65,11 +63,6 @@ public final class BlockEffectSap extends Block {
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.INVISIBLE;
-    }
-
-    @Override
-    protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return Shapes.empty();
     }
 
     @Override
@@ -112,17 +105,16 @@ public final class BlockEffectSap extends Block {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        float rise = random.nextFloat() * SPARK_MAX_RISE;
+        float roll = random.nextFloat() * SPARK_MAX_HEIGHT_ROLL;
         double x = pos.getX() + random.nextDouble();
-        double y = pos.getY() + SPARK_FLOOR_OFFSET + rise;
+        double y = pos.getY() + SPARK_FLOOR_OFFSET + roll * SPARK_RISE_PER_ROLL;
         double z = pos.getZ() + random.nextDouble();
-        int colour = ARGB.colorFromFloat(OPAQUE, SPARK_RED_LOW + random.nextFloat() * SPARK_RED_SPAN, SPARK_GREEN_LOW + random.nextFloat() * SPARK_GREEN_SPAN,
-                SPARK_BLUE_LOW + random.nextFloat() * SPARK_BLUE_SPAN);
-        float scale = SPARK_MIN_SCALE + rise * SPARK_SCALE_PER_RISE;
+        int colour = ARGB.colorFromFloat(SPARK_ALPHA, SPARK_RED_LOW + SPARK_RED_SPAN * (1.0F - random.nextFloat()), SPARK_GREEN, SPARK_BLUE_LOW + random.nextFloat() * SPARK_BLUE_SPAN);
+        float scale = SPARK_MIN_SCALE + roll * SPARK_SCALE_PER_ROLL;
         level.addParticle(new SparkParticleOptions(colour, SPARK_ALPHA, scale), x, y, z, 0.0, 0.0, 0.0);
         if (random.nextInt(CRACKLE_CHANCE_DENOMINATOR) == 0) {
-            float pitch = CRACKLE_PITCH_LOW + random.nextFloat() * CRACKLE_PITCH_SPAN;
-            level.playLocalSound(pos.getX() + BLOCK_CENTRE, pos.getY() + BLOCK_CENTRE, pos.getZ() + BLOCK_CENTRE, TTSounds.JACOBS.get(), SoundSource.AMBIENT, CRACKLE_VOLUME, pitch, false);
+            float pitch = CRACKLE_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * CRACKLE_PITCH_SPREAD;
+            level.playLocalSound(pos.getX(), pos.getY(), pos.getZ(), TTSounds.JACOBS.get(), SoundSource.AMBIENT, CRACKLE_VOLUME, pitch, false);
         }
     }
 }

@@ -25,6 +25,8 @@ public final class RecipeDisplayWidget {
     private static final int ALL_LAYERS = -1;
     private static final long ROTATION_PERIOD_MILLIS = 72000L;
     private static final float ROTATION_MILLIS_PER_DEGREE = 200.0F;
+    private static final int BACKDROP_U = 60;
+    private static final int BACKDROP_WIDTH = 51;
 
     public record ItemHit(ItemStack stack, int x, int y) {
         public boolean contains(double mouseX, double mouseY) {
@@ -41,6 +43,9 @@ public final class RecipeDisplayWidget {
 
         @Override
         public void render(GuiGraphicsExtractor graphics, PanelContext context, float rotation, int layer) {
+            context.beginScaled(graphics, 0);
+            context.blitBackdrop(graphics, BACKDROP_U, BACKDROP_WIDTH);
+            context.endScaled(graphics);
             context.drawOutputFrame(graphics);
             hits(context).forEach(hit -> context.drawItem(graphics, hit));
         }

@@ -1,17 +1,17 @@
 package com.leclowndu93150.thaumaturge.content.warp.roll;
 
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
-import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 
 public final class DistantBlastOutcome implements WarpOutcome {
-    private static final double REACH = 10.0;
+    private static final int OFFSET_BOUND = 10;
     private static final float CARRYING_VOLUME = 4.0F;
-    private static final float LOW_PITCH = 0.6F;
-    private static final float PITCH_WOBBLE = 0.1F;
+    private static final float BASE_PITCH = 1.0F;
+    private static final float PITCH_WOBBLE = 0.2F;
+    private static final float PITCH_SCALE = 0.7F;
 
     @Override
     public void apply(WarpRoll roll) {
@@ -20,14 +20,14 @@ public final class DistantBlastOutcome implements WarpOutcome {
         }
         ServerPlayer player = roll.player();
         RandomSource random = roll.random();
-        double x = player.getX() + nearBiased(random);
-        double y = player.getY() + nearBiased(random);
-        double z = player.getZ() + nearBiased(random);
-        float pitch = LOW_PITCH + (random.nextFloat() - random.nextFloat()) * PITCH_WOBBLE;
-        player.connection.send(new ClientboundSoundPacket(SoundEvents.GENERIC_EXPLODE, SoundSource.AMBIENT, x, y, z, CARRYING_VOLUME, pitch, random.nextLong()));
+        double x = player.getX() + blockOffset(random);
+        double y = player.getY() + blockOffset(random);
+        double z = player.getZ() + blockOffset(random);
+        float pitch = (BASE_PITCH + (random.nextFloat() - random.nextFloat()) * PITCH_WOBBLE) * PITCH_SCALE;
+        roll.level().playSound(null, x, y, z, SoundEvents.GENERIC_EXPLODE, SoundSource.AMBIENT, CARRYING_VOLUME, pitch);
     }
 
-    private static double nearBiased(RandomSource random) {
-        return (random.nextDouble() - random.nextDouble()) * REACH;
+    private static int blockOffset(RandomSource random) {
+        return random.nextInt(OFFSET_BOUND) - random.nextInt(OFFSET_BOUND);
     }
 }

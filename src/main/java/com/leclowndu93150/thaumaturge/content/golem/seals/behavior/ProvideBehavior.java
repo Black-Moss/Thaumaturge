@@ -25,8 +25,8 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jspecify.annotations.Nullable;
 
 public final class ProvideBehavior implements ISealBehavior {
-    public static final SealSetting SINGLE_ITEM = new SealSetting("single_item", "gui.thaumaturge.seal.setting.single", false);
-    public static final SealSetting LEAVE_ONE = new SealSetting("leave_one", "gui.thaumaturge.seal.setting.leave", false);
+    public static final SealSetting SINGLE_ITEM = new SealSetting("psing", "gui.thaumaturge.seal.setting.single", false);
+    public static final SealSetting LEAVE_ONE = new SealSetting("pleave", "gui.thaumaturge.seal.setting.leave", false);
 
     private static final int STAGGER = 88;
     private static final int TIDY_PERIOD = 100;
@@ -36,7 +36,6 @@ public final class ProvideBehavior implements ISealBehavior {
     private static final int SEAL_REQUEST_LIFE = 10;
     private static final int LONG_LIFE = 31000;
     private static final int COLLECT_XP = 1;
-    private static final double PUSH_SPEED = 0.3;
 
     private final SealClock clock = new SealClock(STAGGER);
 
@@ -67,7 +66,7 @@ public final class ProvideBehavior implements ISealBehavior {
 
     private static boolean requesterIsGone(Level level, SupplyOrder request) {
         ISealEntity requester = request.requestingSeal();
-        return requester != null && GolemDispatch.sealAt(level, requester.pos()).orElse(null) != requester;
+        return requester != null && GolemDispatch.sealAt(level, requester.pos()).isEmpty();
     }
 
     private void scan(ServerLevel level, ISealEntity seal) {
@@ -177,7 +176,7 @@ public final class ProvideBehavior implements ISealBehavior {
 
     private static void pushBack(ServerLevel level, SealPos at, ResourceHandler<ItemResource> container, ItemStack unheld) {
         ItemStack refused = InvHelper.insertStack(container, unheld, false);
-        LooseItems.spawn(level, LooseItems.inFrontOf(at.pos(), at.face()), refused, towards(at.face().getOpposite()));
+        LooseItems.spawn(level, LooseItems.inFrontOf(at.pos(), at.face()), refused, LooseItems.pushToward(at.face().getOpposite()));
     }
 
     private static void postDelivery(ServerLevel level, ISealEntity seal, Task collection, SupplyOrder request) {
@@ -239,11 +238,7 @@ public final class ProvideBehavior implements ISealBehavior {
         }
         boolean solid = level.getBlockState(block).isCollisionShapeFullBlock(level, block);
         Vec3 spot = solid ? LooseItems.inFrontOf(block, side) : Vec3.atCenterOf(block);
-        LooseItems.spawn(level, spot, given, towards(side.getOpposite()));
-    }
-
-    private static Vec3 towards(Direction direction) {
-        return new Vec3(direction.getStepX(), direction.getStepY(), direction.getStepZ()).scale(PUSH_SPEED);
+        LooseItems.spawn(level, spot, given, LooseItems.pushToward(side.getOpposite()));
     }
 
     @Override

@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.content.crucible.BlockEntityCrucible;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.block.FluidModel;
@@ -15,9 +14,9 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import org.jspecify.annotations.Nullable;
@@ -58,10 +57,8 @@ public final class CrucibleRenderer implements BlockEntityRenderer<BlockEntityCr
         state.sprite = model.stillMaterial().sprite();
         state.fluidHeight = crucible.surfaceLevel();
         int base = OPAQUE_WHITE;
-        if (model.tintSource() != null) {
-            BlockState fluidBlock = fluid.defaultFluidState().createLegacyBlock();
-            int tint = crucible.getLevel() instanceof ClientLevel level ? model.tintSource().colorInWorld(fluidBlock, level, crucible.getBlockPos()) : model.tintSource().color(fluidBlock);
-            base = ARGB.opaque(tint);
+        if (model.tintSource() instanceof FluidTintSource tintSource) {
+            base = ARGB.opaque(tintSource.colorAsStack(stack));
         }
         state.color = tinted(base, crucible.getAspects().totalAmount());
     }

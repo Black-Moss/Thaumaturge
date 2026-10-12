@@ -33,11 +33,11 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
     private static final Identifier SIDE_TEXTURE = TTIds.rl("textures/entity/obelisk_side.png");
     private static final Identifier SIDE_TEXTURE_OUTER = TTIds.rl("textures/entity/obelisk_side_2.png");
     private static final float BASE_HEIGHT = 1.0F;
-    private static final float GAP_HEIGHT = 1.0F;
     private static final float COLUMN_HEIGHT = 3.0F;
-    private static final float BOB_PERIOD = 110.0F;
-    private static final float BOB_AMPLITUDE = 0.12F;
-    private static final float PLANE_INSET = 0.04F;
+    private static final float BOB_MIDPOINT = 0.1F;
+    private static final float BOB_AMPLITUDE = 0.1F;
+    private static final float BOB_TIME_DIVISOR = 10.0F;
+    private static final float PLANE_INSET = 0.01F;
     private static final float[] PLANE_OFFSETS = {PLANE_INSET, 1.0F - PLANE_INSET};
     private static final float CENTER = 0.5F;
     private static final float QUARTER_TURN_DEGREES = 90.0F;
@@ -69,7 +69,7 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
 
     @Override
     public void submit(EldritchObeliskRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        float bottom = BASE_HEIGHT + GAP_HEIGHT + bob(state.animationTime);
+        float bottom = BASE_HEIGHT + bob(state.animationTime);
         float top = bottom + COLUMN_HEIGHT;
         int light = state.lightCoords;
         BlockPos pos = state.blockPos;
@@ -82,8 +82,7 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
     }
 
     private static float bob(float time) {
-        float cycle = time % BOB_PERIOD / BOB_PERIOD;
-        return BOB_AMPLITUDE * (1.0F - Mth.cos(cycle * Mth.TWO_PI)) / 2.0F;
+        return BOB_MIDPOINT + BOB_AMPLITUDE * Mth.sin(time / BOB_TIME_DIVISOR);
     }
 
     private static void submitEndCap(PoseStack poseStack, SubmitNodeCollector collector, RenderType capType, int light, float height, Axis tilt) {

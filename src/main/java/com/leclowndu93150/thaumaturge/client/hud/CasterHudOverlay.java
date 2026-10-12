@@ -13,9 +13,7 @@ import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
 import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import net.minecraft.client.DeltaTracker;
@@ -38,7 +36,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class CasterHudOverlay implements GuiLayer {
     private static final int TEX = 256;
-    private static final int STACK_HEIGHT = 58;
+    private static final int STACK_HEIGHT = 60;
 
     private static final int DISC_U = 0;
     private static final int DISC_V = 0;
@@ -62,7 +60,8 @@ public final class CasterHudOverlay implements GuiLayer {
     private static final int FILL_W = 8;
     private static final int FILL_MAX = 30;
     private static final int FILL_INNER_GAP = 4;
-    private static final float FILL_ALPHA = 0.85F;
+    private static final int FRAME_OUTSET = 3;
+    private static final float FILL_ALPHA = 0.8F;
     private static final float CHANNEL_MAX = 255.0F;
     private static final int FALLBACK_COLOR = 0xE8E2F0;
 
@@ -75,8 +74,8 @@ public final class CasterHudOverlay implements GuiLayer {
     private static final int TEXT_COLOR = 0xFFFFFFFF;
     private static final int OUTLINE_COLOR = 0xFF000000;
     private static final int TEXT_HALF_HEIGHT = 4;
-    private static final int AMOUNT_TEXT_START = 24;
-    private static final int TEXT_GAP = 2;
+    private static final int AMOUNT_TEXT_START = 32;
+    private static final int COST_TEXT_START = 72;
 
     private static final int ICON_SIZE = 16;
     private static final int ICON_HALF = 8;
@@ -89,9 +88,9 @@ public final class CasterHudOverlay implements GuiLayer {
     private static final int COST_REFRESH_TICKS = 20;
     private static final int OFFHAND_SLOT = -1;
     private static final int NO_SLOT = Integer.MIN_VALUE;
-    private static final String COST_PATTERN = "0.##";
+    private static final String COST_PATTERN = "#######.#";
 
-    private final DecimalFormat costFormat = new DecimalFormat(COST_PATTERN, DecimalFormatSymbols.getInstance(Locale.ROOT));
+    private final DecimalFormat costFormat = new DecimalFormat(COST_PATTERN);
     private final int[] trendReference = new int[TTAspects.PRIMALS.size()];
     private int trendSlot = NO_SLOT;
     private int trendTick;
@@ -156,26 +155,26 @@ public final class CasterHudOverlay implements GuiLayer {
             pose.rotate((firstDegrees + i * BAR_STEP_DEGREES) * Mth.DEG_TO_RAD);
             pose.scale(BAR_SCALE, BAR_SCALE);
             drawBar(graphics, fill, color);
-            int markerSpan = drawMarkers(graphics, baseCost > 0, Integer.compare(stored, trendReference[i]));
+            drawMarkers(graphics, baseCost > 0, Integer.compare(stored, trendReference[i]));
             if (sneaking) {
                 String costText = baseCost > 0 ? costFormat.format(perCast(caster, player, primal, baseCost)) : null;
-                drawBarText(graphics, font, Integer.toString(stored / WandEconomy.CENTIVIS_PER_VIS), costText, markerSpan);
+                drawBarText(graphics, font, costFormat.format(stored / (float) WandEconomy.CENTIVIS_PER_VIS), costText);
             }
             pose.popMatrix();
         }
     }
 
     private static void drawBar(GuiGraphicsExtractor graphics, int fill, int color) {
-        int frameTop = -BAR_TIP;
+        int frameTop = -BAR_TIP - FRAME_OUTSET;
         int fillBottom = frameTop + FRAME_H - FILL_INNER_GAP;
         if (fill > 0) {
-            graphics.blit(RenderPipelines.GUI_TEXTURED, HudTextures.CASTER_DIAL, -FILL_W / 2, fillBottom - fill, FILL_U, FILL_V + FILL_MAX - fill, FILL_W, fill, FILL_W, fill, TEX, TEX,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, HudTextures.CASTER_DIAL, -FILL_W / 2, fillBottom - fill, FILL_U, FILL_V, FILL_W, fill, FILL_W, fill, TEX, TEX,
                     ARGB.color(Math.round(FILL_ALPHA * CHANNEL_MAX), color));
         }
         graphics.blit(RenderPipelines.GUI_TEXTURED, HudTextures.CASTER_DIAL, -FRAME_W / 2, frameTop, FRAME_U, FRAME_V, FRAME_W, FRAME_H, FRAME_W, FRAME_H, TEX, TEX);
     }
 
-    private static int drawMarkers(GuiGraphicsExtractor graphics, boolean costed, int trend) {
+    private static void drawMarkers(GuiGraphicsExtractor graphics, boolean costed, int trend) {
         int span = 0;
         if (costed) {
             span += MARKER_SIZE;
@@ -185,20 +184,19 @@ public final class CasterHudOverlay implements GuiLayer {
             span += MARKER_SIZE;
             drawMarker(graphics, trend > 0 ? RISE_U : FALL_U, span);
         }
-        return span;
     }
 
     private static void drawMarker(GuiGraphicsExtractor graphics, int u, int reach) {
         graphics.blit(RenderPipelines.GUI_TEXTURED, HudTextures.CASTER_DIAL, -MARKER_SIZE / 2, -BAR_TIP - reach, u, MARKER_V, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, MARKER_SIZE, TEX, TEX);
     }
 
-    private static void drawBarText(GuiGraphicsExtractor graphics, Font font, String stored, @Nullable String cost, int markerSpan) {
+    private static void drawBarText(GuiGraphicsExtractor graphics, Font font, String stored, @Nullable String cost) {
         Matrix3x2fStack pose = graphics.pose();
         pose.pushMatrix();
         pose.rotate(-Mth.HALF_PI);
         graphics.text(font, stored, AMOUNT_TEXT_START, -TEXT_HALF_HEIGHT, TEXT_COLOR, true);
         if (cost != null) {
-            graphics.text(font, cost, BAR_TIP + markerSpan + TEXT_GAP, -TEXT_HALF_HEIGHT, TEXT_COLOR, true);
+            graphics.text(font, cost, COST_TEXT_START, -TEXT_HALF_HEIGHT, TEXT_COLOR, true);
         }
         pose.popMatrix();
     }

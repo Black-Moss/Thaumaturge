@@ -13,13 +13,15 @@ import net.minecraft.util.RandomSource;
 import org.joml.Quaternionf;
 
 public final class WardFlashParticle extends TTParticle {
-    private static final double EDGE_MARGIN = 0.25;
-    private static final double HIT_NUDGE = 0.12;
-    private static final double SURFACE_OFFSET = 0.012;
-    private static final int LIFETIME_BASE = 14;
-    private static final int LIFETIME_RANGE = 4;
-    private static final float SIZE_BASE = 0.55F;
-    private static final float SIZE_RANGE = 0.15F;
+    private static final double EDGE_MARGIN = 0.1;
+    private static final double HIT_NUDGE = 0.1;
+    private static final double SURFACE_OFFSET = 0.005;
+    private static final int LIFETIME_BASE = 12;
+    private static final int LIFETIME_RANGE = 5;
+    private static final float SIZE_BASE = 0.7F;
+    private static final float SIZE_SPREAD = 0.15F;
+    private static final float SIZE_MIN = 0.2F;
+    private static final float SIZE_MAX = 1.2F;
     private static final float PEAK_ALPHA = 0.5F;
     private static final float RISE_SHARE = 0.2F;
     private static final float QUAD_FACING_PITCH = (float) (-Math.PI / 2.0);
@@ -29,7 +31,7 @@ public final class WardFlashParticle extends TTParticle {
     private WardFlashParticle(ClientLevel level, double x, double y, double z, Direction face, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
         this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
-        this.quadSize = SIZE_BASE + this.random.nextFloat() * SIZE_RANGE;
+        this.quadSize = Mth.clamp(SIZE_BASE + (float) this.random.nextGaussian() * SIZE_SPREAD, SIZE_MIN, SIZE_MAX);
         this.alpha = 0.0F;
         this.orientation = new Quaternionf(face.getRotation()).rotateX(QUAD_FACING_PITCH).rotateZ(this.random.nextFloat() * Mth.TWO_PI);
         frame(0);
@@ -37,9 +39,10 @@ public final class WardFlashParticle extends TTParticle {
 
     @Override
     protected void update() {
-        frameByProgress();
         float t = progress();
-        this.alpha = t < RISE_SHARE ? PEAK_ALPHA * t / RISE_SHARE : PEAK_ALPHA * (1.0F - t) / (1.0F - RISE_SHARE);
+        frame(Math.min(sheetFrames() - 1, (int) (sheetFrames() * t)));
+        float threshold = this.lifetime * RISE_SHARE;
+        this.alpha = this.age <= threshold ? PEAK_ALPHA * this.age / threshold : PEAK_ALPHA * (this.lifetime - this.age) / this.lifetime;
     }
 
     @Override

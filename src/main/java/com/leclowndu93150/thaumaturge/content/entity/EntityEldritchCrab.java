@@ -35,7 +35,7 @@ import net.minecraft.world.entity.ai.goal.LeapAtTargetGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
@@ -65,9 +65,8 @@ public class EntityEldritchCrab extends Monster {
     private static final float LOOK_DISTANCE = 8.0F;
     private static final int LEAP_PRIORITY = 2;
     private static final int MELEE_PRIORITY = 3;
-    private static final int STROLL_PRIORITY = 5;
-    private static final int LOOK_PLAYER_PRIORITY = 6;
-    private static final int LOOK_AROUND_PRIORITY = 7;
+    private static final int STROLL_PRIORITY = 7;
+    private static final int LOOK_PRIORITY = 8;
     private static final int RETALIATE_PRIORITY = 1;
     private static final int PLAYER_PRIORITY = 2;
     private static final int CULTIST_PRIORITY = 3;
@@ -92,7 +91,6 @@ public class EntityEldritchCrab extends Monster {
     private static final double SEAT_WIDTH_FACTOR = 0.5;
     private static final double SEAT_CRAB_WIDTH_FACTOR = 0.25;
     private static final float FACE_VICTIM_TURN = 180.0F;
-    private static final int FAVOURED_BOON_EXTRA_WEIGHT = 1;
     private static final double LATCH_HEIGHT_FACTOR = 0.5;
 
     private int attackTimer;
@@ -147,10 +145,10 @@ public class EntityEldritchCrab extends Monster {
 
     private void registerBehaviourGoals() {
         this.goalSelector.addGoal(LEAP_PRIORITY, new LeapAtTargetGoal(this, LEAP_STRENGTH));
-        this.goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, true));
-        this.goalSelector.addGoal(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
-        this.goalSelector.addGoal(LOOK_PLAYER_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
-        this.goalSelector.addGoal(LOOK_AROUND_PRIORITY, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
+        this.goalSelector.addGoal(STROLL_PRIORITY, new RandomStrollGoal(this, STROLL_SPEED));
+        this.goalSelector.addGoal(LOOK_PRIORITY, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(LOOK_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
     }
 
     private <T extends LivingEntity> Goal stalk(Class<T> quarry) {
@@ -217,8 +215,7 @@ public class EntityEldritchCrab extends Monster {
     }
 
     private static Holder<MobEffect> pickBoon(RandomSource random) {
-        int roll = random.nextInt(SPAWN_BOONS.size() + FAVOURED_BOON_EXTRA_WEIGHT);
-        return SPAWN_BOONS.get(Math.max(0, roll - FAVOURED_BOON_EXTRA_WEIGHT));
+        return SPAWN_BOONS.get(random.nextInt(SPAWN_BOONS.size()));
     }
 
     @Override
@@ -236,10 +233,14 @@ public class EntityEldritchCrab extends Monster {
         if (!this.isAlive()) {
             return;
         }
-        if (this.getVehicle() instanceof LivingEntity host) {
-            strikeVehicle(level, host);
-        } else {
+        if (this.attackTimer > 0) {
+            this.attackTimer--;
+        }
+        if (!this.isPassenger()) {
             latchOntoTarget();
+        }
+        if (this.isAlive() && this.getVehicle() instanceof LivingEntity host) {
+            strikeVehicle(level, host);
         }
     }
 
@@ -249,8 +250,8 @@ public class EntityEldritchCrab extends Monster {
             return;
         }
         boolean above = this.getY() >= target.getY() + target.getBbHeight() * LATCH_HEIGHT_FACTOR;
-        if (above && this.distanceToSqr(target) <= LATCH_SQUARED_DISTANCE && this.startRiding(target, true, true)) {
-            this.attackTimer = MOUNTED_ATTACK_BASE + this.getRandom().nextInt(MOUNTED_ATTACK_SPREAD + 1);
+        if (above && this.distanceToSqr(target) < LATCH_SQUARED_DISTANCE) {
+            this.startRiding(target);
         }
     }
 
@@ -259,10 +260,10 @@ public class EntityEldritchCrab extends Monster {
             this.stopRiding();
             return;
         }
-        if (--this.attackTimer > 0) {
+        if (this.attackTimer > 0) {
             return;
         }
-        this.attackTimer = MOUNTED_ATTACK_BASE + this.getRandom().nextInt(MOUNTED_ATTACK_SPREAD + 1);
+        this.attackTimer = MOUNTED_ATTACK_BASE + this.getRandom().nextInt(MOUNTED_ATTACK_SPREAD);
         this.doHurtTarget(level, host);
         if (this.getRandom().nextFloat() < DISMOUNT_CHANCE) {
             this.stopRiding();

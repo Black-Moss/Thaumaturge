@@ -23,7 +23,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.valueproviders.IntProvider;
 import net.minecraft.util.valueproviders.IntProviders;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -41,9 +41,6 @@ public record EjectEffect(boolean consume, EjectAftermath aftermath, IntProvider
     private static final float FLUX_GOO_CHANCE = 0.5F;
     private static final float SLOSH_VOLUME = 0.3F;
     private static final float SLOSH_PITCH = 1.0F;
-    private static final float PUFF_RED = 0.3F;
-    private static final float PUFF_GREEN = 0.0F;
-    private static final float PUFF_BLUE = 0.35F;
     private static final int WARD_FLASH_COUNT = 6;
     private static final double WARD_FLASH_SPREAD = 0.35;
     private static final double WARD_FLASH_LIFT = 0.6;
@@ -125,8 +122,8 @@ public record EjectEffect(boolean consume, EjectAftermath aftermath, IntProvider
             drop(level, spot, held);
         }
         runAftermath(level, context.random(), spot);
-        Effects.bamf(level, topOf(spot)).color(PUFF_RED, PUFF_GREEN, PUFF_BLUE).send();
-        context.arcTo(topOf(spot));
+        context.zapSound();
+        context.arcTo(Vec3.atCenterOf(spot.above()));
     }
 
     private boolean destroys(float stability) {
@@ -150,7 +147,7 @@ public record EjectEffect(boolean consume, EjectAftermath aftermath, IntProvider
     }
 
     private static void drop(ServerLevel level, BlockPos origin, ItemStack held) {
-        level.addFreshEntity(new ItemEntity(level, origin.getX() + CENTER_OFFSET, origin.getY() + DROP_HEIGHT, origin.getZ() + CENTER_OFFSET, held));
+        Containers.dropItemStack(level, origin.getX() + CENTER_OFFSET, origin.getY() + DROP_HEIGHT, origin.getZ() + CENTER_OFFSET, held);
     }
 
     private void runAftermath(ServerLevel level, RandomSource random, BlockPos origin) {

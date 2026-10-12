@@ -9,7 +9,6 @@ import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
 import com.leclowndu93150.thaumaturge.mixin.world.item.alchemy.PotionBrewingAccessor;
 import com.leclowndu93150.thaumaturge.mixin.world.item.alchemy.PotionBrewingMixAccessor;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,33 +17,25 @@ import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.alchemy.Potions;
-import org.jspecify.annotations.Nullable;
 
 final class PotionAspects {
     private static final int REDUCTION_PERCENT = 66;
     private static final int PERCENT = 100;
     private static final int ALKIMIA_PER_REAGENT = 3;
     private static final int FALLBACK_AMOUNT = 5;
-    private static final int WATER_AMOUNT = 5;
     private static final int ASPECT_CAP = 10;
-    private static final int COMPOUND_KEEP_BIAS = 1;
-    private static final int MAX_ROUTE_LENGTH = 16;
+    private static final int MAX_SEARCH_LEVEL = 16;
 
     private PotionAspects() {}
 
     static AspectList of(ServerLevel level, ItemStack stack) {
         Optional<Holder<Potion>> potion = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).potion();
-        if (potion.isPresent() && potion.get().is(Potions.WATER)) {
-            return AspectList.EMPTY.add(aspect(level, TTAspects.AQUA), WATER_AMOUNT);
-        }
         List<ItemStack> reagents = potion.isPresent() ? reagentsAlongRoute(level, potion.get()) : List.of();
         if (reagents.isEmpty()) {
             return fallback(level);
@@ -65,11 +56,12 @@ final class PotionAspects {
     }
 
     private static AspectList total(ServerLevel level, List<ItemStack> reagents) {
+        Holder<IAspect> alkimia = aspect(level, TTAspects.ALKIMIA);
         AspectList sum = AspectList.EMPTY;
         for (ItemStack reagent : reagents) {
-            sum = sum.add(AspectIndexAccess.of(reagent));
+            sum = sum.add(AspectIndexAccess.of(reagent)).add(alkimia, ALKIMIA_PER_REAGENT);
         }
-        return sum.add(aspect(level, TTAspects.ALKIMIA), ALKIMIA_PER_REAGENT * reagents.size());
+        return sum;
     }
 
     private static AspectList reduce(AspectList sum) {
@@ -85,53 +77,44 @@ final class PotionAspects {
 
     private static AspectList trimToCap(AspectList list) {
         AspectList trimmed = list;
-        Comparator<AspectInstance> dropOrder = Comparator.comparingInt(PotionAspects::keepWeight).thenComparing(entry -> !entry.aspect().value().isPrimal());
         while (trimmed.size() > ASPECT_CAP) {
-            AspectInstance weakest = trimmed.entries().stream().min(dropOrder).orElseThrow();
+            AspectInstance weakest = trimmed.entries().get(0);
+            for (AspectInstance entry : trimmed.entries()) {
+                if (entry.amount() < weakest.amount()) {
+                    weakest = entry;
+                }
+            }
             trimmed = trimmed.without(weakest.aspect());
         }
         return trimmed;
     }
 
-    private static int keepWeight(AspectInstance entry) {
-        return entry.aspect().value().isPrimal() ? entry.amount() : entry.amount() + COMPOUND_KEEP_BIAS;
-    }
-
     private static List<ItemStack> reagentsAlongRoute(ServerLevel level, Holder<Potion> target) {
         List<?> mixes = ((PotionBrewingAccessor) level.potionBrewing()).thaumaturge$getPotionMixes();
         Map<Item, ItemStack> reagents = new LinkedHashMap<>();
-        Set<ResourceKey<?>> walked = new HashSet<>();
-        Holder<?> step = target;
-        for (int length = 0; length < MAX_ROUTE_LENGTH && !isWater(step); length++) {
-            Optional<? extends ResourceKey<?>> key = step.unwrapKey();
-            if (key.isEmpty() || !walked.add(key.get())) {
-                break;
-            }
-            PotionBrewingMixAccessor mix = firstMixMaking(mixes, key.get());
-            if (mix == null) {
-                break;
-            }
-            reagentItem(mix).ifPresent(item -> reagents.putIfAbsent(item, new ItemStack(item)));
-            step = mix.thaumaturge$getFrom();
-        }
+        collectReagents(mixes, target, 0, new HashSet<>(), reagents);
         return new ArrayList<>(reagents.values());
     }
 
-    private static @Nullable PotionBrewingMixAccessor firstMixMaking(List<?> mixes, ResourceKey<?> product) {
+    private static void collectReagents(List<?> mixes, Holder<?> potion, int level, Set<ResourceKey<?>> searched, Map<Item, ItemStack> reagents) {
+        if (level > MAX_SEARCH_LEVEL) {
+            return;
+        }
+        Optional<? extends ResourceKey<?>> key = potion.unwrapKey();
+        if (key.isEmpty() || !searched.add(key.get())) {
+            return;
+        }
         for (Object raw : mixes) {
             PotionBrewingMixAccessor mix = (PotionBrewingMixAccessor) raw;
-            if (mix.thaumaturge$getTo().unwrapKey().filter(product::equals).isPresent()) {
-                return mix;
+            if (mix.thaumaturge$getTo().unwrapKey().filter(key.get()::equals).isEmpty()) {
+                continue;
             }
+            reagentItem(mix).ifPresent(item -> reagents.putIfAbsent(item, new ItemStack(item)));
+            collectReagents(mixes, mix.thaumaturge$getFrom(), level + 1, searched, reagents);
         }
-        return null;
     }
 
     private static Optional<Item> reagentItem(PotionBrewingMixAccessor mix) {
-        return mix.thaumaturge$getIngredient().items().map(Holder::value).min(Comparator.comparingInt(BuiltInRegistries.ITEM::getId));
-    }
-
-    private static boolean isWater(Holder<?> potion) {
-        return potion.unwrapKey().filter(key -> Potions.WATER.is(key.identifier())).isPresent();
+        return mix.thaumaturge$getIngredient().items().map(Holder::value).findFirst();
     }
 }

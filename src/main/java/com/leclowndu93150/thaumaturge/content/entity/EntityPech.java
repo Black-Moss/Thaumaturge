@@ -9,7 +9,6 @@ import com.leclowndu93150.thaumaturge.registry.TTBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
-import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -93,8 +92,8 @@ public class EntityPech extends Monster implements RangedAttackMob, HoldsStill, 
     private static final double CROWD_RADIUS = 16.0;
     private static final int DESPAWN_HOARD_LIMIT = 5;
     private static final float HOARD_DROP_CHANCE = 0.33F;
-    private static final float HOARD_DROP_LIFT = 1.1F;
-    private static final float SOUND_VOLUME = 0.45F;
+    private static final float HOARD_DROP_LIFT = 1.5F;
+    private static final float SOUND_VOLUME = 0.4F;
 
     private static final float DROP_CHANCE = 0.2F;
     private static final float WAND_DROP_CHANCE = 0.1F;
@@ -109,7 +108,6 @@ public class EntityPech extends Monster implements RangedAttackMob, HoldsStill, 
 
     public EntityPech(EntityType<? extends EntityPech> type, Level level) {
         super(type, level);
-        this.getNavigation().setCanOpenDoors(true);
         this.xpReward = EXPERIENCE_REWARD;
     }
 
@@ -288,8 +286,8 @@ public class EntityPech extends Monster implements RangedAttackMob, HoldsStill, 
 
     @Override
     public void tick() {
-        super.tick();
         PechMoods.decay(this);
+        super.tick();
         if (this.level().isClientSide()) {
             PechMoods.tickClient(this);
         }
@@ -430,17 +428,16 @@ public class EntityPech extends Monster implements RangedAttackMob, HoldsStill, 
         private PechCensus() {}
 
         static boolean hasPeer(EntityPech pech, ServerLevel level) {
-            return !peersAround(pech, level, PEER_HORIZONTAL, PEER_VERTICAL, false).isEmpty();
+            return !peersAround(pech, level, PEER_HORIZONTAL, PEER_VERTICAL).isEmpty();
         }
 
         static List<EntityPech> alertable(EntityPech pech, ServerLevel level) {
-            return peersAround(pech, level, ALERT_HORIZONTAL, ALERT_VERTICAL, true);
+            return peersAround(pech, level, ALERT_HORIZONTAL, ALERT_VERTICAL);
         }
 
-        private static List<EntityPech> peersAround(EntityPech pech, ServerLevel level, double horizontal, double vertical, boolean centreInside) {
+        private static List<EntityPech> peersAround(EntityPech pech, ServerLevel level, double horizontal, double vertical) {
             AABB area = pech.getBoundingBox().inflate(horizontal, vertical, horizontal);
-            Predicate<EntityPech> filter = centreInside ? peer -> peer != pech && area.contains(peer.position()) : peer -> peer != pech;
-            return level.getEntitiesOfClass(EntityPech.class, area, filter);
+            return level.getEntitiesOfClass(EntityPech.class, area, peer -> peer != pech);
         }
     }
 
@@ -476,9 +473,7 @@ public class EntityPech extends Monster implements RangedAttackMob, HoldsStill, 
             if (rage <= 0 || pech.getTarget() == null) {
                 return;
             }
-            if (PechMoods.isQuiet(pech)) {
-                PechMoods.gossip(pech);
-            }
+            PechMoods.gossip(pech);
             if (--pech.chargeCooldown <= 0) {
                 playCharge(pech);
             }

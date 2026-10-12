@@ -9,14 +9,14 @@ import net.minecraft.util.RandomSource;
 public final class FocusCloudParticle extends TTParticle {
     private static final int FRAME_COUNT = 4;
     private static final int LIFETIME_BASE = 20;
-    private static final int LIFETIME_RANGE = 11;
-    private static final float FRICTION = 0.98F;
-    private static final float SIZE_UNIT = 0.2F;
-    private static final float START_SIZE_BASE = 2.0F;
-    private static final float END_SIZE_BASE = 4.5F;
-    private static final float PEAK_ALPHA = 0.4F;
-    private static final float SPIN_SPEED = 0.06F;
-    private static final double WIND_SCALE = 4.0E-4;
+    private static final int LIFETIME_RANGE = 10;
+    private static final float FRICTION = 0.99F;
+    private static final float SIZE_UNIT = 0.1F;
+    private static final float START_SIZE_BASE = 5.0F;
+    private static final float END_SIZE_BASE = 10.0F;
+    private static final float PEAK_ALPHA = 0.66F;
+    private static final float SPIN_SPEED = 0.25F;
+    private static final double WIND_SCALE = 1.0E-3;
 
     private final float startSize;
     private final float endSize;

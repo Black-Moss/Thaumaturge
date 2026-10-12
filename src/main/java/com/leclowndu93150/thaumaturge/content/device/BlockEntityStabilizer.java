@@ -35,7 +35,10 @@ public final class BlockEntityStabilizer extends AbstractSyncedBlockEntity {
     }
 
     public boolean spendForShield(int cost) {
-        if (cost <= 0 || charge < cost) {
+        if (cost <= 0) {
+            return true;
+        }
+        if (charge < cost) {
             return false;
         }
         changeCharge(charge - cost);

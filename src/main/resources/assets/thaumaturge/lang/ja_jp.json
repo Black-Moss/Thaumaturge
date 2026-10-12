@@ -1728,7 +1728,7 @@
   "research.thaumaturge.plants.addendum_2": "§oCinderpearl§r<IMG>thaumaturge:textures/research/research5.png:0:0:128:128:.6</IMG>最も暑い気候でのみ見られるこの植物は、元素の炎を宿して燃えている。採取して挽くと、ブレイズパウダーに似た細かな粉末が得られる。",
   "research.thaumaturge.plants.addendum_3": "§oShimmerleaf§r<IMG>thaumaturge:textures/research/research4.png:128:0:128:128:.6</IMG>この謎めいた光る花は、Silverwoodの木陰にのみ生える。採取してすりつぶすと水銀が得られる。",
   "research.thaumaturge.plants.addendum_4": "§oVishroom§r<IMG>thaumaturge:textures/research/research5.png:0:128:128:128:.6</IMG>この奇妙な光るキノコは、魔法の森でしか育たない。<BR>幻覚を引き起こす性質を持つため、あまり近づきすぎないよう注意しなければならない。",
-  "research.thaumaturge.plants.addendum_5": "マナポッドは、魔法の森で原木の下側からぶら下がる奇妙な小さい実だ。それぞれのポッドは一つの属性を宿し、ゆっくりと熟しながら、育つにつれて明るく光るようになる。熟したポッドを摘むと、マナ豆が1つか2つ手に入る。<BR>隣り合って熟すポッドは互いに影響し合う。組み合わせると複合属性になる2つのポッドの隣で育ったポッドは、その複合属性を帯びやすい。根気よく続ければ、望む属性のポッドを掛け合わせて作り出せる。",
+  "research.thaumaturge.plants.addendum_5": "§oマナポッド§r<IMG>thaumaturge:textures/research/research_manapod.png:0:0:128:128:.6</IMG>マナポッドは、魔法の森で原木の下側からぶら下がる奇妙な小さい実だ。それぞれのポッドは一つの属性を宿し、ゆっくりと熟しながら、育つにつれて明るく光るようになる。熟したポッドを摘むと、マナ豆が1つか2つ手に入る。<BR>隣り合って熟すポッドは互いに影響し合う。組み合わせると複合属性になる2つのポッドの隣で育ったポッドは、その複合属性を帯びやすい。根気よく続ければ、望む属性のポッドを掛け合わせて作り出せる。",
   "research.thaumaturge.plants.addendum_6": "マナ豆は食べられるが、それで食事を済ませようとは思わない。豆を1つ食べるごとに、短く予測のつかない効果が起こる。役に立つこともあれば、害になることもあり、ときには本当にひどい害になる。たまに、食べた豆が宿す属性について何かを学べることもある。<BR>増やすには、魔法のバイオームで原木の下側に豆を植えればよい。ただし、その下が空気でなければならない。",
   "research.thaumaturge.plants.stage_0": "Thaumaturgeに有用な、独自の植物が数多く存在する。見つけたものは研究すべきだろう。",
   "research.thaumaturge.plants.title": "植物",

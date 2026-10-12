@@ -28,7 +28,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
@@ -49,6 +48,7 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
     private static final EntityDataAccessor<String> ASPECT = SynchedEntityData.defineId(WispEntity.class, EntityDataSerializers.STRING);
     private static final String ASPECT_SAVE_KEY = "Type";
     private static final BooleanSupplier NEVER_STOP = () -> false;
+    private static final BooleanSupplier ALWAYS_WANDER = () -> true;
     private static final double MAX_HEALTH = 22.0;
     private static final double ATTACK_DAMAGE = 3.0;
     private static final double FOLLOW_RANGE = 16.0;
@@ -70,13 +70,11 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
     private static final int DEATH_BURST_TICK = 1;
     private static final double VERTICAL_DAMPING = 0.6;
     private static final float BIRTH_BURST_SIZE = 10.0F;
-    private static final float DEATH_BURST_SIZE = 4.0F;
-    private static final double DEATH_BURST_LIFT = 0.1;
+    private static final float DEATH_BURST_SIZE = 1.0F;
     private static final double MID_HEIGHT = 0.5;
-    private static final double MOTE_SPREAD = 0.35;
+    private static final float MOTE_SPREAD = 0.7F;
     private static final int MOTE_ONE_IN = 2;
     private static final float SOUND_VOLUME = 0.25F;
-    private static final int UNTINTED = 0xFFFFFF;
 
     public WispEntity(EntityType<? extends WispEntity> type, Level level) {
         super(type, level);
@@ -99,7 +97,7 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
 
     @Override
     protected void registerGoals() {
-        goalSelector.addGoal(WANDER_PRIORITY, new FlyingWanderGoal(this, true, this::isDrifting));
+        goalSelector.addGoal(WANDER_PRIORITY, new FlyingWanderGoal(this, true, ALWAYS_WANDER));
         goalSelector.addGoal(LOOK_PRIORITY, new Ghast.GhastLookGoal(this));
         goalSelector.addGoal(ZAP_PRIORITY, new WispZapGoal(this));
         targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
@@ -153,11 +151,6 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
         return SoundEvents.LAVA_EXTINGUISH;
     }
 
-    private boolean isDrifting() {
-        LivingEntity target = getTarget();
-        return target == null || !getSensing().hasLineOfSight(target);
-    }
-
     @Override
     public void tick() {
         super.tick();
@@ -170,25 +163,23 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
 
     private void spawnClientEffects() {
         Level world = level();
-        double midY = getY(MID_HEIGHT);
         if (tickCount == BIRTH_TICKS) {
-            world.addParticle(WispEffects.burst(BIRTH_BURST_SIZE), getX(), midY, getZ(), 0.0, 0.0, 0.0);
+            world.addParticle(WispEffects.burst(BIRTH_BURST_SIZE), getX(), getY(), getZ(), 0.0, 0.0, 0.0);
         }
-        if (isDeadOrDying()) {
-            if (deathTime == DEATH_BURST_TICK) {
-                world.addParticle(WispEffects.burst(DEATH_BURST_SIZE), getX(), midY + DEATH_BURST_LIFT, getZ(), 0.0, 0.0, 0.0);
-            }
+        if (isDeadOrDying() && deathTime == DEATH_BURST_TICK) {
+            world.addParticle(WispEffects.burst(DEATH_BURST_SIZE), getX(), getY(MID_HEIGHT), getZ(), 0.0, 0.0, 0.0);
+        }
+        if (random.nextInt(MOTE_ONE_IN) != 0) {
             return;
         }
-        if (random.nextInt(MOTE_ONE_IN) == 0) {
-            Holder<IAspect> aspect = aspect();
-            int color = aspect == null ? UNTINTED : aspect.value().color();
-            world.addParticle(WispEffects.mote(random, color), getX() + moteOffset(), midY + moteOffset(), getZ() + moteOffset(), 0.0, 0.0, 0.0);
+        Holder<IAspect> aspect = aspect();
+        if (aspect != null) {
+            world.addParticle(WispEffects.mote(random, aspect.value().color()), getX() + moteOffset(), getY() + moteOffset(), getZ() + moteOffset(), 0.0, 0.0, 0.0);
         }
     }
 
     private double moteOffset() {
-        return (random.nextDouble() - random.nextDouble()) * MOTE_SPREAD;
+        return (random.nextFloat() - random.nextFloat()) * MOTE_SPREAD;
     }
 
     @Override

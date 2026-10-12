@@ -16,7 +16,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
-import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
@@ -112,7 +111,7 @@ final class ResearchTableBonuses {
         if (fluid.is(FluidTags.WATER) && roll(WATER_ODDS)) {
             offer(resolve(TTAspects.AQUA));
         }
-        if ((fluid.is(FluidTags.LAVA) || state.getBlock() instanceof BaseFireBlock) && roll(HEAT_ODDS)) {
+        if ((fluid.is(FluidTags.LAVA) || state.is(Blocks.FIRE)) && roll(HEAT_ODDS)) {
             offer(resolve(TTAspects.IGNIS));
         }
         if (state.is(TTBlockTags.RESEARCH_BONUS_ORDO) && roll(ORDO_ODDS)) {

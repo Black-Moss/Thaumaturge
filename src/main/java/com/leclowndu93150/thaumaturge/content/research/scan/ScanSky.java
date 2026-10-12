@@ -14,7 +14,6 @@ import com.leclowndu93150.thaumaturge.registry.TTItems;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -127,7 +126,7 @@ public final class ScanSky implements IScannable {
 
         void announce(ServerPlayer player) {
             if (messageKey != null) {
-                player.sendOverlayMessage(Component.translatable(messageKey).withStyle(ChatFormatting.DARK_PURPLE));
+                player.sendOverlayMessage(Component.translatable(messageKey));
             }
         }
     }

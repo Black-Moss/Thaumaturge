@@ -50,28 +50,29 @@ public final class AuraHudOverlay implements LeftHudStack.Gauge {
     private static final int POINTER_H = 5;
     private static final int POINTER_TIP_ROW = 2;
 
-    private static final float FULL_TUBE_AURA = 520.0F;
+    private static final float FULL_TUBE_AURA = 525.0F;
 
-    private static final int VIS_TINT = 0xFFC7A6EE;
-    private static final int FLUX_TINT = 0xFF4B2559;
-    private static final int VIS_SHIMMER_TINT = 0x5CFFF4FF;
-    private static final int FLUX_SHIMMER_TINT = 0x70B37BFF;
-    private static final float VIS_SHIMMER_SPEED = 0.55F;
-    private static final float FLUX_SHIMMER_SPEED = -0.3F;
+    private static final int VIS_TINT = 0xFFB266E5;
+    private static final int FLUX_TINT = 0xFF3F194C;
+    private static final int VIS_SHIMMER_TINT = 0x80FFFFFF;
+    private static final int FLUX_SHIMMER_TINT = 0x80B266FF;
+    private static final float VIS_SHIMMER_SPEED = 1.0F;
+    private static final float FLUX_SHIMMER_SPEED = -0.33333334F;
     private static final long SCROLL_WRAP_TICKS = 64000L;
 
     private static final int TEXT_X = 18;
     private static final float TEXT_SCALE = 0.5F;
     private static final int TEXT_UPSCALE = 2;
-    private static final int VIS_TEXT_COLOR = 0xFFF2CDEB;
-    private static final int FLUX_TEXT_COLOR = 0xFFC01C82;
+    private static final int VIS_TEXT_COLOR = 0xFFEEAAFF;
+    private static final int FLUX_TEXT_COLOR = 0xFFAA11BB;
+    private static final int FLUX_TEXT_LIFT = 8;
     private static final int TENTHS = 10;
 
     public AuraHudOverlay() {}
 
     @Override
     public boolean visible(Minecraft mc, LocalPlayer player) {
-        if (mc.screen != null || !mc.mouseHandler.isMouseGrabbed() || !readsAura(player)) {
+        if (!readsAura(player)) {
             return false;
         }
         ChunkPos chunk = player.chunkPosition();
@@ -119,12 +120,12 @@ public final class AuraHudOverlay implements LeftHudStack.Gauge {
         float clock = (level.getGameTime() % SCROLL_WRAP_TICKS) + deltaTracker.getGameTimeDeltaPartialTick(false);
         drawBand(graphics, visTop, visRows, VIS_TINT, VIS_SHIMMER_U, VIS_SHIMMER_TINT, clock * VIS_SHIMMER_SPEED);
         drawBand(graphics, fluxTop, fluxRows, FLUX_TINT, FLUX_SHIMMER_U, FLUX_SHIMMER_TINT, clock * FLUX_SHIMMER_SPEED);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.HUD, FRAME_X, FRAME_Y, FRAME_U, FRAME_V, FRAME_W, FRAME_H, TEX, TEX);
-        int pointerTip = TUBE_BOTTOM - Math.round(baseShare * TUBE_ROWS);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.HUD, POINTER_X, pointerTip - POINTER_TIP_ROW, POINTER_U, POINTER_V, POINTER_W, POINTER_H, TEX, TEX);
         if (player.isShiftKeyDown()) {
             drawAmounts(graphics, mc.font, snapshot, visTop, fluxTop);
         }
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.HUD, FRAME_X, FRAME_Y, FRAME_U, FRAME_V, FRAME_W, FRAME_H, TEX, TEX);
+        int pointerTip = TUBE_BOTTOM - Math.round(baseShare * TUBE_ROWS);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.HUD, POINTER_X, pointerTip - POINTER_TIP_ROW, POINTER_U, POINTER_V, POINTER_W, POINTER_H, TEX, TEX);
     }
 
     private static boolean readsAura(LocalPlayer player) {
@@ -163,8 +164,12 @@ public final class AuraHudOverlay implements LeftHudStack.Gauge {
         pose.pushMatrix();
         pose.scale(TEXT_SCALE, TEXT_SCALE);
         int textX = TEXT_X * TEXT_UPSCALE;
-        graphics.text(font, amount(snapshot.vis()), textX, visTop * TEXT_UPSCALE - font.lineHeight / TEXT_UPSCALE, VIS_TEXT_COLOR);
-        graphics.text(font, amount(snapshot.flux()), textX, fluxTop * TEXT_UPSCALE - font.lineHeight, FLUX_TEXT_COLOR);
+        if (snapshot.vis() > 0.0F) {
+            graphics.text(font, amount(snapshot.vis()), textX, visTop * TEXT_UPSCALE, VIS_TEXT_COLOR, false);
+        }
+        if (snapshot.flux() > 0.0F) {
+            graphics.text(font, amount(snapshot.flux()), textX, fluxTop * TEXT_UPSCALE - FLUX_TEXT_LIFT, FLUX_TEXT_COLOR, false);
+        }
         pose.popMatrix();
     }
 

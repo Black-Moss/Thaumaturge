@@ -9,24 +9,21 @@ import net.minecraft.util.RandomSource;
 
 public final class SparkleParticle extends TTParticle {
     private static final int LOOP_FRAMES = 16;
-    private static final int SMALL_LOOP_START = 0;
-    private static final int NORMAL_LOOP_START = 16;
-    private static final int SMALL_ODDS = 5;
-    private static final float SIZE_UNIT = 0.25F;
+    private static final int LOW_LOOP_START = 0;
+    private static final int HIGH_LOOP_START = 16;
+    private static final int HIGH_LOOP_ODDS = 5;
+    private static final float SIZE_UNIT = 0.1F;
     private static final float GROWTH = 2.0F;
-    private static final int LIFE_FACTOR = 3;
-    private static final int LIFE_EXTRA_RANGE = 5;
-    private static final int TICKS_PER_FLICKER = 6;
-    private static final int MIN_FLICKER_LEVELS = 2;
-    private static final float FLICKER_FLOOR = 0.25F;
-    private static final float HORIZONTAL_NUDGE = 0.002F;
-    private static final float VERTICAL_NUDGE = 0.003F;
-    private static final float STEADY_NUDGE = 0.001F;
-    private static final double WIND_SCALE = 0.003;
+    private static final int LIFE_FACTOR = 4;
+    private static final int TICKS_PER_FLICKER = 4;
+    private static final int FLICKER_KEY_PADDING = 2;
+    private static final float FLICKER_CUTOFF_PROGRESS = 0.85F;
+    private static final float HORIZONTAL_NUDGE = 0.0005F;
+    private static final float VERTICAL_NUDGE = 0.001F;
+    private static final double WIND_SCALE = 0.0005;
 
     private final boolean flicker;
     private final int loopStart;
-    private final int loopOffset;
     private final float baseSize;
     private final float[] flickerKeys;
 
@@ -36,39 +33,43 @@ public final class SparkleParticle extends TTParticle {
         this.flicker = options.flicker();
         this.friction = options.decay();
         this.gravity = options.gravity();
-        this.lifetime = Math.max(1, options.baseAge()) * LIFE_FACTOR + this.random.nextInt(LIFE_EXTRA_RANGE);
+        int baseAge = Math.max(1, options.baseAge());
+        this.lifetime = baseAge * LIFE_FACTOR + this.random.nextInt(baseAge);
         this.baseSize = options.scale() * SIZE_UNIT;
         this.quadSize = this.baseSize;
         this.alpha = 0.0F;
-        this.loopStart = this.random.nextInt(SMALL_ODDS) == 0 ? SMALL_LOOP_START : NORMAL_LOOP_START;
-        this.loopOffset = this.random.nextInt(LOOP_FRAMES);
+        this.loopStart = this.random.nextInt(HIGH_LOOP_ODDS) == 0 ? HIGH_LOOP_START : LOW_LOOP_START;
         this.flickerKeys = this.flicker ? buildFlickerKeys() : new float[0];
-        frame(this.loopStart + this.loopOffset);
+        frame(this.loopStart);
         setDelay(options.delay());
-        if (this.flicker) {
-            setMoonWind(WIND_SCALE);
-        }
+        setMoonWind(WIND_SCALE);
     }
 
     private float[] buildFlickerKeys() {
-        int levels = MIN_FLICKER_LEVELS + this.lifetime / TICKS_PER_FLICKER;
-        float[] keys = new float[levels + 2];
-        for (int i = 1; i <= levels; i++) {
-            keys[i] = FLICKER_FLOOR + this.random.nextFloat() * (1.0F - FLICKER_FLOOR);
+        float[] keys = new float[this.lifetime / TICKS_PER_FLICKER + FLICKER_KEY_PADDING];
+        keys[0] = 1.0F;
+        for (int i = 1; i < keys.length; i++) {
+            float previousProgress = (float) ((i - 1) * TICKS_PER_FLICKER) / this.lifetime;
+            keys[i] = i >= 2 && previousProgress > FLICKER_CUTOFF_PROGRESS ? 0.0F : this.random.nextFloat();
         }
         return keys;
     }
 
+    private float flickerAlpha() {
+        int segment = Math.min(this.age / TICKS_PER_FLICKER, this.flickerKeys.length - 2);
+        float within = (float) (this.age - segment * TICKS_PER_FLICKER) / TICKS_PER_FLICKER;
+        return Mth.lerp(within, this.flickerKeys[segment], this.flickerKeys[segment + 1]);
+    }
+
     @Override
     protected void update() {
-        frame(this.loopStart + (this.age + this.loopOffset) % LOOP_FRAMES);
+        frame(this.loopStart + this.age % LOOP_FRAMES);
         float t = progress();
+        drift(HORIZONTAL_NUDGE, VERTICAL_NUDGE, HORIZONTAL_NUDGE);
         if (this.flicker) {
-            drift(HORIZONTAL_NUDGE, VERTICAL_NUDGE, HORIZONTAL_NUDGE);
-            this.alpha = Keyframes.sample(t, this.flickerKeys);
+            this.alpha = flickerAlpha();
             this.quadSize = Mth.lerp(t, this.baseSize, this.baseSize * GROWTH);
         } else {
-            drift(STEADY_NUDGE, 0.0F, STEADY_NUDGE);
             this.alpha = Keyframes.sample(t, 0.0F, 1.0F, 0.0F);
             this.quadSize = this.baseSize * Keyframes.sample(t, 1.0F, GROWTH, 1.0F);
         }

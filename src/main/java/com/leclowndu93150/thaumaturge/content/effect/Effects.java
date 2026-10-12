@@ -60,11 +60,12 @@ public final class Effects {
 
     public static final double SHELL_TICKS_PER_BLOCK = 16.0;
 
-    private static final EffectColor BAMF_COLOR = new EffectColor(0.52F, 0.12F, 0.62F);
+    private static final EffectColor BAMF_COLOR = new EffectColor(0.5F, 0.1F, 0.6F);
 
     private static final int GLINT_SKIP_ODDS = 3;
-    private static final float GLINT_SCALE = 0.7F;
-    private static final int GLINT_BASE_AGE = 3;
+    private static final float GLINT_SCALE_BASE = 0.6F;
+    private static final float GLINT_SCALE_SPREAD = 0.2F;
+    private static final int GLINT_BASE_AGE = 2;
 
     private static final int WISPY_AGE = 30;
     private static final EffectColor WISPY_COLOR = new EffectColor(0.5F, 0.5F, 0.5F);
@@ -74,23 +75,28 @@ public final class Effects {
     private static final float WISPY_AQUA_GREEN = 0.9F;
     private static final float WISPY_AQUA_BLUE = 0.95F;
 
-    private static final double CURLY_JITTER = 0.012;
-    private static final double CURLY_SIDE_PUSH = 0.04;
-    private static final double CURLY_LEAD_TICKS = 2.0;
+    private static final double CURLY_JITTER = 0.0025;
+    private static final double CURLY_JITTER_SPREAD = 0.005;
+    private static final double CURLY_SIDE_PUSH = 0.025;
+    private static final double CURLY_LEAD_TICKS = 5.0;
 
-    private static final int VENT_FLAME_ODDS = 3;
+    private static final int VENT_FLAME_ODDS = 6;
+    private static final int VENT_FLAME_THRESHOLD = 2;
     private static final double VENT_FLAME_SPEED_SHARE = 0.5;
-    private static final EffectColor VENT_FLAME_COLOR = new EffectColor(1.0F, 0.62F, 0.18F);
+    private static final EffectColor VENT_FLAME_COLOR = new EffectColor(1.0F, 0.7F, 0.2F);
     private static final float VENT_FLAME_ALPHA = 0.9F;
-    private static final float VENT_FLAME_SCALE = 1.2F;
+    private static final float VENT_FLAME_SCALE = 0.25F;
+    private static final float VENT_FLAME_SCALE_SPREAD = 0.1F;
+    private static final float VENT_FLAME_END_SCALE = 0.25F;
 
     private static final float FIRE_MOTE_TRANSLUCENT_DIVISOR = 3.0F;
 
-    private static final double POLLUTION_INSET = 0.25;
-    private static final double POLLUTION_SPAN = 0.5;
+    private static final double POLLUTION_INSET = 0.2;
+    private static final double POLLUTION_SPAN = 0.6;
 
-    private static final float PECH_MOTE_GRAVITY = -0.015F;
-    private static final double PECH_MOTE_RISE = 0.01;
+    private static final float PECH_MOTE_GRAVITY = -0.01F;
+    private static final int PECH_MOTE_AGE = 10;
+    private static final int PECH_MOTE_AGE_BOUND = 10;
 
     private static final EffectColor FLUX_FUME_COLOR = new EffectColor(0.95F, 0.22F, 0.72F);
     private static final float FLUX_FUME_SCALE = 0.5F;
@@ -100,9 +106,9 @@ public final class Effects {
     private static final int BORE_STREAM_COLOR = 0x8A4AD8;
     private static final float STREAM_SCALE = 0.14F;
 
-    private static final float WISP_FLAME_ALPHA = 0.6F;
-    private static final float WISP_FLAME_SCALE_BASE = 0.9F;
-    private static final float WISP_FLAME_SCALE_SPREAD = 0.3F;
+    private static final float WISP_FLAME_ALPHA = 0.5F;
+    private static final float WISP_FLAME_SCALE_BASE = 1.0F;
+    private static final float WISP_FLAME_SCALE_SPREAD = 0.25F;
     private static final float WISP_FLAME_END_SCALE = 0.05F;
 
     private Effects() {}
@@ -420,7 +426,8 @@ public final class Effects {
             if (level.getRandom().nextInt(GLINT_SKIP_ODDS) == 0) {
                 return;
             }
-            SparkleParticleOptions options = new SparkleParticleOptions(color.argb(), GLINT_SCALE, 0, SPARKLE_DECAY, 0.0F, GLINT_BASE_AGE, false);
+            float scale = GLINT_SCALE_BASE + level.getRandom().nextFloat() * GLINT_SCALE_SPREAD;
+            SparkleParticleOptions options = new SparkleParticleOptions(color.argb(), scale, 0, SPARKLE_DECAY, 0.0F, GLINT_BASE_AGE, false);
             spawn(level, options, pos.x, pos.y, pos.z);
         }
     }
@@ -678,7 +685,8 @@ public final class Effects {
 
         public void send() {
             RandomSource random = level.getRandom();
-            Vec3 velocity = motion.add(EffectRandom.signedSpeed(random, 0.0, CURLY_JITTER), EffectRandom.signedSpeed(random, 0.0, CURLY_JITTER), EffectRandom.signedSpeed(random, 0.0, CURLY_JITTER));
+            Vec3 velocity = motion.add(EffectRandom.signedSpeed(random, CURLY_JITTER, CURLY_JITTER_SPREAD), EffectRandom.signedSpeed(random, CURLY_JITTER, CURLY_JITTER_SPREAD),
+                    EffectRandom.signedSpeed(random, CURLY_JITTER, CURLY_JITTER_SPREAD));
             if (side != null) {
                 velocity = velocity.add(side.getUnitVec3().scale(CURLY_SIDE_PUSH));
             }
@@ -725,11 +733,11 @@ public final class Effects {
         public void send() {
             spawn(level, new VentParticleOptions(motion.x, motion.y, motion.z, color, scale, variant), pos.x, pos.y, pos.z);
             RandomSource random = level.getRandom();
-            if (variant && flame && random.nextInt(VENT_FLAME_ODDS) == 0) {
+            if (flame && random.nextInt(VENT_FLAME_ODDS) < VENT_FLAME_THRESHOLD) {
                 Vec3 sparkMotion = motion.scale(VENT_FLAME_SPEED_SHARE);
-                FireMoteParticleOptions spark = new FireMoteParticleOptions(sparkMotion.x, sparkMotion.y, sparkMotion.z, VENT_FLAME_COLOR.r(), VENT_FLAME_COLOR.g(), VENT_FLAME_COLOR.b(),
-                        VENT_FLAME_ALPHA, VENT_FLAME_SCALE, false);
-                spawn(level, spark, pos.x, pos.y, pos.z);
+                float sparkScale = VENT_FLAME_SCALE + random.nextFloat() * VENT_FLAME_SCALE_SPREAD;
+                WispFlameParticleOptions spark = new WispFlameParticleOptions(VENT_FLAME_COLOR.argb(), VENT_FLAME_ALPHA, sparkScale, VENT_FLAME_END_SCALE, 0);
+                spawnMoving(level, spark, pos, sparkMotion);
             }
         }
     }
@@ -814,10 +822,9 @@ public final class Effects {
         private int type;
         private float endMod = BEAM_END_MODIFIER;
         private boolean reverse;
-        private boolean hit;
 
         ClientboundStreamEffectPayload toPayload(Vec3 start, Vec3 end, int sourceId, boolean drill) {
-            return ClientboundStreamEffectPayload.beam(start.x, start.y, start.z, end.x, end.y, end.z, color, age, type, endMod, reverse, sourceId, drill, hit);
+            return ClientboundStreamEffectPayload.beam(start.x, start.y, start.z, end.x, end.y, end.z, color, age, type, endMod, reverse, sourceId, drill);
         }
     }
 
@@ -861,11 +868,6 @@ public final class Effects {
 
         public BeamWand reverse(boolean reverse) {
             settings.reverse = reverse;
-            return this;
-        }
-
-        public BeamWand hit(boolean hit) {
-            settings.hit = hit;
             return this;
         }
 
@@ -915,11 +917,6 @@ public final class Effects {
 
         public DrillBeam reverse(boolean reverse) {
             settings.reverse = reverse;
-            return this;
-        }
-
-        public DrillBeam hit(boolean hit) {
-            settings.hit = hit;
             return this;
         }
 
@@ -1531,7 +1528,8 @@ public final class Effects {
 
         public void send() {
             spawn(level, TTParticles.PECH_CURSE.get(), pos.x, pos.y, pos.z);
-            new WispyMotes(level, pos).randomColor().motion(0.0, PECH_MOTE_RISE, 0.0).drift(PECH_MOTE_GRAVITY).send();
+            int age = PECH_MOTE_AGE + level.getRandom().nextInt(PECH_MOTE_AGE_BOUND);
+            new WispyMotes(level, pos).randomColor().age(age).drift(PECH_MOTE_GRAVITY).send();
         }
     }
 

@@ -51,6 +51,9 @@ public class BlockJar extends BaseEntityBlock implements LabelTarget, IEssentiaS
 
     @Override
     public boolean attachLabel(Level level, BlockPos pos, Direction face, Player player, ItemStack stack) {
+        if (face.getAxis().isVertical()) {
+            return false;
+        }
         BlockEntity found = level.getBlockEntity(pos);
         if (!(found instanceof BlockEntityJar jar)) {
             return false;
@@ -58,7 +61,7 @@ public class BlockJar extends BaseEntityBlock implements LabelTarget, IEssentiaS
         ResourceKey<IAspect> label = LabelledVesselActions.aspectToLabel(stack, jar.aspectFilterKey(), jar.aspectKey(), jar.amount());
         if (label != null) {
             jar.setAspectFilter(label);
-            jar.setFacing(LabelledVesselActions.labelSideFacing(player));
+            jar.setFacing(face);
             LabelledVesselActions.playLabelSound(level, pos);
         }
         return label != null;
@@ -158,7 +161,7 @@ public class BlockJar extends BaseEntityBlock implements LabelTarget, IEssentiaS
         }
         if (!brace.isEmpty() && !jar.isBlocked()) {
             installBrace(jar, brace, player, level, pos);
-        } else if (player.isShiftKeyDown()) {
+        } else if (player.isCrouching()) {
             dispose(jar, level, pos, hit.getDirection());
         } else {
             return InteractionResult.PASS;

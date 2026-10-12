@@ -119,7 +119,7 @@ public final class ChampionEvents {
     }
 
     private static ItemEntity rewardEntity(ServerLevel level, LivingEntity victim, ItemStack reward) {
-        return new ItemEntity(level, victim.getX(), victim.getY(), victim.getZ(), reward);
+        return new ItemEntity(level, victim.getX(), victim.getY() + victim.getEyeHeight(), victim.getZ(), reward);
     }
 
     private static boolean isServerSideEldritch(LivingEntity entity) {

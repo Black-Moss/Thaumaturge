@@ -10,11 +10,11 @@ import net.minecraft.world.phys.Vec3;
 public final class EssentiaDripEmitter {
     private static final int MIN_TRAIL_FOR_DRIPS = 3;
     private static final float DRIP_CHANCE = 0.5F;
-    private static final float HEAD_DRIP_CHANCE = 0.2F;
-    private static final int OLDEST_WINDOW = 4;
+    private static final float HEAD_DRIP_CHANCE = 0.5F;
+    private static final int OLDEST_WINDOW = 3;
     private static final int HEAD_BACKSET = 2;
     private static final float DRIP_ALPHA = 0.5F;
-    private static final double DESTINATION_SCATTER = 0.04;
+    private static final double DESTINATION_SCATTER = 0.075;
 
     private final Vec3 origin;
     private final float red;
@@ -42,7 +42,7 @@ public final class EssentiaDripEmitter {
         if (size < MIN_TRAIL_FOR_DRIPS || random.nextFloat() >= DRIP_CHANCE) {
             return;
         }
-        int index = random.nextFloat() < HEAD_DRIP_CHANCE ? size - HEAD_BACKSET : random.nextInt(Math.min(OLDEST_WINDOW, size));
+        int index = random.nextFloat() < HEAD_DRIP_CHANCE ? size - HEAD_BACKSET : random.nextInt(OLDEST_WINDOW);
         TrailPoint point = trail.get(index);
         ClientEffects.essentiaDrop(level, this.origin.x + point.x(), this.origin.y + point.y(), this.origin.z + point.z(), this.red, this.green, this.blue, DRIP_ALPHA);
     }

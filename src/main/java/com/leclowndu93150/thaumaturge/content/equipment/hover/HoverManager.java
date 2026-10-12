@@ -27,9 +27,9 @@ public final class HoverManager {
     private static final float TOGGLE_VOLUME = 0.33F;
     private static final float TOGGLE_PITCH = 1.0F;
     private static final int HUM_INTERVAL_TICKS = 24;
-    private static final float HUM_VOLUME = 0.04F;
+    private static final float HUM_VOLUME = 0.05F;
     private static final float HUM_PITCH_BASE = 1.0F;
-    private static final float HUM_PITCH_SPREAD = 0.15F;
+    private static final float HUM_PITCH_SPREAD = 0.05F;
     private static final double FALL_DECAY = 0.75;
     private static final int NO_COUNT = 0;
 
@@ -72,7 +72,7 @@ public final class HoverManager {
             return;
         }
         if (player.tickCount % HUM_INTERVAL_TICKS == 0) {
-            float pitch = HUM_PITCH_BASE + (player.getRandom().nextFloat() - player.getRandom().nextFloat()) * HUM_PITCH_SPREAD;
+            float pitch = HUM_PITCH_BASE + player.getRandom().nextFloat() * HUM_PITCH_SPREAD;
             player.level().playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.JACOBS.get(), SoundSource.PLAYERS, HUM_VOLUME, pitch);
         }
     }

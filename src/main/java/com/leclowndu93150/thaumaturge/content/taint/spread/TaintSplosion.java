@@ -56,7 +56,7 @@ public final class TaintSplosion {
         if (TaintBlooms.isProtected(level, spot)) {
             return false;
         }
-        return TaintBiomeManager.isTainted(level, spot) || TaintBiomeManager.taintColumn(level, spot);
+        return TaintBiomeManager.taintColumn(level, spot);
     }
 
     private static void seed(ServerLevel level, BlockPos spot) {

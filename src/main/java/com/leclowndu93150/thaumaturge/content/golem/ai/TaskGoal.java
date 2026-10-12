@@ -24,8 +24,8 @@ public abstract class TaskGoal extends Goal {
     private static final int PAUSE_TICKS = 10;
     private static final int PATH_REFRESH_INTERVAL = 5;
     private static final double QUARTER_TURN = Math.PI / 2.0D;
-    private static final int UNSTICK_HORIZONTAL = 4;
-    private static final int UNSTICK_VERTICAL = 2;
+    private static final int UNSTICK_HORIZONTAL = 6;
+    private static final int UNSTICK_VERTICAL = 4;
 
     private enum Phase {
         IDLE, APPROACHING, WORKING, PAUSED, FINISHED
@@ -64,6 +64,11 @@ public abstract class TaskGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (cooldown > 0) {
+            cooldown--;
+            return false;
+        }
+        cooldown = CLAIM_COOLDOWN_ASKS;
         if (!(golem.level() instanceof ServerLevel level)) {
             return false;
         }
@@ -71,15 +76,7 @@ public abstract class TaskGoal extends Goal {
         if (held != null && !held.isEnded()) {
             return false;
         }
-        if (cooldown > 0) {
-            cooldown--;
-            return false;
-        }
-        if (claim(level)) {
-            return true;
-        }
-        cooldown = CLAIM_COOLDOWN_ASKS;
-        return false;
+        return claim(level);
     }
 
     protected boolean mayTake(Task task, BlockPos where) {
@@ -157,6 +154,7 @@ public abstract class TaskGoal extends Goal {
     }
 
     private void walk(Task task) {
+        task.recordAttempt(false);
         if (steps++ % PATH_REFRESH_INTERVAL != 0) {
             return;
         }
@@ -189,7 +187,8 @@ public abstract class TaskGoal extends Goal {
             steps = 0;
             lastCheck = null;
             retarget(next);
-            phase = Phase.APPROACHING;
+            phase = Phase.PAUSED;
+            pausedTicks = 0;
         } else {
             phase = Phase.FINISHED;
         }

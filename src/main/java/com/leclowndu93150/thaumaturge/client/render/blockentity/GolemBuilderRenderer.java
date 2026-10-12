@@ -22,7 +22,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteGetter;
 import net.minecraft.client.resources.model.sprite.SpriteId;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -40,11 +39,11 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
     private static final float BASE_TOP = 1.0F;
     private static final float PRESS_CLEARANCE = 0.0625F;
     private static final float PRESS_TRAVEL = PRESS_REST_BOTTOM - BASE_TOP - PRESS_CLEARANCE;
-    private static final float LAVA_HEIGHT = 0.75F;
+    private static final float LAVA_HEIGHT = 0.625F;
     private static final float LAVA_HALF_WIDTH = 0.3125F;
     private static final float LAVA_NEAR = 0.6875F;
     private static final float LAVA_FAR = 1.3125F;
-    private static final int LAVA_LIGHT = LightCoordsUtil.FULL_BRIGHT;
+    private static final int LAVA_LIGHT = 200;
 
     private final SpriteGetter sprites;
 

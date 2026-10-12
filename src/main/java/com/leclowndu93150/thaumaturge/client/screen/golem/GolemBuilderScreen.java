@@ -92,7 +92,8 @@ public final class GolemBuilderScreen extends AbstractTTContainerScreen<MenuGole
 
     private static final int MACHINA_X = 152;
     private static final int MACHINA_Y = 24;
-    private static final int COMPONENT_ROWS = 3;
+    private static final int FIRST_COLUMN_COMPONENTS = 3;
+    private static final int COLUMN_ROWS = 4;
     private static final int COMPONENT_PITCH = 16;
     private static final int MARK_X = 144;
     private static final int MARK_Y = 16;
@@ -183,8 +184,9 @@ public final class GolemBuilderScreen extends AbstractTTContainerScreen<MenuGole
     protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         for (int k = 0; k < owned.length; k++) {
             if (!owned[k]) {
-                blit(graphics, leftPos + MARK_X + COMPONENT_PITCH * (k / COMPONENT_ROWS), topPos + MARK_Y + COMPONENT_PITCH * (1 + k % COMPONENT_ROWS), MARK_U, MARK_V, ICON_SIZE, ICON_SIZE,
-                        MARK_TINT);
+                int column = componentColumn(k);
+                int row = componentRow(k);
+                blit(graphics, leftPos + MARK_X + COMPONENT_PITCH * column, topPos + MARK_Y + COMPONENT_PITCH * row, MARK_U, MARK_V, ICON_SIZE, ICON_SIZE, MARK_TINT);
             }
         }
         int cost = menu.cost();
@@ -321,6 +323,14 @@ public final class GolemBuilderScreen extends AbstractTTContainerScreen<MenuGole
         }
     }
 
+    private static int componentColumn(int index) {
+        return index < FIRST_COLUMN_COMPONENTS ? 0 : 1 + (index - FIRST_COLUMN_COMPONENTS) / COLUMN_ROWS;
+    }
+
+    private static int componentRow(int index) {
+        return index < FIRST_COLUMN_COMPONENTS ? index + 1 : (index - FIRST_COLUMN_COMPONENTS) % COLUMN_ROWS;
+    }
+
     private void addComponentIcons() {
         if (components.isEmpty()) {
             return;
@@ -331,7 +341,7 @@ public final class GolemBuilderScreen extends AbstractTTContainerScreen<MenuGole
         }
         for (int k = 0; k < components.size(); k++) {
             ItemStack stack = components.get(k);
-            addControl(icon(MACHINA_X + COMPONENT_PITCH * (k / COMPONENT_ROWS), MACHINA_Y + COMPONENT_PITCH * (1 + k % COMPONENT_ROWS), new TTButtonIcon.StackIcon(stack.copy()), stack.getHoverName(),
+            addControl(icon(MACHINA_X + COMPONENT_PITCH * componentColumn(k), MACHINA_Y + COMPONENT_PITCH * componentRow(k), new TTButtonIcon.StackIcon(stack.copy()), stack.getHoverName(),
                     null));
         }
     }

@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.content.equipment;
 
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -25,10 +24,10 @@ public final class ElementalHoeItem extends HoeItem {
     private static final int LEVEL_EVENT_BONE_MEAL = 1505;
     private static final int BONE_MEAL_PARTICLES = 15;
     private static final double CELL_CENTER = 0.5;
-    private static final double PUFF_HEIGHT = 1.05;
-    private static final float PUFF_RED = 0.56F;
-    private static final float PUFF_GREEN = 0.33F;
-    private static final float PUFF_BLUE = 0.19F;
+    private static final double PUFF_HEIGHT = 1.01;
+    private static final float PUFF_RED = 0.30F;
+    private static final float PUFF_GREEN = 0.12F;
+    private static final float PUFF_BLUE = 0.10F;
 
     public ElementalHoeItem(ToolMaterial material, float attackDamageBaseline, float attackSpeedBaseline, Properties properties) {
         super(material, attackDamageBaseline, attackSpeedBaseline, properties);
@@ -87,7 +86,7 @@ public final class ElementalHoeItem extends HoeItem {
 
     private static void broadcastPuff(ServerLevel level, BlockPos cell, boolean centre) {
         Vec3 top = new Vec3(cell.getX() + CELL_CENTER, cell.getY() + PUFF_HEIGHT, cell.getZ() + CELL_CENTER);
-        Effects.Bamf puff = Effects.bamf(level, top).color(PUFF_RED, PUFF_GREEN, PUFF_BLUE).side(Direction.UP);
+        Effects.Bamf puff = Effects.bamf(level, top).color(PUFF_RED, PUFF_GREEN, PUFF_BLUE);
         if (centre) {
             puff.withSound();
         }

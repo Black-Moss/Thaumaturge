@@ -76,14 +76,11 @@ final class NodeRules {
         return modifier;
     }
 
-    static BlockPos scatter(BlockPos origin, int reach, RandomSource random) {
-        return origin.offset(leaningOffset(reach, random), leaningOffset(reach, random), leaningOffset(reach, random));
-    }
-
-    static int leaningOffset(int reach, RandomSource random) {
-        float fraction = random.nextFloat();
-        int magnitude = Math.min(reach, (int) (fraction * fraction * (reach + 1)));
-        return random.nextBoolean() ? magnitude : -magnitude;
+    static BlockPos scatter(BlockPos origin, int bound, RandomSource random) {
+        int x = random.nextInt(bound) - random.nextInt(bound);
+        int y = random.nextInt(bound) - random.nextInt(bound);
+        int z = random.nextInt(bound) - random.nextInt(bound);
+        return origin.offset(x, y, z);
     }
 
     static AspectList toPrimals(AspectList source) {

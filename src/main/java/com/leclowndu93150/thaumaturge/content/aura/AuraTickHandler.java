@@ -94,6 +94,7 @@ public final class AuraTickHandler {
             AuraData aura = chunk.getData(TTAttachments.AURA.get());
             aura.setChunkPos(pos);
             AuraGenHandler.initializeIfNeeded(level, chunk, aura);
+            PhysicalFluxOutbreaks.tryOutbreak(level, chunk, random);
             if (aura.getBase() == 0) {
                 return;
             }
@@ -115,7 +116,6 @@ public final class AuraTickHandler {
         }
 
         private boolean applyPhysicalFlux(LevelChunk chunk, AuraData aura) {
-            PhysicalFluxOutbreaks.tryOutbreak(level, chunk, random);
             float floor = PhysicalFluxAuraFloor.target(chunk, aura.getBase());
             float flux = aura.getFlux();
             if (flux >= floor) {

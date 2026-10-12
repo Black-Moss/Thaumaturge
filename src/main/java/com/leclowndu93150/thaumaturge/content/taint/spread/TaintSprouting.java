@@ -24,7 +24,7 @@ public final class TaintSprouting {
     private static final float SPROUT_FLUX = 5.0F;
     private static final float SPROUT_PRESSURE = 0.08F;
     private static final double CELL_CENTRE = 0.5;
-    private static final float FULL_TURN_DEGREES = 360.0F;
+    private static final int FULL_TURN_DEGREES = 360;
 
     private TaintSprouting() {}
 
@@ -53,7 +53,7 @@ public final class TaintSprouting {
         if (seed == null) {
             return false;
         }
-        seed.snapTo(ground.getX() + CELL_CENTRE, ground.getY() + 1, ground.getZ() + CELL_CENTRE, level.getRandom().nextFloat() * FULL_TURN_DEGREES, 0.0F);
+        seed.snapTo(ground.getX() + CELL_CENTRE, ground.getY() + 1, ground.getZ() + CELL_CENTRE, (float) level.getRandom().nextInt(FULL_TURN_DEGREES), 0.0F);
         if (!hasRoom(level, seed) || !level.addFreshEntity(seed)) {
             seed.discard();
             return false;
@@ -69,7 +69,7 @@ public final class TaintSprouting {
     }
 
     private static boolean hasRoom(ServerLevel level, AbstractTaintSeed seed) {
-        if (!level.noBlockCollision(seed, seed.getBoundingBox())) {
+        if (!level.noCollision(seed)) {
             return false;
         }
         return level.getEntitiesOfClass(AbstractTaintSeed.class, seed.getBoundingBox().inflate(TaintHelper.fringeDistance())).isEmpty();
