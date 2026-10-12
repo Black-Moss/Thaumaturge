@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.research.scan;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.scan.IScannable;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
@@ -134,18 +134,18 @@ public final class ScanSky implements IScannable {
 
     private static final class NoteLedger {
         private final ServerPlayer player;
-        private final IPlayerKnowledge knowledge;
+        private final PlayerResearch knowledge;
         private final int worldDay;
 
         NoteLedger(ServerPlayer player) {
             this.player = player;
-            this.knowledge = KnowledgeAccess.of(player);
+            this.knowledge = PlayerResearchAccess.of(player);
             this.worldDay = (int) (player.level().getGameTime() / TICKS_PER_DAY);
         }
 
         Filing settle(Observation observation) {
             Identifier key = ScanKeys.celestial(worldDay, observation.name());
-            if (knowledge.isResearchKnown(key)) {
+            if (knowledge.knows(key)) {
                 Filing.ALREADY_STUDIED.announce(player);
                 return Filing.ALREADY_STUDIED;
             }
@@ -173,13 +173,13 @@ public final class ScanSky implements IScannable {
 
         private void purgeOtherDays() {
             String todayPrefix = ScanKeys.celestial(worldDay, "").getPath();
-            List<Identifier> outdated = knowledge.researchList().stream().filter(id -> id.getNamespace().equals(TTIds.MODID))
+            List<Identifier> outdated = knowledge.knownEntries().stream().filter(id -> id.getNamespace().equals(TTIds.MODID))
                     .filter(id -> id.getPath().contains(CELESTIAL_SEGMENT) && !id.getPath().startsWith(todayPrefix)).toList();
             if (outdated.isEmpty()) {
                 return;
             }
-            outdated.forEach(knowledge::removeResearch);
-            knowledge.sync(player);
+            outdated.forEach(knowledge::forget);
+            knowledge.queueSync(player);
         }
     }
 
@@ -214,7 +214,7 @@ public final class ScanSky implements IScannable {
         if (level.dimension() != Level.OVERWORLD || !level.canSeeSky(player.blockPosition().above())) {
             return false;
         }
-        return KnowledgeAccess.of(player).isResearchComplete(NODES);
+        return PlayerResearchAccess.of(player).hasCompleted(NODES);
     }
 
     private static SkyState skyAt(Player player) {

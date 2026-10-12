@@ -1,122 +1,78 @@
 package com.leclowndu93150.thaumaturge.client.particle;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.BreakingItemParticle;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SingleQuadParticle;
-import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.data.AtlasIds;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 
-public final class TaintSplosionParticle extends SingleQuadParticle {
-    private static final float VARIANT_A_RED = 0.6F;
-    private static final float VARIANT_A_BLUE = 0.3F;
-    private static final float VARIANT_A_ALPHA = 0.4F;
-    private static final float VARIANT_B_RED = 0.3F;
-    private static final float VARIANT_B_BLUE = 0.3F;
-    private static final float VARIANT_B_ALPHA = 0.6F;
-    private static final float SIZE_BASE = 0.2F;
-    private static final float SIZE_ROLL_MIN = 0.25F;
-    private static final float SIZE_ROLL_SPAN = 0.25F;
-    private static final float LIFETIME_NUMERATOR = 66.0F;
-    private static final float LIFETIME_DIVISOR_MIN = 0.1F;
-    private static final float LIFETIME_DIVISOR_SPAN = 0.9F;
-    private static final float GRAVITY_FACTOR = 1.0F;
-    private static final double MIN_DIRECTION_LENGTH = 1.0E-4;
-    private static final double STRENGTH_STEP = 0.15;
-    private static final double LAUNCH_DAMPING = 0.964;
-    private static final double LAUNCH_LIFT = 0.1;
-    private static final float CROP_GRID = 4.0F;
-    private static final float CROP_ORIGIN_RANGE = 3.0F;
+public final class TaintSplosionParticle extends BreakingItemParticle {
+    private static final float FAINT_RED = 0.78F;
+    private static final float FAINT_GREEN = 0.32F;
+    private static final float FAINT_BLUE = 0.78F;
+    private static final float FAINT_ALPHA = 0.5F;
+    private static final float STRONG_RED = 0.32F;
+    private static final float STRONG_GREEN = 0.08F;
+    private static final float STRONG_BLUE = 0.45F;
+    private static final float STRONG_ALPHA = 0.9F;
+    private static final double SPEED_BASE = 0.12;
+    private static final double SPEED_RANGE = 0.18;
+    private static final double UP_KICK = 0.12;
+    private static final double MIN_DIRECTION = 1.0E-4;
+    private static final int LIFETIME_BASE = 40;
+    private static final int LIFETIME_SPREAD = 560;
+    private static final int LIFETIME_SKEW = 5;
 
-    private final float baseAlpha;
-    private final float cropU;
-    private final float cropV;
-    private final SingleQuadParticle.Layer layer;
+    private final float startAlpha;
+    private final SingleQuadParticle.Layer translucentLayer;
 
     private TaintSplosionParticle(ClientLevel level, double x, double y, double z, double dx, double dy, double dz, TextureAtlasSprite sprite) {
         super(level, x, y, z, sprite);
-        boolean variantA = this.random.nextBoolean();
-        this.baseAlpha = variantA ? VARIANT_A_ALPHA : VARIANT_B_ALPHA;
-        setColor(variantA ? VARIANT_A_RED : VARIANT_B_RED, 0.0F, variantA ? VARIANT_A_BLUE : VARIANT_B_BLUE);
-        this.alpha = this.baseAlpha;
-        this.quadSize = SIZE_BASE * (SIZE_ROLL_MIN + this.random.nextFloat() * SIZE_ROLL_SPAN);
-        this.lifetime = (int) (LIFETIME_NUMERATOR / (LIFETIME_DIVISOR_MIN + this.random.nextFloat() * LIFETIME_DIVISOR_SPAN));
-        this.gravity = GRAVITY_FACTOR;
-        this.cropU = this.random.nextFloat() * CROP_ORIGIN_RANGE;
-        this.cropV = this.random.nextFloat() * CROP_ORIGIN_RANGE;
-        this.layer = SingleQuadParticle.Layer.bySprite(sprite);
+        if (this.random.nextBoolean()) {
+            setColor(FAINT_RED, FAINT_GREEN, FAINT_BLUE);
+            this.startAlpha = FAINT_ALPHA;
+        } else {
+            setColor(STRONG_RED, STRONG_GREEN, STRONG_BLUE);
+            this.startAlpha = STRONG_ALPHA;
+        }
+        this.alpha = this.startAlpha;
         launch(dx, dy, dz);
+        this.lifetime = LIFETIME_BASE + (int) (LIFETIME_SPREAD * Math.pow(this.random.nextDouble(), LIFETIME_SKEW));
+        this.translucentLayer = sprite.atlasLocation().equals(TextureAtlas.LOCATION_BLOCKS) ? SingleQuadParticle.Layer.TRANSLUCENT_TERRAIN : SingleQuadParticle.Layer.TRANSLUCENT_ITEMS;
     }
 
     private void launch(double dx, double dy, double dz) {
         double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (length < MIN_DIRECTION_LENGTH) {
-            length = 1.0;
-        }
-        double strength = (this.random.nextFloat() + this.random.nextFloat() + 1.0F) * STRENGTH_STEP;
-        double scale = strength * LAUNCH_DAMPING / length;
-        this.xd = dx * scale;
-        this.yd = dy * scale + LAUNCH_LIFT;
-        this.zd = dz * scale;
+        double ux = length < MIN_DIRECTION ? 0.0 : dx / length;
+        double uy = length < MIN_DIRECTION ? 1.0 : dy / length;
+        double uz = length < MIN_DIRECTION ? 0.0 : dz / length;
+        double speed = SPEED_BASE + this.random.nextDouble() * SPEED_RANGE;
+        this.xd = ux * speed;
+        this.yd = uy * speed + UP_KICK;
+        this.zd = uz * speed;
     }
 
     @Override
     public void tick() {
         super.tick();
-        this.alpha = this.baseAlpha * Math.max(0.0F, 1.0F - (float) this.age / this.lifetime);
+        this.alpha = this.startAlpha * (1.0F - Mth.clamp((float) this.age / this.lifetime, 0.0F, 1.0F));
     }
 
     @Override
     public SingleQuadParticle.Layer getLayer() {
-        return this.layer;
+        return this.translucentLayer;
     }
 
-    @Override
-    protected float getU0() {
-        return this.sprite.getU((this.cropU + 1.0F) / CROP_GRID);
-    }
-
-    @Override
-    protected float getU1() {
-        return this.sprite.getU(this.cropU / CROP_GRID);
-    }
-
-    @Override
-    protected float getV0() {
-        return this.sprite.getV(this.cropV / CROP_GRID);
-    }
-
-    @Override
-    protected float getV1() {
-        return this.sprite.getV((this.cropV + 1.0F) / CROP_GRID);
-    }
-
-    @Override
-    public float getQuadSize(float partialTick) {
-        return this.quadSize;
-    }
-
-    public static final class Provider implements ParticleProvider<SimpleParticleType> {
-        private final ItemStackRenderState scratch = new ItemStackRenderState();
-
+    public static final class Provider extends BreakingItemParticle.ItemParticleProvider<SimpleParticleType> {
         @Override
         public Particle createParticle(SimpleParticleType options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
-            return new TaintSplosionParticle(level, x, y, z, vx, vy, vz, resolveSprite(level, random));
-        }
-
-        private TextureAtlasSprite resolveSprite(ClientLevel level, RandomSource random) {
-            Minecraft minecraft = Minecraft.getInstance();
-            minecraft.getItemModelResolver().updateForTopItem(this.scratch, new ItemStack(Items.SLIME_BALL), ItemDisplayContext.GROUND, level, null, 0);
-            Material.Baked material = this.scratch.pickParticleMaterial(random);
-            return material != null ? material.sprite() : minecraft.getAtlasManager().getAtlasOrThrow(AtlasIds.ITEMS).missingSprite();
+            return new TaintSplosionParticle(level, x, y, z, vx, vy, vz, getSprite(new ItemStackTemplate(Items.SLIME_BALL), level, random));
         }
     }
 }

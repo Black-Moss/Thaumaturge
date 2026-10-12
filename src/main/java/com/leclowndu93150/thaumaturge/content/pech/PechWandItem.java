@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.pech;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.research.KnowledgeGrant;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -51,8 +51,8 @@ public final class PechWandItem extends Item {
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        if (!knowledge.isResearchKnown(PREREQUISITE)) {
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
+        if (!knowledge.knows(PREREQUISITE)) {
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.sendSystemMessage(Component.translatable(UNFATHOMABLE_KEY).withStyle(ChatFormatting.RED));
             }
@@ -66,7 +66,7 @@ public final class PechWandItem extends Item {
         float pitch = LEARN_PITCH + (random.nextFloat() - random.nextFloat()) * LEARN_PITCH_SPREAD;
         level.playSound(null, player.getX(), player.getY(), player.getZ(), TTSounds.LEARN.get(), SoundSource.NEUTRAL, LEARN_VOLUME, pitch);
         serverPlayer.sendSystemMessage(Component.translatable(CURIOUS_KEY).withStyle(ChatFormatting.DARK_PURPLE));
-        if (!knowledge.isResearchKnown(REVEALED)) {
+        if (!knowledge.knows(REVEALED)) {
             ResearchManager.complete(serverPlayer, REVEALED);
         }
         OBSERVATION_GRANT.award(serverPlayer);

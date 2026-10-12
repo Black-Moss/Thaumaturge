@@ -15,15 +15,15 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 
 public final class BoltParticle extends TTParticle {
-    private static final int LIFETIME = 3;
     private static final int BEADS_PER_SECTION = 4;
-    private static final int SEED_RANGE = 1000;
     private static final int PHASE_MULTIPLES = 8;
     private static final int FRAME_COUNT = 16;
     private static final float WIDTH_DIVISOR = 6.0F;
-    private static final float SWAY_TIME_DIVISOR = 10.0F;
-    private static final float MIN_ALPHA = 0.1F;
-    private static final float HITBOX = 0.01F;
+    private static final int LIFETIME = 3;
+    private static final float HITBOX = 0.02F;
+    private static final int SEED_RANGE = 4096;
+    private static final float SWAY_TIME_DIVISOR = 24.0F;
+    private static final float MIN_ALPHA = 0.2F;
 
     private final float width;
     private final int seed;

@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.entity.champion.trait;
 
 import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraitModifiers;
 import com.leclowndu93150.thaumaturge.content.entity.champion.ShieldChargeSound;
+import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -29,21 +30,24 @@ public final class WardedChampionTrait extends AbstractChampionTrait {
     }
 
     @Override
-    public void tick(LivingEntity mob) {
-        boolean ready = mob.invulnerableTime <= 0 && mob.tickCount % REGENERATION_INTERVAL == 0;
-        float current = mob.getAbsorptionAmount();
-        if (ready && current < ward(mob)) {
-            mob.setAbsorptionAmount(current + REGENERATION_AMOUNT);
-        }
-    }
-
-    @Override
     public float onHurt(LivingEntity mob, @Nullable LivingEntity attacker, DamageSource source, float amount) {
         ShieldChargeSound.playIfShielded(mob);
         return amount;
     }
 
+    @Override
+    public void tick(LivingEntity mob) {
+        if (mob.tickCount % REGENERATION_INTERVAL != 0 || mob.invulnerableTime > 0) {
+            return;
+        }
+        float ward = ward(mob);
+        float current = mob.getAbsorptionAmount();
+        if (current < ward) {
+            mob.setAbsorptionAmount(Math.min(ward, current + REGENERATION_AMOUNT));
+        }
+    }
+
     private static float ward(LivingEntity mob) {
-        return (int) mob.getAttributeBaseValue(Attributes.MAX_HEALTH) / WARD_DIVISOR;
+        return Mth.floor(mob.getAttributeBaseValue(Attributes.MAX_HEALTH) / WARD_DIVISOR);
     }
 }

@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumaturge.client.hud;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
@@ -106,7 +106,7 @@ public final class ThaumometerAspectOverlay {
     }
 
     private static Optional<TagCloud> gated(LocalPlayer player, Identifier research, AspectList aspects, Function<AspectList, TagCloud> factory) {
-        if (aspects.isEmpty() || !KnowledgeAccess.of(player).isResearchKnown(research)) {
+        if (aspects.isEmpty() || !PlayerResearchAccess.of(player).knows(research)) {
             return Optional.empty();
         }
         return Optional.of(factory.apply(aspects));

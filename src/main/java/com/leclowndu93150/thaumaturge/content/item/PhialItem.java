@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.item.ComponentEssentia;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJar;
 import com.leclowndu93150.thaumaturge.content.essentia.smeltery.BlockEntityAlembic;
@@ -61,7 +61,7 @@ public final class PhialItem extends Item {
         Player player = context.getPlayer();
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
-        if (player == null || !(level.getBlockEntity(pos) instanceof IEssentiaTransport container)) {
+        if (player == null || !(level.getBlockEntity(pos) instanceof IEssentiaConduit container)) {
             return InteractionResult.PASS;
         }
         boolean jar = container instanceof BlockEntityJar;
@@ -81,9 +81,9 @@ public final class PhialItem extends Item {
         WITHDRAW, DEPOSIT
     }
 
-    private record Transfer(IEssentiaTransport container, Holder<IAspect> aspect, int amount, Flow flow) {
+    private record Transfer(IEssentiaConduit container, Holder<IAspect> aspect, int amount, Flow flow) {
         int apply(boolean simulate) {
-            return flow == Flow.DEPOSIT ? container.addEssentia(aspect, amount, CONTAINER_FACE, simulate) : container.takeEssentia(aspect, amount, CONTAINER_FACE, simulate);
+            return flow == Flow.DEPOSIT ? container.insert(aspect, amount, CONTAINER_FACE, simulate) : container.extract(aspect, amount, CONTAINER_FACE, simulate);
         }
 
         void revert(int moved) {
@@ -91,9 +91,9 @@ public final class PhialItem extends Item {
                 return;
             }
             if (flow == Flow.DEPOSIT) {
-                container.takeEssentia(aspect, moved, CONTAINER_FACE);
+                container.extract(aspect, moved, CONTAINER_FACE, false);
             } else {
-                container.addEssentia(aspect, moved, CONTAINER_FACE);
+                container.insert(aspect, moved, CONTAINER_FACE, false);
             }
         }
 
@@ -108,16 +108,16 @@ public final class PhialItem extends Item {
     }
 
     private record Interaction(Level level, BlockPos pos, Player player, InteractionHand hand, ItemStack held) {
-        InteractionResult draw(IEssentiaTransport container) {
-            Holder<IAspect> aspect = container.getEssentiaType(CONTAINER_FACE);
-            if (aspect == null || container.getEssentiaAmount(CONTAINER_FACE) < BASE_AMOUNT) {
+        InteractionResult draw(IEssentiaConduit container) {
+            Holder<IAspect> aspect = container.heldAspect(CONTAINER_FACE);
+            if (aspect == null || container.heldAmount(CONTAINER_FACE) < BASE_AMOUNT) {
                 return InteractionResult.PASS;
             }
             return run(new Transfer(container, aspect, BASE_AMOUNT, Flow.WITHDRAW));
         }
 
-        InteractionResult store(IEssentiaTransport container, AspectInstance contents) {
-            if (container.getEssentiaAmount(CONTAINER_FACE) + contents.amount() > BlockEntityJar.CAPACITY) {
+        InteractionResult store(IEssentiaConduit container, AspectInstance contents) {
+            if (container.heldAmount(CONTAINER_FACE) + contents.amount() > BlockEntityJar.CAPACITY) {
                 return InteractionResult.PASS;
             }
             return run(new Transfer(container, contents.aspect(), contents.amount(), Flow.DEPOSIT));

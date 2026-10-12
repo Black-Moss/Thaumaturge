@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.items.ChargeProfile;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
@@ -71,8 +70,7 @@ public final class AmuletVisItem extends Item {
     }
 
     private static boolean canAccept(ItemStack stack) {
-        ChargeProfile profile = RechargeAccess.profile(stack);
-        return profile != null && RechargeAccess.getCharge(stack) < profile.capacity();
+        return RechargeAccess.roomFor(stack) > 0;
     }
 
     private interface Target {
@@ -90,7 +88,7 @@ public final class AmuletVisItem extends Item {
     private record StackTarget(ItemStack stack, float fill) implements Target {
         @Override
         public boolean recharge(ServerPlayer player) {
-            return RechargeAccess.rechargeItem(player.level(), stack, player.blockPosition(), player, PULSE_AMOUNT) > 0.0F;
+            return RechargeAccess.drawFromAura(player.level(), stack, player.blockPosition(), player, PULSE_AMOUNT) > 0;
         }
     }
 
@@ -108,7 +106,7 @@ public final class AmuletVisItem extends Item {
 
     private static void collectStack(ItemStack stack, List<Target> targets) {
         if (canAccept(stack)) {
-            targets.add(new StackTarget(stack, RechargeAccess.getChargePercentage(stack, null)));
+            targets.add(new StackTarget(stack, RechargeAccess.fillFraction(stack)));
         }
     }
 

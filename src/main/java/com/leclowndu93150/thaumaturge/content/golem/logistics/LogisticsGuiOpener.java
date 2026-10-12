@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.golem.logistics;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,7 +15,7 @@ public final class LogisticsGuiOpener {
     private LogisticsGuiOpener() {}
 
     public static boolean canOpen(Player player) {
-        return player.isShiftKeyDown() && KnowledgeAccess.of(player).isResearchComplete(RESEARCH);
+        return player.isShiftKeyDown() && PlayerResearchAccess.of(player).hasCompleted(RESEARCH);
     }
 
     public static void open(Player player, @Nullable LogisticsTarget target) {

@@ -392,7 +392,7 @@ public final class GolemBuilderScreen extends AbstractTTContainerScreen<MenuGole
         if (stuff != null && index < stuff.length && stuff[index]) {
             return true;
         }
-        return minecraft.player != null && InvHelper.isPlayerCarryingAmount(minecraft.player, components.get(index), true);
+        return minecraft.player != null && InvHelper.playerHolds(minecraft.player, components.get(index), true);
     }
 
     private boolean allOwned() {

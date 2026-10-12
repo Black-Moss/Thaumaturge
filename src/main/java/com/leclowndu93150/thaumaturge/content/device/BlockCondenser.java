@@ -24,15 +24,24 @@ import org.jspecify.annotations.Nullable;
 public final class BlockCondenser extends BaseEntityBlock {
     public static final MapCodec<BlockCondenser> CODEC = simpleCodec(BlockCondenser::new);
 
+    private static final VoxelShape FOOT = Block.box(6.0, 0.0, 6.0, 10.0, 2.0, 10.0);
+    private static final VoxelShape LOWER_PLATE = Block.box(4.0, 2.0, 4.0, 12.0, 3.0, 12.0);
+    private static final VoxelShape UPPER_PLATE = Block.box(4.0, 13.0, 4.0, 12.0, 14.0, 12.0);
+    private static final VoxelShape COLUMN = Block.box(5.0, 3.0, 5.0, 11.0, 13.0, 11.0);
+    private static final VoxelShape LOWER_FIN = Block.box(2.0, 3.0, 2.0, 14.0, 5.0, 14.0);
+    private static final VoxelShape MIDDLE_FIN = Block.box(2.0, 7.0, 2.0, 14.0, 9.0, 14.0);
+    private static final VoxelShape UPPER_FIN = Block.box(2.0, 11.0, 2.0, 14.0, 13.0, 14.0);
+    private static final VoxelShape PORT_NORTH = Block.box(6.0, 6.0, 0.0, 10.0, 10.0, 2.0);
+    private static final VoxelShape PORT_SOUTH = Block.box(6.0, 6.0, 14.0, 10.0, 10.0, 16.0);
+    private static final VoxelShape PORT_WEST = Block.box(0.0, 6.0, 6.0, 2.0, 10.0, 10.0);
+    private static final VoxelShape PORT_EAST = Block.box(14.0, 6.0, 6.0, 16.0, 10.0, 10.0);
+    private static final VoxelShape CAP = Block.box(5.0, 14.0, 5.0, 11.0, 16.0, 11.0);
+    private static final VoxelShape SHAPE = Shapes.or(FOOT, LOWER_PLATE, UPPER_PLATE, COLUMN, LOWER_FIN, MIDDLE_FIN, UPPER_FIN, PORT_NORTH, PORT_SOUTH, PORT_WEST, PORT_EAST, CAP).optimize();
+
     public BlockCondenser(BlockBehaviour.Properties properties) {
         super(properties);
         registerDefaultState(getStateDefinition().any().setValue(BlockStateProperties.ENABLED, true));
     }
-
-    private static final VoxelShape SHAPE = Shapes.or(box(6.0, 0.0, 6.0, 10.0, 2.0, 10.0), box(4.0, 2.0, 4.0, 12.0, 3.0, 12.0), box(2.0, 3.0, 2.0, 14.0, 5.0, 14.0),
-            box(5.0, 5.0, 5.0, 11.0, 7.0, 11.0), box(2.0, 7.0, 2.0, 14.0, 9.0, 14.0), box(5.0, 9.0, 5.0, 11.0, 11.0, 11.0), box(2.0, 11.0, 2.0, 14.0, 13.0, 14.0),
-            box(4.0, 13.0, 4.0, 12.0, 14.0, 12.0), box(5.0, 14.0, 5.0, 11.0, 16.0, 11.0), box(0.0, 6.0, 6.0, 2.0, 10.0, 10.0), box(14.0, 6.0, 6.0, 16.0, 10.0, 10.0),
-            box(6.0, 6.0, 0.0, 10.0, 10.0, 2.0), box(6.0, 6.0, 14.0, 10.0, 10.0, 16.0));
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {

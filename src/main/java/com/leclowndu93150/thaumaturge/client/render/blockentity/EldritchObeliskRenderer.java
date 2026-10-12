@@ -32,11 +32,12 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
 
     private static final Identifier SIDE_TEXTURE = TTIds.rl("textures/entity/obelisk_side.png");
     private static final Identifier SIDE_TEXTURE_OUTER = TTIds.rl("textures/entity/obelisk_side_2.png");
-    private static final float BOB_PERIOD = 10.0F;
-    private static final float BOB_AMPLITUDE = 0.1F;
     private static final float BASE_HEIGHT = 1.0F;
+    private static final float GAP_HEIGHT = 1.0F;
     private static final float COLUMN_HEIGHT = 3.0F;
-    private static final float PLANE_INSET = 0.01F;
+    private static final float BOB_PERIOD = 110.0F;
+    private static final float BOB_AMPLITUDE = 0.12F;
+    private static final float PLANE_INSET = 0.04F;
     private static final float[] PLANE_OFFSETS = {PLANE_INSET, 1.0F - PLANE_INSET};
     private static final float CENTER = 0.5F;
     private static final float QUARTER_TURN_DEGREES = 90.0F;
@@ -68,15 +69,21 @@ public final class EldritchObeliskRenderer implements BlockEntityRenderer<BlockE
 
     @Override
     public void submit(EldritchObeliskRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        float bottom = BASE_HEIGHT + BOB_AMPLITUDE * Mth.sin(state.animationTime / BOB_PERIOD) + BOB_AMPLITUDE;
+        float bottom = BASE_HEIGHT + GAP_HEIGHT + bob(state.animationTime);
         float top = bottom + COLUMN_HEIGHT;
-        BlockPos pos = state.blockPos;
         int light = state.lightCoords;
+        BlockPos pos = state.blockPos;
         collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> writeSurfacePlanes(pose, buffer, pos, bottom, top));
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(state.outerLands ? SIDE_TEXTURE_OUTER : SIDE_TEXTURE), (pose, buffer) -> writeSidePanels(pose, buffer, bottom, top, light));
+        RenderType sideType = RenderTypes.entityCutout(state.outerLands ? SIDE_TEXTURE_OUTER : SIDE_TEXTURE);
+        collector.submitCustomGeometry(poseStack, sideType, (pose, buffer) -> writeSidePanels(pose, buffer, bottom, top, light));
         RenderType capType = RenderTypes.entityCutout(state.outerLands ? EldritchCapRenderer.CAP_TEXTURE_OUTER : EldritchCapRenderer.CAP_TEXTURE);
         submitEndCap(poseStack, collector, capType, light, bottom, Axis.XP);
         submitEndCap(poseStack, collector, capType, light, top, Axis.XN);
+    }
+
+    private static float bob(float time) {
+        float cycle = time % BOB_PERIOD / BOB_PERIOD;
+        return BOB_AMPLITUDE * (1.0F - Mth.cos(cycle * Mth.TWO_PI)) / 2.0F;
     }
 
     private static void submitEndCap(PoseStack poseStack, SubmitNodeCollector collector, RenderType capType, int light, float height, Axis tilt) {

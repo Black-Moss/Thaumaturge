@@ -3,7 +3,8 @@ package com.leclowndu93150.thaumaturge.content.essentia.flow;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEntityTube;
 import net.minecraft.core.BlockPos;
@@ -27,73 +28,73 @@ public final class EssentiaFlowHandler {
 
     private EssentiaFlowHandler() {}
 
-    public static @Nullable IEssentiaTransport transport(Level level, BlockPos pos, Direction face) {
+    public static @Nullable IEssentiaConduit conduit(Level level, BlockPos pos, Direction face) {
         if (!level.hasChunkAt(pos)) {
             return null;
         }
-        return EssentiaAccess.transport(level, pos, face);
+        return EssentiaAccess.conduit(level, pos, face);
     }
 
     public static void recalculateSuction(Level level, BlockPos pos, BlockEntityTube tube, @Nullable ResourceKey<IAspect> filter, boolean restrict, boolean directional) {
-        tube.setSuction(null, 0);
+        tube.assignPull(null, 0);
         Direction facing = directional ? tube.flowSide() : null;
         Holder<IAspect> filterHolder = filter == null ? null : Aspects.resolve(level, filter);
-        Holder<IAspect> held = tube.getEssentiaAmount(null) > 0 ? tube.getEssentiaType(null) : null;
+        Holder<IAspect> held = tube.heldAmount(null) > 0 ? tube.heldAspect(null) : null;
         int strongest = 0;
         Holder<IAspect> strongestType = null;
         for (Direction direction : Direction.values()) {
-            if (facing != null && direction != facing.getOpposite() || !tube.isConnectable(direction)) {
+            if (facing != null && direction != facing.getOpposite() || !tube.connectsOn(direction)) {
                 continue;
             }
             Direction touching = direction.getOpposite();
-            IEssentiaTransport neighbour = transport(level, pos.relative(direction), touching);
-            if (neighbour == null || !neighbour.isConnectable(touching)) {
+            IEssentiaConduit neighbour = conduit(level, pos.relative(direction), touching);
+            if (neighbour == null || !neighbour.connectsOn(touching)) {
                 continue;
             }
-            int offered = neighbour.getSuctionAmount(touching);
+            EssentiaPull neighbourPull = neighbour.pull(touching);
+            int offered = neighbourPull.strength();
             if (offered <= 0 || offered <= strongest + HOP_LOSS) {
                 continue;
             }
-            Holder<IAspect> offeredType = neighbour.getSuctionType(touching);
+            Holder<IAspect> offeredType = neighbourPull.aspect();
             if (offeredType != null && (filter != null && !offeredType.is(filter) || held != null && !offeredType.equals(held))) {
                 continue;
             }
-            int reduced = offered - HOP_LOSS;
-            strongest = restrict ? reduced / RESTRICT_DIVISOR : reduced;
+            strongest = restrict ? offered / RESTRICT_DIVISOR : offered - HOP_LOSS;
             strongestType = offeredType != null ? offeredType : filterHolder;
         }
         if (strongest > 0) {
-            tube.setSuction(strongestType, strongest);
+            tube.assignPull(strongestType, strongest);
         }
     }
 
     public static void equalizeWithNeighbours(Level level, BlockPos pos, BlockEntityTube tube, boolean directional) {
-        int suction = tube.getSuctionAmount(null);
-        if (suction <= 0 || tube.getEssentiaAmount(null) > 0) {
+        EssentiaPull own = tube.pull(null);
+        int suction = own.strength();
+        if (suction <= 0 || tube.heldAmount(null) > 0) {
             return;
         }
-        Holder<IAspect> wanted = tube.getSuctionType(null);
+        Holder<IAspect> wanted = own.aspect();
         Direction facing = directional ? tube.flowSide() : null;
         for (Direction direction : Direction.values()) {
-            if (facing != null && direction == facing.getOpposite() || !tube.isConnectable(direction)) {
+            if (facing != null && direction == facing.getOpposite() || !tube.connectsOn(direction)) {
                 continue;
             }
             Direction touching = direction.getOpposite();
-            IEssentiaTransport neighbour = transport(level, pos.relative(direction), touching);
-            if (neighbour == null || !neighbour.isConnectable(touching) || !neighbour.canOutputTo(touching) || neighbour.getSuctionAmount(touching) >= suction
-                    || suction < neighbour.getMinimumSuction()) {
+            IEssentiaConduit neighbour = conduit(level, pos.relative(direction), touching);
+            if (neighbour == null || !neighbour.connectsOn(touching) || !neighbour.releasesOn(touching) || neighbour.pull(touching).strength() >= suction || suction < neighbour.pullThreshold()) {
                 continue;
             }
-            Holder<IAspect> offered = neighbour.getEssentiaType(touching);
+            Holder<IAspect> offered = neighbour.heldAspect(touching);
             if (wanted != null && offered != null && !wanted.equals(offered)) {
                 continue;
             }
             Holder<IAspect> aspect = wanted != null ? wanted : offered;
-            if (aspect == null || neighbour.getEssentiaAmount(touching) < TRANSFER_AMOUNT || neighbour.takeEssentia(aspect, TRANSFER_AMOUNT, touching) != TRANSFER_AMOUNT) {
+            if (aspect == null || neighbour.heldAmount(touching) < TRANSFER_AMOUNT || neighbour.extract(aspect, TRANSFER_AMOUNT, touching, false) != TRANSFER_AMOUNT) {
                 continue;
             }
-            if (tube.addEssentia(aspect, TRANSFER_AMOUNT, direction) < TRANSFER_AMOUNT) {
-                neighbour.addEssentia(aspect, TRANSFER_AMOUNT, touching);
+            if (tube.insert(aspect, TRANSFER_AMOUNT, direction, false) < TRANSFER_AMOUNT) {
+                neighbour.insert(aspect, TRANSFER_AMOUNT, touching, false);
                 return;
             }
             announceTransfer(level, pos, tube, direction, aspect);

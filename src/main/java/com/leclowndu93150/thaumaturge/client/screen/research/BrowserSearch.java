@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.screen.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
@@ -61,7 +61,7 @@ final class BrowserSearch {
 
     void rebuild(String query) {
         results.clear();
-        IPlayerKnowledge knowledge = model.knowledge();
+        PlayerResearch knowledge = model.knowledge();
         String needle = query.toLowerCase(Locale.ROOT);
         for (CategoryRef category : model.shownBuiltIn()) {
             addCategory(category, needle);
@@ -70,12 +70,12 @@ final class BrowserSearch {
             addCategory(category, needle);
         }
         for (EntryNode node : model.allEntries()) {
-            if (!knowledge.isResearchKnown(node.id())) {
+            if (!knowledge.knows(node.id())) {
                 continue;
             }
             add(Kind.ENTRY, Component.translatable(node.value().nameKey()).getString(), node.id(), needle);
             List<IResearchStage> stages = node.value().stages();
-            int index = Math.min(stages.size() - 1, knowledge.researchStage(node.id()) + RECIPE_STAGE_LOOKAHEAD);
+            int index = Math.min(stages.size() - 1, knowledge.stageOf(node.id()) + RECIPE_STAGE_LOOKAHEAD);
             if (index < 0 || index >= stages.size()) {
                 continue;
             }

@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.aura;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundSpawnParticlePayload;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTParticles;
@@ -150,7 +150,7 @@ public final class AuraManager {
         if (!starved) {
             return false;
         }
-        return player == null || KnowledgeAccess.of(player).isResearchComplete(AURA_PRESERVE_RESEARCH);
+        return player == null || PlayerResearchAccess.of(player).hasCompleted(AURA_PRESERVE_RESEARCH);
     }
 
     public static void resetSession() {

@@ -56,39 +56,41 @@ public final class TTCapabilities {
     }
 
     private static void devices(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.LAMP_GROWTH.get(), (be, side) -> be.intake());
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.LAMP_FERTILITY.get(), (be, side) -> be.intake());
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.CENTRIFUGE.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.ESSENTIA_CRYSTALIZER.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.ESSENTIA_RESERVOIR.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.FLUX_SCRUBBER.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.POTION_SPRAYER.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.LAMP_GROWTH.get(), (be, side) -> be.intake());
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.LAMP_FERTILITY.get(), (be, side) -> be.intake());
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.CENTRIFUGE.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.ESSENTIA_CRYSTALIZER.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.ESSENTIA_RESERVOIR.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
+        event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.ESSENTIA_RESERVOIR.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.FLUX_SCRUBBER.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.POTION_SPRAYER.get(), (be, side) -> be);
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.HUNGRY_CHEST.get(), (be, side) -> VanillaContainerWrapper.of(be));
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.ITEM_GRATE.get(), (be, side) -> side == Direction.UP ? be.inventory() : null);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, TTBlockEntities.EVERFULL_URN.get(), (be, side) -> be.getTank());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, TTBlockEntities.VIS_GENERATOR.get(), (be, side) -> side == be.outputFace() ? be : null);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.ESSENTIA_PORT.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.CONDENSER.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.ESSENTIA_PORT.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.CONDENSER.get(), (be, side) -> be);
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.VOID_SIPHON.get(), (be, side) -> be.output());
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.THAUMATORIUM.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.THAUMATORIUM_TOP.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.THAUMATORIUM.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.THAUMATORIUM_TOP.get(), (be, side) -> be);
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.THAUMATORIUM.get(), (be, side) -> be.catalyst());
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.MIRROR_ESSENTIA.get(), (be, side) -> be);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.MIRROR.get(), (be, side) -> be.inbox());
     }
 
     private static void essentiaTransport(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.TUBE.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.TUBE_VALVE.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.TUBE_RESTRICT.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.TUBE_FILTER.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.TUBE_ONEWAY.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.TUBE_BUFFER.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.TUBE.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.TUBE_VALVE.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.TUBE_RESTRICT.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.TUBE_FILTER.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.TUBE_ONEWAY.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.TUBE_BUFFER.get(), (be, side) -> be);
         event.registerBlockEntity(EssentiaCapabilities.ASPECT_QUERY, TTBlockEntities.TUBE_FILTER.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.JAR.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.JAR_VOID.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.JAR.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.JAR_VOID.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.JAR.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TTBlockEntities.JAR.get(), (be, side) -> side != null && be.isConnectable(side) ? be.storage(side) : null);
-        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TTBlockEntities.JAR_VOID.get(), (be, side) -> side != null && be.isConnectable(side) ? be.storage(side) : null);
+        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TTBlockEntities.JAR.get(), (be, side) -> side != null && be.connectsOn(side) ? be.storage(side) : null);
+        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TTBlockEntities.JAR_VOID.get(), (be, side) -> side != null && be.connectsOn(side) ? be.storage(side) : null);
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.JAR_VOID.get(), (be, side) -> be);
     }
 
@@ -115,14 +117,14 @@ public final class TTCapabilities {
             }
             return RangedResourceHandler.ofSingleIndex(be.itemSlots(), 1);
         });
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.ALEMBIC.get(), (be, side) -> be);
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.ALEMBIC.get(), (be, side) -> be);
         event.registerBlockEntity(AspectCapabilities.CONTAINER, TTBlockEntities.ALEMBIC.get(), (be, side) -> be);
-        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TTBlockEntities.ALEMBIC.get(), (be, side) -> side != null && be.isConnectable(side) ? be.storage(side) : null);
+        event.registerBlockEntity(EssentiaCapabilities.STORAGE, TTBlockEntities.ALEMBIC.get(), (be, side) -> side != null && be.connectsOn(side) ? be.storage(side) : null);
     }
 
     private static void golemBuilder(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(EssentiaCapabilities.TRANSPORT, TTBlockEntities.GOLEM_BUILDER.get(), (be, side) -> side == null || be.isConnectable(side) ? be : null);
-        event.registerBlock(EssentiaCapabilities.TRANSPORT, (level, pos, state, be, side) -> AdvancedAlchemicalFurnaceStructure.nozzle(level, pos, side),
+        EssentiaCapabilities.registerConduit(event, TTBlockEntities.GOLEM_BUILDER.get(), (be, side) -> side == null || be.connectsOn(side) ? be : null);
+        EssentiaCapabilities.registerConduitBlock(event, (level, pos, state, be, side) -> AdvancedAlchemicalFurnaceStructure.nozzle(level, pos, side),
                 TTBlocks.ADVANCED_ALCHEMICAL_FURNACE_NOZZLE.get());
         event.registerBlockEntity(Capabilities.Item.BLOCK, TTBlockEntities.GOLEM_BUILDER.get(), (be, side) -> be.outputHandler());
     }

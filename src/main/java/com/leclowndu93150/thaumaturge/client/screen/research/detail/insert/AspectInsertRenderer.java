@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.client.screen.research.detail.insert;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumaturge.api.aspect.AspectKnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.DetailFrame;
@@ -13,6 +12,7 @@ import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.AspectT
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.BookBlit;
 import com.leclowndu93150.thaumaturge.client.screen.research.detail.draw.BookSprites;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
+import java.util.Comparator;
 import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -23,37 +23,44 @@ import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
 public final class AspectInsertRenderer {
-    public static final int ROWS_PER_PAGE = 5;
+    private static final int ROWS_PER_PAGE = 5;
+    private static final int ROW_PITCH = 40;
+    private static final int LIST_X = 60;
+    private static final int LIST_Y = 24;
+    private static final int HALF = 2;
 
-    private static final int PAGE_LEFT_OFFSET = 60;
-    private static final int PAGE_TOP_OFFSET = 24;
-    private static final int ROW_STRIDE = 40;
-    private static final int ROW_HOVER_SIZE = 32;
-    private static final int BACKDROP_OFFSET = -2;
-    private static final float BACKDROP_SCALE = 2.0F;
-    private static final float BACKDROP_ALPHA = 0.5F;
-    private static final int TAG_OFFSET = 2;
-    private static final float TAG_SCALE = 1.5F;
-    private static final int NAME_CENTER_X = 16;
-    private static final int NAME_Y_OFFSET = 29;
-    private static final float NAME_SCALE = 0.5F;
-    private static final int NAME_COLOR = 0xFF505050;
-    private static final int LEFT_PART_X = 60;
-    private static final int RIGHT_PART_X = 102;
-    private static final int PART_Y_OFFSET = 4;
+    private static final int MAIN_X = 2;
+    private static final int MAIN_Y = 2;
+    private static final float MAIN_SCALE = 1.5F;
+    private static final int MAIN_NAME_CENTER_X = 16;
+    private static final int EQUALS_X = 41;
+    private static final int SYMBOL_Y = 12;
+    private static final int FIRST_PART_X = 60;
+    private static final int SECOND_PART_X = 102;
+    private static final int PART_Y = 4;
     private static final float PART_SCALE = 1.25F;
-    private static final int LEFT_PART_NAME_X = 22 + 50;
-    private static final int RIGHT_PART_NAME_X = 22 + 92;
-    private static final int EQUALS_X = 9 + 32;
-    private static final int PLUS_X = 10 + 79;
-    private static final int OPERATOR_Y_OFFSET = 12;
-    private static final int OPERATOR_COLOR = 0xFF999999;
+    private static final int FIRST_NAME_CENTER_X = 72;
+    private static final int SECOND_NAME_CENTER_X = 114;
+    private static final int PLUS_X = 89;
     private static final int PRIMAL_X = 54;
-    private static final int PRIMAL_COLOR = 0xFF777777;
-    private static final int PAGER_LEFT_X = -20;
-    private static final int PAGER_RIGHT_X = 144;
+    private static final int NAME_Y = 29;
+    private static final float NAME_SCALE = 0.5F;
+    private static final int HOVER_SIZE = 40;
+    private static final int COMPOUND_PARTS = 2;
+
+    private static final int PREVIOUS_X = -20;
+    private static final int NEXT_X = 144;
     private static final int PAGER_Y = 208;
-    private static final int COMPONENT_COUNT = 2;
+
+    private static final int NAME_COLOR = 0xFF6B6560;
+    private static final int SYMBOL_COLOR = 0xFF2E2A27;
+    private static final int PRIMAL_COLOR = 0xFF7D7772;
+    private static final float HOVER_BACKDROP_ALPHA = 0.35F;
+
+    private static final String EQUALS = "=";
+    private static final String PLUS = "+";
+    private static final String PRIMAL_KEY = "tooltip.thaumaturge.aspect.primal";
+    private static final int LISTED_AMOUNT = 1;
 
     private AspectInsertRenderer() {}
 
@@ -61,112 +68,75 @@ public final class AspectInsertRenderer {
         if (player == null) {
             return AspectList.EMPTY;
         }
-        return player.registryAccess().lookup(IAspect.REGISTRY_KEY).map(lookup -> {
-            AspectList revealed = AspectList.EMPTY;
-            for (Holder.Reference<IAspect> aspect : lookup.listElements().toList()) {
-                if (AspectKnowledgeAccess.of(aspect).isCompositionRevealed()) {
-                    revealed = revealed.add(aspect, 1);
-                }
-            }
-            return revealed;
-        }).orElse(AspectList.EMPTY);
+        List<AspectInstance> known = player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().filter(aspect -> AspectPools.isDiscovered(player, aspect))
+                .sorted(Comparator.comparing(aspect -> AspectComponents.name(aspect).getString())).map(aspect -> new AspectInstance(aspect, LISTED_AMOUNT)).toList();
+        return AspectList.ofEntries(known);
     }
 
     public static int pageCount(@Nullable Player player) {
-        return pagesFor(listedAspects(player).size());
-    }
-
-    private static int pagesFor(int listedCount) {
-        return listedCount == 0 ? 0 : Mth.ceil(listedCount / (float) ROWS_PER_PAGE);
+        int listed = listedAspects(player).size();
+        return Math.max(1, (listed + ROWS_PER_PAGE - 1) / ROWS_PER_PAGE);
     }
 
     public static void render(GuiGraphicsExtractor graphics, DetailFrame frame, EntryDetailModel model, int mouseX, int mouseY) {
-        BookBlit.paper(graphics, frame.paperLeft(), frame.paperTop());
-        drawPage(graphics, frame, model.aspectsPageIndex(), frame.paperLeft() + PAGE_LEFT_OFFSET, frame.paperTop() + PAGE_TOP_OFFSET, mouseX, mouseY);
+        int paperLeft = frame.paperLeft();
+        int paperTop = frame.paperTop();
+        BookBlit.paper(graphics, paperLeft, paperTop);
+        Player player = frame.player();
+        List<AspectInstance> listed = listedAspects(player).entries();
+        int pages = Math.max(1, (listed.size() + ROWS_PER_PAGE - 1) / ROWS_PER_PAGE);
+        int page = Mth.clamp(model.aspectsPageIndex(), 0, pages - 1);
+        int originX = paperLeft + LIST_X;
+        int originY = paperTop + LIST_Y;
+        int first = page * ROWS_PER_PAGE;
+        for (int slot = 0; slot < ROWS_PER_PAGE && first + slot < listed.size(); slot++) {
+            drawRow(graphics, frame.font(), player, listed.get(first + slot).aspect(), originX, originY + slot * ROW_PITCH, mouseX, mouseY);
+        }
+        float swell = ArrowBob.swell(player);
+        if (page > 0) {
+            BookBlit.swellingSprite(graphics, originX + PREVIOUS_X, originY + PAGER_Y, BookSprites.ARROW_LEFT_U, BookSprites.ARROW_V, BookSprites.ARROW_WIDTH, BookSprites.ARROW_HEIGHT, swell);
+        }
+        if (page < pages - 1) {
+            BookBlit.swellingSprite(graphics, originX + NEXT_X, originY + PAGER_Y, BookSprites.ARROW_RIGHT_U, BookSprites.ARROW_V, BookSprites.ARROW_WIDTH, BookSprites.ARROW_HEIGHT, swell);
+        }
     }
 
-    private static void drawPage(GuiGraphicsExtractor graphics, DetailFrame frame, int pageIndex, int originX, int originY, int mouseX, int mouseY) {
-        AspectList listed = listedAspects(frame.player());
-        if (listed.isEmpty()) {
+    private static void drawRow(GuiGraphicsExtractor graphics, Font font, Player player, Holder<IAspect> aspect, int x, int y, int mouseX, int mouseY) {
+        if (Rect.inside(x, y, HOVER_SIZE, HOVER_SIZE, mouseX, mouseY)) {
+            drawScaled(graphics, x + MAIN_X, y + MAIN_Y, MAIN_SCALE, () -> BookBlit.iconTile(graphics, AspectTileDrawer.BACKDROP_TILE, 0, 0, BookBlit.alphaTint(HOVER_BACKDROP_ALPHA)));
+        }
+        drawScaled(graphics, x + MAIN_X, y + MAIN_Y, MAIN_SCALE, () -> AspectTileDrawer.known(graphics, 0, 0, aspect));
+        drawSmallName(graphics, font, AspectComponents.name(aspect), x + MAIN_NAME_CENTER_X, y + NAME_Y);
+        List<Holder<IAspect>> parts = aspect.value().components();
+        if (aspect.value().isPrimal() || parts.size() != COMPOUND_PARTS) {
+            graphics.text(font, Component.translatable(PRIMAL_KEY), x + PRIMAL_X, y + SYMBOL_Y, PRIMAL_COLOR, false);
             return;
         }
-        List<AspectInstance> ordered = listed.sortedByTag();
-        int firstIndex = Math.min(pageIndex * ROWS_PER_PAGE, ordered.size());
-        int endIndex = Math.min(firstIndex + ROWS_PER_PAGE, ordered.size());
-        List<AspectInstance> pageRows = ordered.subList(firstIndex, endIndex);
-        for (int row = 0; row < pageRows.size(); row++) {
-            drawRow(graphics, frame, pageRows.get(row).aspect(), originX, originY + row * ROW_STRIDE, mouseX, mouseY);
-        }
-        int totalPages = pagesFor(listed.size());
-        float swell = ArrowBob.swell(frame.player());
-        if (pageIndex > 0) {
-            BookBlit.swellingSprite(graphics, originX + PAGER_LEFT_X, originY + PAGER_Y, BookSprites.ARROW_LEFT_U, BookSprites.ARROW_V, BookSprites.ARROW_WIDTH, BookSprites.ARROW_HEIGHT, swell);
-        }
-        if (pageIndex < totalPages - 1) {
-            BookBlit.swellingSprite(graphics, originX + PAGER_RIGHT_X, originY + PAGER_Y, BookSprites.ARROW_RIGHT_U, BookSprites.ARROW_V, BookSprites.ARROW_WIDTH, BookSprites.ARROW_HEIGHT, swell);
-        }
+        graphics.text(font, EQUALS, x + EQUALS_X, y + SYMBOL_Y, SYMBOL_COLOR, false);
+        graphics.text(font, PLUS, x + PLUS_X, y + SYMBOL_Y, SYMBOL_COLOR, false);
+        drawPart(graphics, font, player, parts.get(0), x + FIRST_PART_X, y, x + FIRST_NAME_CENTER_X);
+        drawPart(graphics, font, player, parts.get(1), x + SECOND_PART_X, y, x + SECOND_NAME_CENTER_X);
     }
 
-    private static void drawRow(GuiGraphicsExtractor graphics, DetailFrame frame, Holder<IAspect> aspect, int rowX, int rowY, int mouseX, int mouseY) {
-        Font font = frame.font();
-        if (Rect.inside(rowX, rowY, ROW_HOVER_SIZE, ROW_HOVER_SIZE, mouseX, mouseY)) {
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(rowX + BACKDROP_OFFSET, rowY + BACKDROP_OFFSET);
-            graphics.pose().scale(BACKDROP_SCALE, BACKDROP_SCALE);
-            BookBlit.iconTile(graphics, AspectTileDrawer.BACKDROP_TILE, 0, 0, BookBlit.alphaTint(BACKDROP_ALPHA));
-            graphics.pose().popMatrix();
+    private static void drawPart(GuiGraphicsExtractor graphics, Font font, Player player, Holder<IAspect> part, int x, int rowY, int nameCenterX) {
+        if (!AspectPools.isDiscovered(player, part)) {
+            drawScaled(graphics, x, rowY + PART_Y, PART_SCALE, () -> AspectTileDrawer.unrevealed(graphics));
+            return;
         }
+        drawScaled(graphics, x, rowY + PART_Y, PART_SCALE, () -> AspectTileDrawer.known(graphics, 0, 0, part));
+        drawSmallName(graphics, font, AspectComponents.name(part), nameCenterX, rowY + NAME_Y);
+    }
+
+    private static void drawScaled(GuiGraphicsExtractor graphics, int x, int y, float scale, Runnable drawing) {
         graphics.pose().pushMatrix();
-        graphics.pose().translate(rowX + TAG_OFFSET, rowY + TAG_OFFSET);
-        graphics.pose().scale(TAG_SCALE, TAG_SCALE);
-        if (AspectKnowledgeAccess.isKnown(aspect)) {
-            AspectTileDrawer.known(graphics, 0, 0, aspect);
-        } else {
-            AspectTileDrawer.silhouette(graphics, aspect);
-        }
-        graphics.pose().popMatrix();
-        drawScaledName(graphics, font, AspectComponents.name(aspect), rowX + NAME_CENTER_X, rowY + NAME_Y_OFFSET);
-        List<Holder<IAspect>> parts = aspect.value().components();
-        if (parts.size() >= COMPONENT_COUNT) {
-            drawComposition(graphics, frame, parts.get(0), parts.get(1), rowX, rowY);
-        } else {
-            graphics.text(font, Component.translatable("tooltip.thaumaturge.aspect.primal"), rowX + PRIMAL_X, rowY + OPERATOR_Y_OFFSET, PRIMAL_COLOR, false);
-        }
-    }
-
-    private static void drawComposition(GuiGraphicsExtractor graphics, DetailFrame frame, Holder<IAspect> left, Holder<IAspect> right, int rowX, int rowY) {
-        Font font = frame.font();
-        boolean leftKnown = AspectPools.isDiscovered(frame.player(), left);
-        boolean rightKnown = AspectPools.isDiscovered(frame.player(), right);
-        drawPart(graphics, left, leftKnown, rowX + LEFT_PART_X, rowY + PART_Y_OFFSET);
-        drawPart(graphics, right, rightKnown, rowX + RIGHT_PART_X, rowY + PART_Y_OFFSET);
-        if (leftKnown) {
-            drawScaledName(graphics, font, AspectComponents.name(left), rowX + LEFT_PART_NAME_X, rowY + NAME_Y_OFFSET);
-        }
-        if (rightKnown) {
-            drawScaledName(graphics, font, AspectComponents.name(right), rowX + RIGHT_PART_NAME_X, rowY + NAME_Y_OFFSET);
-        }
-        graphics.text(font, Component.literal("="), rowX + EQUALS_X, rowY + OPERATOR_Y_OFFSET, OPERATOR_COLOR, false);
-        graphics.text(font, Component.literal("+"), rowX + PLUS_X, rowY + OPERATOR_Y_OFFSET, OPERATOR_COLOR, false);
-    }
-
-    private static void drawPart(GuiGraphicsExtractor graphics, Holder<IAspect> aspect, boolean revealed, int x, int y) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(x, y);
-        graphics.pose().scale(PART_SCALE, PART_SCALE);
-        if (revealed) {
-            AspectTileDrawer.known(graphics, 0, 0, aspect);
-        } else {
-            AspectTileDrawer.unrevealed(graphics);
-        }
+        graphics.pose().translate((float) x, (float) y);
+        graphics.pose().scale(scale, scale);
+        drawing.run();
         graphics.pose().popMatrix();
     }
 
-    private static void drawScaledName(GuiGraphicsExtractor graphics, Font font, Component name, int centerX, int y) {
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(centerX, y);
-        graphics.pose().scale(NAME_SCALE, NAME_SCALE);
-        graphics.text(font, name, -font.width(name) / 2, 0, NAME_COLOR, false);
-        graphics.pose().popMatrix();
+    private static void drawSmallName(GuiGraphicsExtractor graphics, Font font, Component name, int centerX, int top) {
+        int width = font.width(name);
+        drawScaled(graphics, centerX, top, NAME_SCALE, () -> graphics.text(font, name, -width / HALF, 0, NAME_COLOR, false));
     }
 }

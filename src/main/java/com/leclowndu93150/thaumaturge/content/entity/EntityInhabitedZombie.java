@@ -15,7 +15,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -26,7 +25,6 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.phys.AABB;
 import org.jspecify.annotations.Nullable;
 
@@ -40,10 +38,8 @@ public class EntityInhabitedZombie extends Zombie {
     private static final double SPAWN_EXCLUSION_HORIZONTAL = 32.0;
     private static final double SPAWN_EXCLUSION_VERTICAL = 16.0;
     private static final int DEATH_PARTICLES = 20;
-    private static final double DEATH_PARTICLE_HORIZONTAL_SPREAD = 0.5;
-    private static final double DEATH_PARTICLE_VERTICAL_SPREAD = 0.25;
-    private static final double DEATH_PARTICLE_SPEED = 0.02;
     private static final double HALF = 0.5;
+    private static final double DEATH_PARTICLE_SPEED = 0.02;
 
     public EntityInhabitedZombie(EntityType<? extends EntityInhabitedZombie> type, Level level) {
         super(type, level);
@@ -62,7 +58,7 @@ public class EntityInhabitedZombie extends Zombie {
     protected void registerGoals() {
         super.registerGoals();
         NearestAttackableTargetGoal<EntityCultist> huntCultists = new NearestAttackableTargetGoal<>(this, EntityCultist.class, true);
-        HurtByTargetGoal retaliate = new HurtByTargetGoal(this);
+        HurtByTargetGoal retaliate = new HurtByTargetGoal(this).setAlertOthers();
         this.targetSelector.addGoal(CULTIST_PRIORITY, huntCultists);
         this.targetSelector.addGoal(RETALIATE_PRIORITY, retaliate);
     }
@@ -74,13 +70,43 @@ public class EntityInhabitedZombie extends Zombie {
 
     @Override
     public boolean killedEntity(ServerLevel level, LivingEntity entity, DamageSource source) {
-        return false;
+        return true;
     }
 
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
         this.equip(TTLootTables.EQUIPMENT_INHABITED_ZOMBIE, NO_DROP_OVERRIDES);
         return super.finalizeSpawn(level, difficulty, reason, groupData);
+    }
+
+    @Override
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {}
+
+    @Override
+    protected void tickDeath() {
+        if (level() instanceof ServerLevel server && !isRemoved()) {
+            releaseCrab(server);
+            puffOfSmoke(server);
+            remove(RemovalReason.KILLED);
+        }
+    }
+
+    private void releaseCrab(ServerLevel level) {
+        EntityEldritchCrab crab = TTEntities.ELDRITCH_CRAB.get().create(level, EntitySpawnReason.CONVERSION);
+        if (crab == null) {
+            return;
+        }
+        crab.snapTo(getX(), getEyeY(), getZ(), getYRot(), getXRot());
+        crab.setYHeadRot(getYHeadRot());
+        crab.finalizeSpawn(level, level.getCurrentDifficultyAt(blockPosition()), EntitySpawnReason.CONVERSION, null);
+        crab.setHelm(true);
+        level.addFreshEntity(crab);
+    }
+
+    private void puffOfSmoke(ServerLevel level) {
+        double halfWidth = getBbWidth() * HALF;
+        double halfHeight = getBbHeight() * HALF;
+        level.sendParticles(ParticleTypes.POOF, getX(), getY() + halfHeight, getZ(), DEATH_PARTICLES, halfWidth, halfHeight, halfWidth, DEATH_PARTICLE_SPEED);
     }
 
     @Override
@@ -91,46 +117,5 @@ public class EntityInhabitedZombie extends Zombie {
     @Override
     protected SoundEvent getHurtSound(DamageSource source) {
         return SoundEvents.GENERIC_HURT;
-    }
-
-    @Override
-    protected void tickDeath() {
-        if (!(this.level() instanceof ServerLevel server)) {
-            super.tickDeath();
-            return;
-        }
-        if (this.isRemoved()) {
-            return;
-        }
-        releaseCrab(server);
-        awardLeftoverExperience(server);
-        puffOfSmoke(server);
-        this.discard();
-    }
-
-    private void releaseCrab(ServerLevel server) {
-        EntityEldritchCrab crab = TTEntities.ELDRITCH_CRAB.get().create(server, EntitySpawnReason.TRIGGERED);
-        if (crab == null) {
-            return;
-        }
-        crab.snapTo(this.getX(), this.getY() + this.getEyeHeight(), this.getZ(), this.getYRot(), this.getXRot());
-        crab.setHelm(true);
-        server.addFreshEntity(crab);
-    }
-
-    private void awardLeftoverExperience(ServerLevel server) {
-        boolean unclaimed = this.lastHurtByPlayerMemoryTime <= 0 && !this.wasExperienceConsumed();
-        if (unclaimed && this.shouldDropExperience() && server.getGameRules().get(GameRules.MOB_DROPS)) {
-            ExperienceOrb.award(server, this.position(), this.getExperienceReward(server, null));
-        }
-    }
-
-    private void puffOfSmoke(ServerLevel server) {
-        double width = this.getBbWidth();
-        double height = this.getBbHeight();
-        double spreadX = width * DEATH_PARTICLE_HORIZONTAL_SPREAD;
-        double spreadY = height * DEATH_PARTICLE_VERTICAL_SPREAD;
-        double centerY = this.getY() + height * HALF;
-        server.sendParticles(ParticleTypes.POOF, this.getX(), centerY, this.getZ(), DEATH_PARTICLES, spreadX, spreadY, spreadX, DEATH_PARTICLE_SPEED);
     }
 }

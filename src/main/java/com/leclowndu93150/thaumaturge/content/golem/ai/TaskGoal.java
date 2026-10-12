@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.ai;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
@@ -23,9 +23,9 @@ public abstract class TaskGoal extends Goal {
     private static final int CLAIM_COOLDOWN_ASKS = 5;
     private static final int PAUSE_TICKS = 10;
     private static final int PATH_REFRESH_INTERVAL = 5;
-    private static final int UNSTICK_HORIZONTAL = 6;
-    private static final int UNSTICK_VERTICAL = 4;
     private static final double QUARTER_TURN = Math.PI / 2.0D;
+    private static final int UNSTICK_HORIZONTAL = 4;
+    private static final int UNSTICK_VERTICAL = 2;
 
     private enum Phase {
         IDLE, APPROACHING, WORKING, PAUSED, FINISHED
@@ -84,13 +84,13 @@ public abstract class TaskGoal extends Goal {
 
     protected boolean mayTake(Task task, BlockPos where) {
         SealPos origin = task.origin();
-        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
+        ISealEntity seal = origin == null ? null : GolemDispatch.sealAt(golem.level(), origin).orElse(null);
         return SealAccess.allows(seal, golem) && task.canBePerformedBy(golem) && golem.isWithinHome(where);
     }
 
     protected void take(Task task) {
         SealPos origin = task.origin();
-        ISealEntity seal = origin == null ? null : GolemHelper.getSealEntity(golem.level(), origin);
+        ISealEntity seal = origin == null ? null : GolemDispatch.sealAt(golem.level(), origin).orElse(null);
         if (seal != null && golem.level() instanceof ServerLevel level) {
             seal.behavior().onTaskStarted(level, seal, golem, task);
         }

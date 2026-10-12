@@ -38,21 +38,28 @@ import net.minecraft.world.level.block.Block;
  * to 16 x 16 x 11 positions per survey. Implementations must be cheap, must read world state only,
  * must not mutate the world or schedule ticks, and must not retain the passed {@link Level}.
  * @since 1.0.0
+ * @deprecated use {@link AltarStabiliser}. This interface extends it, so existing implementations keep working; it is
+ * removed in 2.0.0.
  */
-public interface IInfusionStabiliser {
+@Deprecated(since = "1.1.0", forRemoval = true)
+public interface IInfusionStabiliser extends AltarStabiliser {
     /**
      * Stability restored per replenish cycle by one matched pair of default stabilisers, before
      * diminishing returns. Equals the value {@link #getStabilizationAmount} returns by default.
      *
      * @since 1.0.0
+     * @deprecated use {@link AltarStabiliser#STANDARD_PAIR_VALUE}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     float DEFAULT_STABILIZATION = 0.1F;
 
     /**
      * Symmetry penalty returned by {@link #getSymmetryPenalty} by default.
      *
      * @since 1.0.0
+     * @deprecated use {@link AltarStabiliser#NO_PENALTY}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     float NO_SYMMETRY_PENALTY = 0.0F;
 
     /**
@@ -65,7 +72,9 @@ public interface IInfusionStabiliser {
      * @param pos the position of this block itself
      * @return {@code true} if the block counts toward the stability survey
      * @since 1.0.0
+     * @deprecated implement {@link AltarStabiliser#stabilisesNow}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     boolean canStabiliseInfusion(Level level, BlockPos pos);
 
     /**
@@ -80,7 +89,9 @@ public interface IInfusionStabiliser {
      * @return a finite, non-negative amount in stability per replenish cycle; defaults to
      * {@link #DEFAULT_STABILIZATION}
      * @since 1.0.0
+     * @deprecated implement {@link AltarStabiliser#pairValue}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     default float getStabilizationAmount(Level level, BlockPos pos) {
         return DEFAULT_STABILIZATION;
     }
@@ -96,7 +107,9 @@ public interface IInfusionStabiliser {
      * @param pos the position of this block itself
      * @return the identity block, never {@code null}
      * @since 1.0.0
+     * @deprecated implement {@link AltarStabiliser#countsAs}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     default Block stabiliserIdentity(Level level, BlockPos pos) {
         return level.getBlockState(pos).getBlock();
     }
@@ -113,7 +126,9 @@ public interface IInfusionStabiliser {
      * @param mirror the position of the mirrored partner
      * @return {@code true} if the pair must be penalised; defaults to {@code false}
      * @since 1.0.0
+     * @deprecated implement {@link AltarStabiliser#penalisesPairWith}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     default boolean hasSymmetryPenalty(Level level, BlockPos pos, BlockPos mirror) {
         return false;
     }
@@ -129,8 +144,76 @@ public interface IInfusionStabiliser {
      * @return a finite, non-negative penalty in stability per replenish cycle; defaults to
      * {@code 0}
      * @since 1.0.0
+     * @deprecated implement {@link AltarStabiliser#penaltyValue}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
     default float getSymmetryPenalty(Level level, BlockPos pos) {
         return NO_SYMMETRY_PENALTY;
+    }
+
+    /**
+     * Answers {@link AltarStabiliser#stabilisesNow} through {@link #canStabiliseInfusion}.
+     *
+     * @param level the level the block is in
+     * @param pos the position of this block
+     * @return the result of {@link #canStabiliseInfusion}
+     * @since 1.1.0
+     */
+    @Override
+    default boolean stabilisesNow(Level level, BlockPos pos) {
+        return canStabiliseInfusion(level, pos);
+    }
+
+    /**
+     * Answers {@link AltarStabiliser#pairValue} through {@link #getStabilizationAmount}.
+     *
+     * @param level the level the block is in
+     * @param pos the position of this block
+     * @return the result of {@link #getStabilizationAmount}
+     * @since 1.1.0
+     */
+    @Override
+    default float pairValue(Level level, BlockPos pos) {
+        return getStabilizationAmount(level, pos);
+    }
+
+    /**
+     * Answers {@link AltarStabiliser#countsAs} through {@link #stabiliserIdentity}.
+     *
+     * @param level the level the block is in
+     * @param pos the position of this block
+     * @return the result of {@link #stabiliserIdentity}
+     * @since 1.1.0
+     */
+    @Override
+    default Block countsAs(Level level, BlockPos pos) {
+        return stabiliserIdentity(level, pos);
+    }
+
+    /**
+     * Answers {@link AltarStabiliser#penalisesPairWith} through {@link #hasSymmetryPenalty}.
+     *
+     * @param level the level the block is in
+     * @param pos the position of this block
+     * @param mirror the position of the mirrored partner
+     * @return the result of {@link #hasSymmetryPenalty}
+     * @since 1.1.0
+     */
+    @Override
+    default boolean penalisesPairWith(Level level, BlockPos pos, BlockPos mirror) {
+        return hasSymmetryPenalty(level, pos, mirror);
+    }
+
+    /**
+     * Answers {@link AltarStabiliser#penaltyValue} through {@link #getSymmetryPenalty}.
+     *
+     * @param level the level the block is in
+     * @param pos the position of this block
+     * @return the result of {@link #getSymmetryPenalty}
+     * @since 1.1.0
+     */
+    @Override
+    default float penaltyValue(Level level, BlockPos pos) {
+        return getSymmetryPenalty(level, pos);
     }
 }

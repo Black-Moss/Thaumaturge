@@ -26,7 +26,7 @@ import net.minecraft.sounds.SoundEvent;
  *
  * @param behavior           what the node does
  * @param icon               the glyph texture
- * @param color              the packed {@code 0xRRGGBB} backplate tint, used when the node has no aspect
+ * @param color              the packed {@code 0xRRGGBB} backplate tint, used for delivery, modifier and flow parts with a fixed aspect and for any node without an aspect; effect parts and nodes that choose their aspect take the aspect's colour
  * @param complexity         the base complexity
  * @param vis                vis per cast added on top of the complexity-derived cost
  * @param power              the factor applied to the power stat when the node runs

@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.api.research.scan;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.gametest.base.TTTestRegistrar;
 import com.mojang.authlib.GameProfile;
 import java.nio.charset.StandardCharsets;
@@ -49,7 +49,7 @@ public final class InventoryScanTests {
             @Override
             public @Nullable Component refusal(Player player, ScanTarget target) {
                 String name = target.carriedStack().get(DataComponents.CUSTOM_NAME).getString();
-                return name.equals(PREFIX + "dependent") && !KnowledgeAccess.of(player).isResearchKnown(key(PREFIX + "base")) ? Component.literal("Missing prerequisite") : null;
+                return name.equals(PREFIX + "dependent") && !PlayerResearchAccess.of(player).knows(key(PREFIX + "base")) ? Component.literal("Missing prerequisite") : null;
             }
         });
 
@@ -85,7 +85,7 @@ public final class InventoryScanTests {
             container.setItem(0, named("dependent"));
             ScanTarget target = ScanTarget.block(helper.absolutePos(POS));
             ScanningManager.scan(player, target);
-            helper.assertTrue(!KnowledgeAccess.of(player).isResearchKnown(key(PREFIX + "dependent")), "Inventory scans must respect discovery prerequisites");
+            helper.assertTrue(!PlayerResearchAccess.of(player).knows(key(PREFIX + "dependent")), "Inventory scans must respect discovery prerequisites");
             container.setItem(1, named("base"));
             ScanningManager.scan(player, target);
             assertKnown(helper, player, "base");
@@ -132,7 +132,7 @@ public final class InventoryScanTests {
     }
 
     private static void assertKnown(GameTestHelper helper, ServerPlayer player, String suffix) {
-        helper.assertTrue(KnowledgeAccess.of(player).isResearchKnown(key(PREFIX + suffix)), "Inventory scan missed " + suffix);
+        helper.assertTrue(PlayerResearchAccess.of(player).knows(key(PREFIX + suffix)), "Inventory scan missed " + suffix);
     }
 
     private static final class LargeChest extends ChestBlockEntity {

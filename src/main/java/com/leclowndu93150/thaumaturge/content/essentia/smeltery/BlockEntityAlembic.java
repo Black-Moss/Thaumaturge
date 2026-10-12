@@ -7,7 +7,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaList;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStorage;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectEssentiaHost;
 import com.leclowndu93150.thaumaturge.content.essentia.storage.SingleAspectStorage;
@@ -27,7 +28,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
 
-public class BlockEntityAlembic extends AbstractSyncedBlockEntity implements IEssentiaTransport, IAspectContainer, SingleAspectEssentiaHost {
+public class BlockEntityAlembic extends AbstractSyncedBlockEntity implements IEssentiaConduit, IAspectContainer, SingleAspectEssentiaHost {
     public static final int CAPACITY = 128;
     private static final int NO_SUCTION = 0;
 
@@ -90,7 +91,7 @@ public class BlockEntityAlembic extends AbstractSyncedBlockEntity implements IEs
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
+    public boolean connectsOn(Direction face) {
         if (face == Direction.UP) {
             return spout != Direction.UP;
         }
@@ -189,25 +190,22 @@ public class BlockEntityAlembic extends AbstractSyncedBlockEntity implements IEs
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return NO_SUCTION;
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> suctionAspect, int suctionAmount) {}
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction face) {
-        return NO_SUCTION;
+    public EssentiaPull pull(@Nullable Direction face) {
+        return EssentiaPull.NONE;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction face) {
-        return null;
+    public int insert(Holder<IAspect> added, int requested, Direction face, boolean simulate) {
+        return 0;
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> added, int requested, Direction face) {
+    public int roomFor(Holder<IAspect> added, Direction face) {
         return 0;
     }
 
@@ -227,29 +225,34 @@ public class BlockEntityAlembic extends AbstractSyncedBlockEntity implements IEs
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
-        return isConnectable(face);
+    public boolean releasesOn(Direction face) {
+        return connectsOn(face);
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> taken, int requested, Direction face) {
+    public int extract(Holder<IAspect> taken, int requested, Direction face, boolean simulate) {
         ResourceKey<IAspect> key = taken.unwrapKey().orElse(null);
-        boolean allowed = requested > 0 && key != null && canOutputTo(face);
-        return allowed && doTakeFromContainer(key, requested) ? requested : 0;
+        if (requested <= 0 || key == null || !releasesOn(face)) {
+            return 0;
+        }
+        if (simulate) {
+            return amount >= requested && key.equals(aspect) ? requested : 0;
+        }
+        return doTakeFromContainer(key, requested) ? requested : 0;
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return false;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         return aspect == null ? null : Aspects.resolve(level, aspect);
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return amount;
     }
 

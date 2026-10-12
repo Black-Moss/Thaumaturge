@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.equipment;
 
-import com.leclowndu93150.thaumaturge.api.items.IArchitect;
+import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ import net.neoforged.neoforge.common.util.BlockSnapshot;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jspecify.annotations.Nullable;
 
-public final class ElementalShovelItem extends Item implements IArchitect {
+public final class ElementalShovelItem extends Item implements AreaPreviewer {
     private static final int ORIENTATION_COUNT = 3;
     private static final int ORIENTATION_PARALLEL = 0;
     private static final int ORIENTATION_VERTICAL = 1;
@@ -91,24 +91,24 @@ public final class ElementalShovelItem extends Item implements IArchitect {
     }
 
     @Override
-    public List<BlockPos> previewBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
+    public List<BlockPos> previewArea(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
         List<BlockPos> targets = cells(pos, side, player.getDirection(), getOrientation(stack));
         return fitting(level, targets, level.getBlockState(pos));
     }
 
     @Override
-    public @Nullable HitResult aim(ItemStack stack, Level level, LivingEntity caster) {
+    public @Nullable HitResult traceAnchor(ItemStack stack, Level level, LivingEntity caster) {
         double reach = caster instanceof Player player ? player.blockInteractionRange() : NON_PLAYER_REACH;
         return caster.pick(reach, FULL_PARTIAL_TICK, false);
     }
 
     @Override
-    public boolean replacesBlockHighlight(ItemStack stack) {
+    public boolean hidesBlockOutline(ItemStack stack) {
         return true;
     }
 
     @Override
-    public boolean showsAxis(ItemStack stack, Level level, Player player, Direction side, Direction.Axis axis) {
+    public boolean showsAxisArrows(ItemStack stack, Level level, Player player, Direction side, Direction.Axis axis) {
         return false;
     }
 

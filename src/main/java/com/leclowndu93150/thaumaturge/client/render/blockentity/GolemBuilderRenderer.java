@@ -8,7 +8,6 @@ import com.leclowndu93150.thaumaturge.content.golem.press.BlockEntityGolemBuilde
 import com.leclowndu93150.thaumaturge.content.golem.press.BlockGolemBuilder;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -22,8 +21,8 @@ import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.SpriteGetter;
 import net.minecraft.client.resources.model.sprite.SpriteId;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -37,15 +36,15 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
     private static final String PRESS_PART = "press";
     private static final int WHITE = 0xFFFFFFFF;
     private static final float CENTER = 0.5F;
-    private static final float YAW_SOUTH = 180.0F;
-    private static final float YAW_WEST = 90.0F;
-    private static final float YAW_EAST = 270.0F;
-    private static final float PRESS_TRAVEL = 0.625F;
-    private static final float LAVA_HEIGHT = 0.625F;
+    private static final float PRESS_REST_BOTTOM = 1.6875F;
+    private static final float BASE_TOP = 1.0F;
+    private static final float PRESS_CLEARANCE = 0.0625F;
+    private static final float PRESS_TRAVEL = PRESS_REST_BOTTOM - BASE_TOP - PRESS_CLEARANCE;
+    private static final float LAVA_HEIGHT = 0.75F;
     private static final float LAVA_HALF_WIDTH = 0.3125F;
     private static final float LAVA_NEAR = 0.6875F;
     private static final float LAVA_FAR = 1.3125F;
-    private static final int LAVA_LIGHT = 200;
+    private static final int LAVA_LIGHT = LightCoordsUtil.FULL_BRIGHT;
 
     private final SpriteGetter sprites;
 
@@ -69,7 +68,7 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
     public void submit(GolemBuilderRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.translate(CENTER, 0.0F, CENTER);
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw(state.facing)));
+        BlockFacingPose.northBased(poseStack, state.facing);
         submitParts(state.press, poseStack, collector, state.lightCoords);
         TextureAtlasSprite lava = sprites.get(LAVA_SPRITE);
         collector.submitCustomGeometry(poseStack, Sheets.translucentBlockItemSheet(), (pose, buffer) -> lavaQuad(pose, lava.wrap(buffer)));
@@ -104,15 +103,6 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
         }
     }
 
-    private static float yaw(Direction facing) {
-        return switch (facing) {
-            case SOUTH -> YAW_SOUTH;
-            case WEST -> YAW_WEST;
-            case EAST -> YAW_EAST;
-            default -> 0.0F;
-        };
-    }
-
     private static void lavaQuad(PoseStack.Pose pose, VertexConsumer buffer) {
         lavaVertex(pose, buffer, -LAVA_HALF_WIDTH, LAVA_FAR, 1.0F, 1.0F);
         lavaVertex(pose, buffer, LAVA_HALF_WIDTH, LAVA_FAR, 0.0F, 1.0F);
@@ -121,6 +111,6 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
     }
 
     private static void lavaVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float z, float u, float v) {
-        buffer.addVertex(pose, x, LAVA_HEIGHT, z).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LAVA_LIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
+        buffer.addVertex(pose, x, LAVA_HEIGHT, z).setUv(u, v).setColor(WHITE).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LAVA_LIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
     }
 }

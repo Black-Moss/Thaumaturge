@@ -11,7 +11,7 @@ import net.minecraft.util.StringRepresentable;
  *
  * <p>Each type keeps an independent raw counter per research category plus an uncategorised
  * counter. The visible level is the raw counter divided by {@link #progression()} with truncating
- * integer division. See {@link IPlayerKnowledge} for how the counters are stored.
+ * integer division. See {@link PlayerResearch} for how the counters are stored.
  *
  * <p>The declaration order is load-bearing: {@link #STREAM_CODEC} encodes the ordinal, so
  * {@link #THEORY} is wire value 0 and {@link #OBSERVATION} is wire value 1. Appending a constant

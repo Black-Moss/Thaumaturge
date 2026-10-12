@@ -1,7 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.essentia.tube.vent;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.essentia.flow.EssentiaFlowHandler;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEntityTubeFilter;
 import java.util.Objects;
@@ -18,22 +19,23 @@ public final class PressureClash {
 
     private PressureClash() {}
 
-    public static ClashVerdict assess(Level level, BlockPos pos, IEssentiaTransport own, int suction, @Nullable Holder<IAspect> ownAspect) {
+    public static ClashVerdict assess(Level level, BlockPos pos, IEssentiaConduit own, int suction, @Nullable Holder<IAspect> ownAspect) {
         if (suction <= NO_SUCTION) {
             return ClashVerdict.CLEAR;
         }
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (Direction side : DIRECTIONS) {
-            if (!own.isConnectable(side)) {
+            if (!own.connectsOn(side)) {
                 continue;
             }
             Direction back = side.getOpposite();
             cursor.setWithOffset(pos, side);
-            IEssentiaTransport peer = EssentiaFlowHandler.transport(level, cursor, back);
-            if (peer == null || !peer.isConnectable(back) || level.getBlockEntity(cursor) instanceof BlockEntityTubeFilter) {
+            IEssentiaConduit peer = EssentiaFlowHandler.conduit(level, cursor, back);
+            if (peer == null || !peer.connectsOn(back) || level.getBlockEntity(cursor) instanceof BlockEntityTubeFilter) {
                 continue;
             }
-            if (isOpposed(suction, peer.getSuctionAmount(back)) && !Objects.equals(ownAspect, peer.getSuctionType(back))) {
+            EssentiaPull peerPull = peer.pull(back);
+            if (isOpposed(suction, peerPull.strength()) && !Objects.equals(ownAspect, peerPull.aspect())) {
                 return ClashVerdict.CLASH;
             }
         }

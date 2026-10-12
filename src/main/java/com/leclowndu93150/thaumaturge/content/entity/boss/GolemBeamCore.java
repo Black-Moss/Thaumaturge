@@ -1,107 +1,95 @@
 package com.leclowndu93150.thaumaturge.content.entity.boss;
 
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
+import com.leclowndu93150.thaumaturge.content.entity.EntityGolemOrb;
+import com.leclowndu93150.thaumaturge.content.entity.eldritch.LeadingAim;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
-import org.jspecify.annotations.Nullable;
 
 final class GolemBeamCore {
-    private static final int MAX_CHARGE = 150;
-    private static final int SHOT_COST = 15;
+    private static final int CAPACITY = 150;
+    private static final int RECHARGE_PER_TICK = 1;
+    private static final int SHOT_COST_BASE = 15;
     private static final int SHOT_COST_SPREAD = 5;
-    private static final int PULSE_INTERVAL = 5;
-    private static final int ARC_SEGMENTS = 8;
-    private static final int ARC_SEGMENT_SPREAD = 5;
-    private static final float SPOT_MIN_DISTANCE = 2.0F;
-    private static final float SPOT_DISTANCE_SPREAD = 2.0F;
-    private static final int SPOT_SCAN_UP = 2;
-    private static final int SPOT_SCAN_DOWN = 3;
-    private static final int ARC_COLOR = 0xA6FFFF;
-    private static final float HUM_VOLUME = 0.8F;
-    private static final float HUM_PITCH_VARIATION = 0.05F;
-    private static final double BLOCK_CENTER = 0.5;
+    private static final float ORB_SPEED = 0.66F;
+    private static final float ORB_INACCURACY = 5.0F;
+    private static final float ORB_VOLUME = 1.0F;
+    private static final float ORB_PITCH_BASE = 0.9F;
+    private static final float ORB_PITCH_SPREAD = 0.2F;
+    private static final boolean WHITE_ORB = false;
+    private static final int ARC_COLOR = 0xD8F6FF;
+    private static final float ARC_WIDTH = 0.6F;
+    private static final int ARC_REFRESH_TICKS = 2;
+    private static final int ARC_HOLD_TICKS = 10;
+    private static final double ARC_REACH_MIN = 1.5;
+    private static final double ARC_REACH_SPREAD = 1.25;
+    private static final double ARC_FLOOR_LIFT = 0.05;
+    private static final double ARC_SOURCE_HEIGHT = 0.55;
+    private static final float HUM_VOLUME = 0.6F;
+    private static final float HUM_PITCH_BASE = 0.9F;
+    private static final float HUM_PITCH_SPREAD = 0.3F;
 
-    private final Mob golem;
-    private final BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+    private final EntityEldritchGolem golem;
     private int charge;
-    private boolean recharging;
-    private int pulseClock;
-    private int segmentsLeft;
-    private @Nullable Vec3 spot;
+    private boolean recharging = true;
+    private int arcAge;
+    private Vec3 arcSpot = Vec3.ZERO;
 
-    GolemBeamCore(Mob golem) {
+    GolemBeamCore(EntityEldritchGolem golem) {
         this.golem = golem;
-    }
-
-    boolean ready() {
-        return !recharging && charge > 0;
-    }
-
-    void spend(RandomSource random) {
-        charge -= SHOT_COST + random.nextInt(SHOT_COST_SPREAD);
     }
 
     void tick(ServerLevel level) {
         if (!recharging) {
-            if (charge <= 0) {
-                recharging = true;
-                pulseClock = 0;
-                segmentsLeft = 0;
-            }
             return;
         }
-        charge++;
-        if (charge >= MAX_CHARGE) {
-            charge = MAX_CHARGE;
+        charge = Math.min(CAPACITY, charge + RECHARGE_PER_TICK);
+        crackle(level);
+        if (charge >= CAPACITY) {
             recharging = false;
-            spot = null;
-            return;
-        }
-        if (++pulseClock >= PULSE_INTERVAL) {
-            pulseClock = 0;
-            pulse(level);
         }
     }
 
-    private void pulse(ServerLevel level) {
-        if (spot == null || segmentsLeft <= 0) {
-            spot = findSpot(level);
-            if (spot == null) {
-                return;
-            }
-            segmentsLeft = ARC_SEGMENTS + golem.getRandom().nextInt(ARC_SEGMENT_SPREAD);
-            level.playSound(null, golem.getX(), golem.getY(), golem.getZ(), TTSounds.JACOBS.get(), SoundSource.HOSTILE, HUM_VOLUME,
-                    1.0F + (golem.getRandom().nextFloat() * 2 - 1) * HUM_PITCH_VARIATION);
+    boolean fire(ServerLevel level, LivingEntity target) {
+        if (recharging) {
+            return false;
         }
-        Effects.zapArc(level, golem.getBoundingBox().getCenter()).to(spot).color(ARC_COLOR).send();
-        segmentsLeft--;
-    }
-
-    private @Nullable Vec3 findSpot(ServerLevel level) {
         RandomSource random = golem.getRandom();
-        float distance = SPOT_MIN_DISTANCE + random.nextFloat() * SPOT_DISTANCE_SPREAD;
-        float angle = random.nextFloat() * Mth.TWO_PI;
-        int x = Mth.floor(golem.getX() + Mth.cos(angle) * distance);
-        int z = Mth.floor(golem.getZ() + Mth.sin(angle) * distance);
-        int top = golem.blockPosition().getY() + SPOT_SCAN_UP;
-        for (int y = top; y >= top - SPOT_SCAN_UP - SPOT_SCAN_DOWN; y--) {
-            cursor.set(x, y, z);
-            if (!level.hasChunkAt(cursor)) {
-                return null;
-            }
-            BlockState state = level.getBlockState(cursor);
-            if (!state.getCollisionShape(level, cursor).isEmpty()) {
-                cursor.set(x, y + 1, z);
-                return level.getBlockState(cursor).getCollisionShape(level, cursor).isEmpty() ? new Vec3(x + BLOCK_CENTER, y + 1.0, z + BLOCK_CENTER) : null;
-            }
+        EntityGolemOrb orb = new EntityGolemOrb(level, golem, target, WHITE_ORB);
+        Vec3 aim = LeadingAim.at(orb, target);
+        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_INACCURACY);
+        level.addFreshEntity(orb);
+        level.playSound(null, golem.getX(), golem.getY(), golem.getZ(), TTSounds.EGATTACK.get(), SoundSource.HOSTILE, ORB_VOLUME, ORB_PITCH_BASE + random.nextFloat() * ORB_PITCH_SPREAD);
+        charge -= SHOT_COST_BASE + random.nextInt(SHOT_COST_SPREAD);
+        if (charge <= 0) {
+            charge = 0;
+            recharging = true;
+            arcAge = 0;
         }
-        return null;
+        return true;
+    }
+
+    private void crackle(ServerLevel level) {
+        if (arcAge % ARC_HOLD_TICKS == 0) {
+            pickArcSpot(level);
+        }
+        if (arcAge % ARC_REFRESH_TICKS == 0) {
+            Vec3 source = golem.position().add(0.0, golem.getBbHeight() * ARC_SOURCE_HEIGHT, 0.0);
+            Effects.boltStrike(level, source).to(arcSpot).color(ARC_COLOR).width(ARC_WIDTH).send();
+        }
+        arcAge++;
+    }
+
+    private void pickArcSpot(ServerLevel level) {
+        RandomSource random = golem.getRandom();
+        float bearing = random.nextFloat() * Mth.TWO_PI;
+        double reach = golem.getBbWidth() / 2.0 + ARC_REACH_MIN + random.nextDouble() * ARC_REACH_SPREAD;
+        arcSpot = new Vec3(golem.getX() + Mth.cos(bearing) * reach, golem.getY() + ARC_FLOOR_LIFT, golem.getZ() + Mth.sin(bearing) * reach);
+        level.playSound(null, golem.getX(), golem.getY(), golem.getZ(), TTSounds.JACOBS.get(), SoundSource.HOSTILE, HUM_VOLUME, HUM_PITCH_BASE + random.nextFloat() * HUM_PITCH_SPREAD);
     }
 }

@@ -54,7 +54,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 
 public final class SpellPartBootstrap {
-    private static final int MODIFIER = 0x8590AE;
+    private static final int MODIFIER = 0x5A7894;
+    private static final int HIDDEN = 0xCDB8EE;
     private static final String LEVEL = "level";
 
     private SpellPartBootstrap() {}
@@ -79,73 +80,73 @@ public final class SpellPartBootstrap {
     }
 
     private static void deliveries(BootstrapContext<SpellPart> ctx) {
-        PartBuilder.of(new RayDelivery(3.0, true, RayDelivery.Visual.FLASH, 0.0F, 1)).glyph("touch").color(0xAD8585).complexity(2).aspect(TTAspects.AVERSIO).research("base_auromancy").register(ctx,
+        PartBuilder.of(new RayDelivery(3.0, true, RayDelivery.Visual.FLASH, 0.0F, 1)).glyph("touch").color(0xE8B4A0).complexity(2).aspect(TTAspects.AVERSIO).research("base_auromancy").register(ctx,
                 TTSpellParts.TOUCH);
-        PartBuilder.of(new RayDelivery(16.0, false, RayDelivery.Visual.ARC, 0.66F, 1)).glyph("bolt").color(0xAD9885).complexity(5).aspect(TTAspects.POTENTIA).research("focus_bolt").sound(TTSounds.ZAP)
+        PartBuilder.of(new RayDelivery(16.0, false, RayDelivery.Visual.ARC, 0.66F, 1)).glyph("bolt").color(0xE8D29A).complexity(5).aspect(TTAspects.POTENTIA).research("focus_bolt").sound(TTSounds.ZAP)
                 .register(ctx, TTSpellParts.BOLT);
-        PartBuilder.of(new RayDelivery(16.0, false, RayDelivery.Visual.BEAM, 0.0F, 6)).glyph("beam").color(0xC8B26E).complexity(6).power(0.8F).aspect(TTAspects.LUX).research("focus_beam")
+        PartBuilder.of(new RayDelivery(16.0, false, RayDelivery.Visual.BEAM, 0.0F, 6)).glyph("beam").color(0xEDE3B8).complexity(6).power(0.8F).aspect(TTAspects.LUX).research("focus_beam")
                 .setting("range", 8, 24, 4, 12, 0.5F).register(ctx, TTSpellParts.BEAM);
-        PartBuilder.of(new ProjectileDelivery(0.33F, 0.33F, 0.01, 0.0F)).glyph("projectile").color(0xADAE85).complexity(4).aspect(TTAspects.MOTUS).research("focus_projectile")
+        PartBuilder.of(new ProjectileDelivery(0.33F, 0.33F, 0.01, 0.0F)).glyph("projectile").color(0xD9B8C9).complexity(4).aspect(TTAspects.MOTUS).research("focus_projectile")
                 .setting("speed", 1, 5, 1, 2, 0.5F).register(ctx, TTSpellParts.PROJECTILE);
-        PartBuilder.of(new ProjectileDelivery(0.75F, 0.0F, 0.05, 2.0F)).glyph("lob").color(0x9A9A70).complexity(5).power(0.9F).aspect(TTAspects.TERRA).research("focus_lob").register(ctx,
+        PartBuilder.of(new ProjectileDelivery(0.75F, 0.0F, 0.05, 2.0F)).glyph("lob").color(0xC4A98A).complexity(5).power(0.9F).aspect(TTAspects.TERRA).research("focus_lob").register(ctx,
                 TTSpellParts.LOB);
-        PartBuilder.of(new SprayDelivery(60.0F, 8, 6)).glyph("spray").color(0xA9AE90).complexity(5).power(0.6F).aspect(TTAspects.AER).research("focus_beam").setting("range", 3, 6, 1, 4, 1.0F)
+        PartBuilder.of(new SprayDelivery(60.0F, 8, 6)).glyph("spray").color(0xA9CFD9).complexity(5).power(0.6F).aspect(TTAspects.AER).research("focus_beam").setting("range", 3, 6, 1, 4, 1.0F)
                 .register(ctx, TTSpellParts.SPRAY);
-        PartBuilder.of(new ChainDelivery(16.0, 6.0, 0.8F, 0.5F)).glyph("chain").color(0xAAAE85).complexity(6).power(0.8F).aspect(TTAspects.POTENTIA).research("focus_beam")
+        PartBuilder.of(new ChainDelivery(16.0, 6.0, 0.8F, 0.5F)).glyph("chain").color(0xC9C2E8).complexity(6).power(0.8F).aspect(TTAspects.POTENTIA).research("focus_beam")
                 .setting("jumps", 1, 4, 1, 2, 2.0F).sound(TTSounds.ZAP).register(ctx, TTSpellParts.CHAIN);
-        PartBuilder.of(new AuraDelivery(16)).glyph("sprite").color(0xAE9AAE).complexity(5).power(0.7F).aspect(TTAspects.AURAM).research("focus_aura").setting("radius", 2, 6, 1, 3, 1.5F).register(ctx,
+        PartBuilder.of(new AuraDelivery(16)).glyph("sprite").color(0xE3C4E0).complexity(5).power(0.7F).aspect(TTAspects.AURAM).research("focus_aura").setting("radius", 2, 6, 1, 3, 1.5F).register(ctx,
                 TTSpellParts.AURA);
-        PartBuilder.of(new SelfDelivery()).glyph("self").color(0xAE9A85).complexity(1).aspect(TTAspects.HUMANUS).research("focus_aura").register(ctx, TTSpellParts.SELF);
-        PartBuilder.of(new CloudDelivery()).glyph("cloud").color(0x99AE85).complexity(4).power(0.5F).aspect(TTAspects.ALKIMIA).research("focus_cloud").setting("radius", 1, 3, 1, 1, 2.0F)
+        PartBuilder.of(new SelfDelivery()).glyph("self").color(0xE0CDB8).complexity(1).aspect(TTAspects.HUMANUS).research("focus_aura").register(ctx, TTSpellParts.SELF);
+        PartBuilder.of(new CloudDelivery()).glyph("cloud").color(0xB5D1B0).complexity(4).power(0.5F).aspect(TTAspects.ALKIMIA).research("focus_cloud").setting("radius", 1, 3, 1, 1, 2.0F)
                 .setting("duration", 5, 30, 5, 10, 1.0F).register(ctx, TTSpellParts.CLOUD);
-        PartBuilder.of(new MineDelivery()).glyph("mine").color(0x85AE85).complexity(4).aspect(TTAspects.VINCULUM).research("focus_mine").options("target", 0.0F, "enemy", "ally").register(ctx,
+        PartBuilder.of(new MineDelivery()).glyph("mine").color(0xA8C49A).complexity(4).aspect(TTAspects.VINCULUM).research("focus_mine").options("target", 0.0F, "enemy", "ally").register(ctx,
                 TTSpellParts.MINE);
-        PartBuilder.of(new WallDelivery(8.0)).glyph("build").color(0x85A0AE).complexity(6).power(0.5F).aspect(TTAspects.PRAEMUNIO).research("focus_lob").setting("width", 3, 7, 2, 3, 1.0F)
+        PartBuilder.of(new WallDelivery(8.0)).glyph("build").color(0xB8A58C).complexity(6).power(0.5F).aspect(TTAspects.PRAEMUNIO).research("focus_lob").setting("width", 3, 7, 2, 3, 1.0F)
                 .setting("duration", 5, 20, 5, 10, 1.0F).register(ctx, TTSpellParts.WALL);
-        PartBuilder.of(new BatDelivery()).glyph("spellbat").color(0x85AEAC).complexity(8).power(0.33F).aspect(TTAspects.BESTIA).research("focus_spellbat").options("target", 0.0F, "enemy", "ally")
+        PartBuilder.of(new BatDelivery()).glyph("spellbat").color(0xA9B8DA).complexity(8).power(0.33F).aspect(TTAspects.BESTIA).research("focus_spellbat").options("target", 0.0F, "enemy", "ally")
                 .register(ctx, TTSpellParts.SPELLBAT);
-        PartBuilder.of(new SummonDelivery(3)).glyph("summon").color(0x9A85AE).complexity(9).power(0.4F).aspect(TTAspects.SPIRITUS).research("focus_sprite").setting("duration", 10, 30, 10, 10, 2.0F)
+        PartBuilder.of(new SummonDelivery(3)).glyph("summon").color(0x9FC7CF).complexity(9).power(0.4F).aspect(TTAspects.SPIRITUS).research("focus_sprite").setting("duration", 10, 30, 10, 10, 2.0F)
                 .register(ctx, TTSpellParts.SPRITE);
-        PartBuilder.of(new ArchitectDelivery(16.0)).glyph("plan").color(0x85AE98).complexity(4).aspect(TTAspects.FABRICO).research("focus_plan").max(1).options("method", 0.0F, "full", "surface")
+        PartBuilder.of(new ArchitectDelivery(16.0)).glyph("plan").color(0xC2D6A0).complexity(4).aspect(TTAspects.FABRICO).research("focus_plan").max(1).options("method", 0.0F, "full", "surface")
                 .register(ctx, TTSpellParts.PLAN);
     }
 
     private static void strikes(BootstrapContext<SpellPart> ctx) {
-        PartBuilder.of(new AspectStrikeEffect(1.0F)).glyph("fire").color(0xFF5A01).complexity(2).aspect(TTAspects.IGNIS).research("base_auromancy").fx("flame").setting("power", 1, 5, 1, 1, 2.0F)
+        PartBuilder.of(new AspectStrikeEffect(1.0F)).glyph("fire").complexity(2).aspect(TTAspects.IGNIS).research("base_auromancy").fx("flame").setting("power", 1, 5, 1, 1, 2.0F)
                 .setting("duration", 0, 5, 1, 1, 1.0F).register(ctx, TTSpellParts.FIRE);
-        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("frost").color(0xE1FFFF).complexity(2).aspect(TTAspects.GELUM).research("focus_elemental").fx("frost").setting("power", 1, 5, 1, 1, 2.0F)
+        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("frost").complexity(2).aspect(TTAspects.GELUM).research("focus_elemental").fx("frost").setting("power", 1, 5, 1, 1, 2.0F)
                 .setting("duration", 2, 10, 1, 2, 1.0F).register(ctx, TTSpellParts.FROST);
-        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("air").color(0xFFFF7E).complexity(2).aspect(TTAspects.AER).research("focus_elemental").fx("gust").setting("power", 1, 5, 1, 1, 2.0F)
-                .register(ctx, TTSpellParts.AIR);
-        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("earth").color(0x56C000).complexity(3).aspect(TTAspects.TERRA).research("focus_elemental").fx("pebble").setting("power", 1, 5, 1, 1, 3.0F)
-                .register(ctx, TTSpellParts.EARTH);
-        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("flux").color(0x800080).complexity(3).aspect(TTAspects.VITIUM).research("focus_flux").fx("flux").setting("power", 1, 5, 1, 1, 3.0F)
-                .register(ctx, TTSpellParts.FLUX);
-        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("curse").color(0x6A0005).complexity(3).aspect(TTAspects.MORTUUS).research("focus_curse").fx("curse").setting("power", 1, 5, 1, 1, 3.0F)
+        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("air").complexity(2).aspect(TTAspects.AER).research("focus_elemental").fx("gust").setting("power", 1, 5, 1, 1, 2.0F).register(ctx,
+                TTSpellParts.AIR);
+        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("earth").complexity(3).aspect(TTAspects.TERRA).research("focus_elemental").fx("pebble").setting("power", 1, 5, 1, 1, 3.0F).register(ctx,
+                TTSpellParts.EARTH);
+        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("flux").complexity(3).aspect(TTAspects.VITIUM).research("focus_flux").fx("flux").setting("power", 1, 5, 1, 1, 3.0F).register(ctx,
+                TTSpellParts.FLUX);
+        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("curse").complexity(3).aspect(TTAspects.MORTUUS).research("focus_curse").fx("curse").setting("power", 1, 5, 1, 1, 3.0F)
                 .setting("duration", 1, 10, 1, 3, 1.0F).register(ctx, TTSpellParts.CURSE);
-        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("heal").color(0xDE0005).complexity(3).aspect(TTAspects.VICTUS).research("focus_heal").fx("heal").setting("power", 1, 5, 1, 1, 3.0F)
-                .register(ctx, TTSpellParts.HEAL);
+        PartBuilder.of(new AspectStrikeEffect(2.0F)).glyph("heal").complexity(3).aspect(TTAspects.VICTUS).research("focus_heal").fx("heal").setting("power", 1, 5, 1, 1, 3.0F).register(ctx,
+                TTSpellParts.HEAL);
     }
 
     private static void effects(BootstrapContext<SpellPart> ctx) {
-        PartBuilder.of(new AspectBurstEffect(2.0F, 0.75F)).glyph("burst").color(0xFF5A01).complexity(6).chooses(AffinityReaction.STRIKE, TTAspects.IGNIS).research("focus_burst")
-                .setting("power", 1, 5, 1, 2, 2.0F).setting("radius", 1, 4, 1, 2, 2.0F).register(ctx, TTSpellParts.BURST);
-        PartBuilder.of(new ImbueEffect(3.0F)).glyph("imbue").color(0xCF00FF).complexity(4).chooses(AffinityReaction.IMBUE, TTAspects.VICTUS).research("focus_imbue")
-                .setting("potency", 1, 3, 1, 1, 3.0F).setting("duration", 1, 10, 1, 3, 1.0F).register(ctx, TTSpellParts.IMBUE);
-        PartBuilder.of(new BreakEffect(0.25F, 0.25F, 0.1F)).glyph("break").color(0x8A4A08).complexity(3).aspect(TTAspects.PERDITIO).research("focus_break").fx("crack")
+        PartBuilder.of(new AspectBurstEffect(2.0F, 0.75F)).glyph("burst").complexity(6).chooses(AffinityReaction.STRIKE, TTAspects.IGNIS).research("focus_burst").setting("power", 1, 5, 1, 2, 2.0F)
+                .setting("radius", 1, 4, 1, 2, 2.0F).register(ctx, TTSpellParts.BURST);
+        PartBuilder.of(new ImbueEffect(3.0F)).glyph("imbue").complexity(4).chooses(AffinityReaction.IMBUE, TTAspects.VICTUS).research("focus_imbue").setting("potency", 1, 3, 1, 1, 3.0F)
+                .setting("duration", 1, 10, 1, 3, 1.0F).register(ctx, TTSpellParts.IMBUE);
+        PartBuilder.of(new BreakEffect(0.25F, 0.25F, 0.1F)).glyph("break").complexity(3).aspect(TTAspects.PERDITIO).research("focus_break").fx("crack")
                 .sound(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.END_GATEWAY_SPAWN)).setting("power", 1, 5, 1, 1, 3.0F).register(ctx, TTSpellParts.BREAK);
-        PartBuilder.of(new ExchangeEffect(0.25F, 0.25F, 0.1F)).glyph("exchange").color(0x578357).complexity(5).aspect(TTAspects.PERMUTATIO).research("focus_exchange")
+        PartBuilder.of(new ExchangeEffect(0.25F, 0.25F, 0.1F)).glyph("exchange").complexity(5).aspect(TTAspects.PERMUTATIO).research("focus_exchange")
                 .sound(BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.ENCHANTMENT_TABLE_USE)).register(ctx, TTSpellParts.EXCHANGE);
-        PartBuilder.of(new RiftEffect()).glyph("rift").color(0x2F1165).complexity(3).aspect(TTAspects.ALIENIS).research("focus_rift").fx("rift").setting("depth", 8, 32, 8, 8, 2.0F)
+        PartBuilder.of(new RiftEffect()).glyph("rift").complexity(3).aspect(TTAspects.ALIENIS).research("focus_rift").fx("rift").setting("depth", 8, 32, 8, 8, 2.0F)
                 .setting("duration", 2, 10, 1, 4, 0.5F).register(ctx, TTSpellParts.RIFT);
-        PartBuilder.of(new WardEffect(0.5F)).glyph("ward").color(0xFFE8CF).complexity(4).aspect(TTAspects.ORDO).research("focus_ward").fx("ward").register(ctx, TTSpellParts.WARD);
-        PartBuilder.of(new PrimalEffect(4.0F, 1.5F, 0.01F)).glyph("primal").color(0xA5A1C1).complexity(20).vis(2.0F).aspect(TTAspects.PRAECANTATIO).research("focus_primal").fx("primal")
+        PartBuilder.of(new WardEffect(0.5F)).glyph("ward").complexity(4).aspect(TTAspects.ORDO).research("focus_ward").fx("ward").register(ctx, TTSpellParts.WARD);
+        PartBuilder.of(new PrimalEffect(4.0F, 1.5F, 0.01F)).glyph("primal").complexity(20).vis(2.0F).aspect(TTAspects.PRAECANTATIO).research("focus_primal").fx("primal")
                 .setting("power", 1, 5, 1, 1, 3.0F).register(ctx, TTSpellParts.PRIMAL);
-        PartBuilder.of(new HellbatEffect(16, 32.0)).glyph("hellbat").color(0xDC3502).complexity(8).aspect(TTAspects.BESTIA).research("focus_hellbat").fx("flame").setting("bats", 1, 3, 1, 1, 8.0F)
-                .register(ctx, TTSpellParts.HELLBAT);
-        PartBuilder.of(new BlinkEffect(48.0)).glyph("blink").color(0x6A2FA0).complexity(7).aspect(TTAspects.ALIENIS).research("focus_blink").fx("rift").max(1).register(ctx, TTSpellParts.BLINK);
-        PartBuilder.of(new HarvestEffect()).glyph("harvest").color(0x6B8E23).complexity(4).aspect(TTAspects.HERBA).research("focus_harvest").fx("leaf").setting("radius", 0, 3, 1, 1, 2.0F)
-                .register(ctx, TTSpellParts.HARVEST);
+        PartBuilder.of(new HellbatEffect(16, 32.0)).glyph("hellbat").complexity(8).aspect(TTAspects.BESTIA).research("focus_hellbat").fx("flame").setting("bats", 1, 3, 1, 1, 8.0F).register(ctx,
+                TTSpellParts.HELLBAT);
+        PartBuilder.of(new BlinkEffect(48.0)).glyph("blink").complexity(7).aspect(TTAspects.ALIENIS).research("focus_blink").fx("rift").max(1).register(ctx, TTSpellParts.BLINK);
+        PartBuilder.of(new HarvestEffect()).glyph("harvest").complexity(4).aspect(TTAspects.HERBA).research("focus_harvest").fx("leaf").setting("radius", 0, 3, 1, 1, 2.0F).register(ctx,
+                TTSpellParts.HARVEST);
     }
 
     private static void modifiers(BootstrapContext<SpellPart> ctx) {
@@ -190,10 +191,10 @@ public final class SpellPartBootstrap {
         hierophant(ctx, TTIds.ELDRITCH_SIGIL, TTEntities.HIEROPHANT_SIGIL.get());
         hierophant(ctx, TTIds.ELDRITCH_NOVA, TTEntities.HIEROPHANT_NOVA.get());
         hierophant(ctx, TTIds.ELDRITCH_HAMMER, TTEntities.HIEROPHANT_HAMMER.get());
-        PartBuilder.of(new EldritchRendEffect(0.35)).glyph("flux").color(0xAC80D0).hidden().register(ctx, ResourceKey.create(SpellPart.REGISTRY_KEY, TTIds.ELDRITCH_REND));
+        PartBuilder.of(new EldritchRendEffect(0.35)).glyph("flux").color(HIDDEN).hidden().register(ctx, ResourceKey.create(SpellPart.REGISTRY_KEY, TTIds.ELDRITCH_REND));
     }
 
     private static void hierophant(BootstrapContext<SpellPart> ctx, Identifier id, EntityType<?> spell) {
-        PartBuilder.of(new HierophantDelivery(spell)).glyph("flux").color(0xAC80D0).hidden().setting("left", 0, 1, 1, 0, 0.0F).register(ctx, ResourceKey.create(SpellPart.REGISTRY_KEY, id));
+        PartBuilder.of(new HierophantDelivery(spell)).glyph("flux").color(HIDDEN).hidden().setting("left", 0, 1, 1, 0, 0.0F).register(ctx, ResourceKey.create(SpellPart.REGISTRY_KEY, id));
     }
 }

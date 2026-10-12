@@ -20,15 +20,15 @@ public final class HomingSteering {
         this.velocityX = vx;
         this.velocityY = vy;
         this.velocityZ = vz;
-        if (distance < this.tuning.arrivalDistance()) {
+        if (distance <= this.tuning.arrivalDistance()) {
             return HomingPhase.ARRIVED;
         }
         boolean near = distance < this.tuning.nearDistance();
-        double scale = (near ? this.tuning.nearPush() : this.tuning.push()) / distance;
-        double limit = this.tuning.maxSpeed();
-        this.velocityX = Mth.clamp(vx + dx * scale, -limit, limit);
-        this.velocityY = Mth.clamp(vy + dy * scale, -limit, limit);
-        this.velocityZ = Mth.clamp(vz + dz * scale, -limit, limit);
+        double strength = (near ? this.tuning.nearPush() : this.tuning.push()) / distance;
+        double cap = this.tuning.maxSpeed();
+        this.velocityX = Mth.clamp(vx + dx * strength, -cap, cap);
+        this.velocityY = Mth.clamp(vy + dy * strength, -cap, cap);
+        this.velocityZ = Mth.clamp(vz + dz * strength, -cap, cap);
         return near ? HomingPhase.NEAR : HomingPhase.FAR;
     }
 

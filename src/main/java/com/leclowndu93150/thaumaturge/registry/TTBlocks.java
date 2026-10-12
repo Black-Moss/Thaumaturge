@@ -129,6 +129,7 @@ import com.leclowndu93150.thaumaturge.content.world.mound.BlockLoot;
 import com.leclowndu93150.thaumaturge.content.world.plant.BlockGrassAmbient;
 import com.leclowndu93150.thaumaturge.content.world.plant.MagicPlantBlock;
 import com.leclowndu93150.thaumaturge.content.world.plant.MagicPlantTraits;
+import com.leclowndu93150.thaumaturge.content.world.tree.BlockGreatwoodLog;
 import com.leclowndu93150.thaumaturge.content.world.tree.BlockSaplingTT;
 import com.leclowndu93150.thaumaturge.content.world.tree.BlockSilverwoodNodeLog;
 import com.leclowndu93150.thaumaturge.content.world.tree.TTTreeGrowers;
@@ -521,7 +522,7 @@ public final class TTBlocks {
     public static final DeferredBlock<Block> MATRIX_COST = BLOCKS.registerBlock("matrix_cost", Block::new, TTBlocks::stoneProps);
 
     public static final DeferredBlock<BlockVisBattery> VIS_BATTERY = BLOCKS.registerBlock("vis_battery", BlockVisBattery::new,
-            props -> props.mapColor(MapColor.STONE).strength(0.5F).sound(SoundType.STONE).randomTicks().lightLevel(state -> state.getValue(BlockVisBattery.CHARGE)));
+            props -> props.mapColor(MapColor.STONE).strength(0.5F).sound(SoundType.GLASS).randomTicks().lightLevel(state -> state.getValue(BlockVisBattery.CHARGE)));
 
     public static final DeferredBlock<BlockDioptra> DIOPTRA = BLOCKS.registerBlock("dioptra", BlockDioptra::new,
             props -> props.mapColor(MapColor.STONE).strength(2.0F, 10.0F).sound(SoundType.STONE).noOcclusion());
@@ -631,7 +632,7 @@ public final class TTBlocks {
     public static final DeferredBlock<BlockSaplingTT> SAPLING_SILVERWOOD = BLOCKS.registerBlock("sapling_silverwood", props -> new BlockSaplingTT(TTTreeGrowers.SILVERWOOD, props),
             props -> props.mapColor(MapColor.PLANT).noCollision().randomTicks().instabreak().sound(SoundType.GRASS).pushReaction(PushReaction.DESTROY));
 
-    public static final DeferredBlock<RotatedPillarBlock> LOG_GREATWOOD = BLOCKS.registerBlock("log_greatwood", RotatedPillarBlock::new,
+    public static final DeferredBlock<BlockGreatwoodLog> LOG_GREATWOOD = BLOCKS.registerBlock("log_greatwood", BlockGreatwoodLog::new,
             props -> props.mapColor(MapColor.WOOD).strength(2.0F, 5.0F).sound(SoundType.WOOD).ignitedByLava());
 
     public static final DeferredBlock<RotatedPillarBlock> WOOD_GREATWOOD = BLOCKS.registerBlock("greatwood", RotatedPillarBlock::new,

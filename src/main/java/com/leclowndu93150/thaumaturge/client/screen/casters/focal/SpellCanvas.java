@@ -19,11 +19,11 @@ public final class SpellCanvas {
     private static final int DEFAULT_ZOOM = 2;
     private static final int PERCENT = 100;
     private static final int HIT_RADIUS = 12;
-    private static final int LINK_OFFSET_X = 6;
-    private static final int LINK_OFFSET_Y = 22;
+    private static final int LINK_OFFSET_X = 4;
+    private static final int LINK_OFFSET_Y = 20;
     private static final int SPLIT_LEFT_OFFSET = 4;
     private static final int SPLIT_RIGHT_OFFSET = 12;
-    private static final int SPLIT_OFFSET_Y = 36;
+    private static final int SPLIT_OFFSET_Y = LINK_OFFSET_Y + FocalSprites.SPLIT_H;
     private static final int MID_OFFSET = 12;
 
     private final DraftHost host;
@@ -100,29 +100,32 @@ public final class SpellCanvas {
     }
 
     private void links(GuiGraphicsExtractor graphics, SpellTreeLayout.Placed node) {
-        int x = node.column() * FocalLayout.COLUMN_PITCH;
-        int y = node.row() * FocalLayout.ROW_PITCH;
         int tint = node.ghost() ? FocalColors.GHOST_ALPHA : FocalColors.WHITE;
-        strip(graphics, x - LINK_OFFSET_X, y - LINK_OFFSET_Y, FocalSprites.LINK_U, FocalSprites.LINK_V, FocalSprites.LINK_SIZE, FocalSprites.LINK_SIZE, tint);
+        int cx = node.column() * FocalLayout.COLUMN_PITCH;
+        int cy = node.row() * FocalLayout.ROW_PITCH;
+        strip(graphics, cx - LINK_OFFSET_X, cy - LINK_OFFSET_Y, FocalSprites.LINK_U, FocalSprites.LINK_V, FocalSprites.LINK_SIZE, FocalSprites.LINK_SIZE, tint);
         if (!node.branched() || node.column() == node.parentColumn()) {
             return;
         }
-        int splitY = y - SPLIT_OFFSET_Y;
+        int parentX = node.parentColumn() * FocalLayout.COLUMN_PITCH;
+        int y = cy - SPLIT_OFFSET_Y;
         if (node.column() < node.parentColumn()) {
-            strip(graphics, x - SPLIT_LEFT_OFFSET, splitY, FocalSprites.SPLIT_LEFT_U, FocalSprites.SPLIT_V, FocalSprites.SPLIT_END_W, FocalSprites.SPLIT_H, tint);
-            for (int column = node.column() + 1; column < node.parentColumn(); column++) {
-                strip(graphics, column * FocalLayout.COLUMN_PITCH - MID_OFFSET, splitY, FocalSprites.SPLIT_MID_U, FocalSprites.SPLIT_V, FocalSprites.SPLIT_MID_W, FocalSprites.SPLIT_H, tint);
+            strip(graphics, cx - SPLIT_LEFT_OFFSET, y, FocalSprites.SPLIT_LEFT_U, FocalSprites.SPLIT_V, FocalSprites.SPLIT_END_W, FocalSprites.SPLIT_H, tint);
+            for (int x = cx + MID_OFFSET; x < parentX; x += FocalSprites.SPLIT_MID_W) {
+                strip(graphics, x, y, FocalSprites.SPLIT_MID_U, FocalSprites.SPLIT_V, Math.min(FocalSprites.SPLIT_MID_W, parentX - x), FocalSprites.SPLIT_H, tint);
             }
-        } else {
-            strip(graphics, x - SPLIT_RIGHT_OFFSET, splitY, FocalSprites.SPLIT_RIGHT_U, FocalSprites.SPLIT_V, FocalSprites.SPLIT_END_W, FocalSprites.SPLIT_H, tint);
-            for (int column = node.parentColumn() + 1; column < node.column(); column++) {
-                strip(graphics, column * FocalLayout.COLUMN_PITCH - MID_OFFSET, splitY, FocalSprites.SPLIT_MID_U, FocalSprites.SPLIT_V, FocalSprites.SPLIT_MID_W, FocalSprites.SPLIT_H, tint);
-            }
+            return;
+        }
+        strip(graphics, cx - SPLIT_RIGHT_OFFSET, y, FocalSprites.SPLIT_RIGHT_U, FocalSprites.SPLIT_V, FocalSprites.SPLIT_END_W, FocalSprites.SPLIT_H, tint);
+        for (int end = cx - MID_OFFSET; end > parentX; end -= FocalSprites.SPLIT_MID_W) {
+            int start = Math.max(parentX, end - FocalSprites.SPLIT_MID_W);
+            int width = end - start;
+            strip(graphics, start, y, FocalSprites.SPLIT_MID_U + FocalSprites.SPLIT_MID_W - width, FocalSprites.SPLIT_V, width, FocalSprites.SPLIT_H, tint);
         }
     }
 
     private static void strip(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int width, int height, int tint) {
-        graphics.blit(RenderPipelines.GUI_TEXTURED, FocalSprites.STRIP, x, y, u, v, width, height, width, height, FocalSprites.STRIP_TEXTURE, FocalSprites.STRIP_TEXTURE, tint);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, FocalSprites.STRIP, x, y, u, v, width, height, FocalSprites.STRIP_TEXTURE, FocalSprites.STRIP_TEXTURE, tint);
     }
 
     private void controls(GuiGraphicsExtractor graphics, FocalLayout layout, int mouseX, int mouseY) {

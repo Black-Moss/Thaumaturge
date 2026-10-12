@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.research.book;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.leclowndu93150.thaumaturge.content.misc.TTActionBar;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
@@ -34,7 +34,7 @@ public final class SharingThaumonomiconItem extends Item {
         }
         ItemStack stack = player.getItemInHand(hand);
         ShareBinding binding = stack.get(TTDataComponents.SHARE_BINDING.get());
-        IPlayerKnowledge know = ResearchManager.of(serverPlayer);
+        PlayerResearch know = ResearchManager.of(serverPlayer);
         if (!(know instanceof PlayerKnowledge knowledge))
             return InteractionResult.SUCCESS_SERVER;
         AspectPoolData discoveredAspects = AspectPools.data(player);
@@ -52,7 +52,7 @@ public final class SharingThaumonomiconItem extends Item {
         knowledge.mergeResearchFrom(binding.knowledge());
         discoveredAspects.mergeDiscoveriesFrom(binding.discoveredAspects());
 
-        knowledge.sync(serverPlayer);
+        knowledge.queueSync(serverPlayer);
         AspectPools.sync(serverPlayer);
 
         player.playSound(TTSounds.WRITE.get(), 1.0F, 1.0F);

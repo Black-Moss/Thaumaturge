@@ -14,16 +14,11 @@ public final class HoldStillGoal<T extends Mob & HoldsStill> extends Goal {
 
     @Override
     public boolean canUse() {
-        return creature.holdingStill() && creature.isAlive() && creature.onGround() && !creature.isInWater();
+        return creature.holdingStill() && creature.isAlive() && creature.onGround() && !creature.isInWater() && creature.hurtTime == 0;
     }
 
     @Override
     public void start() {
         creature.getNavigation().stop();
-    }
-
-    @Override
-    public void stop() {
-        creature.releaseHold();
     }
 }

@@ -10,6 +10,7 @@ import java.util.function.Consumer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.AbstractEndPortalRenderer;
 import net.minecraft.client.renderer.special.SpecialModelRenderer;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Vector3fc;
@@ -31,7 +32,7 @@ public class JarItemSpecialRenderer implements SpecialModelRenderer<JarItemSpeci
         if (fill == null)
             return;
         AspectInstance contents = fill.contents();
-        JarRenderer.submitFluid(contents.amount(), fill.capacity(), contents.aspect().value().color(), lightCoords, context.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE), poseStack,
+        JarRenderer.submitFluid(contents.amount(), fill.capacity(), ARGB.opaque(contents.aspect().value().color()), lightCoords, context.sprites().get(JarRenderer.ANIMATED_GLOW_SPRITE), poseStack,
                 submitNodeCollector);
     }
 

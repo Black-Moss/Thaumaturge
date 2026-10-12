@@ -2,81 +2,89 @@ package com.leclowndu93150.thaumaturge.client.effect.instance.stream;
 
 import com.leclowndu93150.thaumaturge.client.effect.instance.StreamInstance.Snapshot;
 import com.leclowndu93150.thaumaturge.client.effect.instance.StreamInstance.TrailPoint;
+import net.minecraft.util.Mth;
 import org.jspecify.annotations.Nullable;
 
 public final class StreamSnapshotBuilder {
-    private static final int MIN_TRAIL_POINTS = 3;
-    private static final int POSITION_AXES = 3;
-    private static final int COLOUR_CHANNELS = 4;
-    private static final double[] WOBBLE_DIVISORS = {6.0, 7.0, 8.0};
-    private static final double RADIUS_RIPPLE_DIVISOR = 3.0;
-    private static final double RADIUS_RIPPLE_DEPTH = 0.2;
-    private static final int TAPER_WINDOW = 10;
-    private static final int TAPER_ZERO_OFFSET = 12;
-    private static final double TAPER_STEPS = 10.0;
+    private static final int MIN_POINTS = 3;
+    private static final int PINNED_TAIL_POINTS = 2;
+    private static final int TAIL_BLEND_POINTS = 4;
+    private static final int HEAD_TAPER_POINTS = 5;
     private static final double QUARTER_TURN = Math.PI / 2.0;
-    private static final double THIRD = 1.0 / 3.0;
-    private static final double[][] BLEND_WEIGHTS = {{0.0, 0.0}, {0.0, 0.0}, {0.25, 0.5}, {0.5, 0.5}, {THIRD, 2.0 * THIRD}};
-    private static final double[] PLAIN_WEIGHTS = {0.0, 1.0};
-    private static final float TEXTURE_SLICE = 0.075F;
+    private static final double RIPPLE_DEPTH = 0.12;
+    private static final double RIPPLE_SPACING = 0.6;
+    private static final double RIPPLE_SPEED = 0.25;
+    private static final double SHIMMER_RATE_X = 0.11;
+    private static final double SHIMMER_RATE_Y = 0.087;
+    private static final double SHIMMER_RATE_Z = 0.13;
+    private static final double SHIMMER_SPACING_X = 0.45;
+    private static final double SHIMMER_SPACING_Y = 0.37;
+    private static final double SHIMMER_SPACING_Z = 0.52;
+    private static final double ORIGIN_PHASE = 1.7;
+    private static final float TEX_SLICE = 0.08F;
+    private static final float FLOW_SLICES_PER_TICK = 1.5F;
+    private static final int SERIAL_BASE = PINNED_TAIL_POINTS - 1;
+    private static final int AXES = 3;
+    private static final int CHANNELS = 4;
 
-    private StreamSnapshotBuilder() {}
+    private double[][] points = new double[0][];
+    private float[][] colours = new float[0][];
+    private double[] radii = new double[0];
 
-    public static @Nullable Snapshot build(TrailBuffer trail, StreamFrame frame, SnapshotRequest request, SlotColouring colouring) {
-        int size = trail.size();
-        if (size < MIN_TRAIL_POINTS) {
+    public @Nullable Snapshot build(TrailBuffer trail, StreamFrame frame, SnapshotRequest request, SlotColouring colouring) {
+        int count = trail.size();
+        if (count < MIN_POINTS) {
             return null;
         }
-        double[][] points = positions(trail, frame, request);
-        double[] radii = radii(trail, frame, request);
-        float[][] colours = colours(size, request, colouring);
-        float start = trail.isDissolving() ? TEXTURE_SLICE * (frame.age() - trail.dissolveStartAge() + request.partialTick()) : 0.0F;
-        return new Snapshot(points, colours, radii, frame.originX(), frame.originY(), frame.originZ(), TEXTURE_SLICE, start);
-    }
-
-    private static int phaseOf(int outputIndex, int size, boolean newestFirst) {
-        return newestFirst ? outputIndex : size - 1 - outputIndex;
-    }
-
-    private static TrailPoint pointAt(TrailBuffer trail, int phase) {
-        return trail.get(trail.size() - 1 - phase);
-    }
-
-    private static double[][] positions(TrailBuffer trail, StreamFrame frame, SnapshotRequest request) {
-        int size = trail.size();
-        double[][] points = new double[size][POSITION_AXES];
-        for (int output = 0; output < size; output++) {
-            int phase = phaseOf(output, size, request.newestFirst());
-            TrailPoint point = pointAt(trail, phase);
-            double wave = phase + frame.age();
-            points[output][0] = point.x() + request.wobble() * Math.sin(wave / WOBBLE_DIVISORS[0]);
-            points[output][1] = point.y() + request.wobble() * Math.sin(wave / WOBBLE_DIVISORS[1]);
-            points[output][2] = point.z() + request.wobble() * Math.sin(wave / WOBBLE_DIVISORS[2]);
+        fit(count);
+        boolean dissolving = trail.isDissolving();
+        int newestSerial = SERIAL_BASE + (dissolving ? trail.dissolveStartAge() : frame.age());
+        int oldestSerial = newestSerial - (count - 1);
+        float time = frame.age() + request.partialTick();
+        double phase = (frame.originX() + frame.originY() + frame.originZ()) * ORIGIN_PHASE;
+        double wobble = request.wobble();
+        for (int index = 0; index < count; index++) {
+            TrailPoint point = trail.get(index);
+            int serial = oldestSerial + index;
+            int slot = request.newestFirst() ? count - 1 - index : index;
+            double[] out = this.points[slot];
+            out[0] = point.x() + wobble * Math.sin(time * SHIMMER_RATE_X + serial * SHIMMER_SPACING_X + phase);
+            out[1] = point.y() + wobble * Math.sin(time * SHIMMER_RATE_Y + serial * SHIMMER_SPACING_Y + phase);
+            out[2] = point.z() + wobble * Math.sin(time * SHIMMER_RATE_Z + serial * SHIMMER_SPACING_Z + phase);
+            this.radii[slot] = point.radius() * taper(index, count) * ripple(serial, time) * request.radiusMultiplier();
+            colouring.colour(this.colours[slot], serial);
         }
-        return points;
+        float flow = dissolving ? (frame.age() - trail.dissolveStartAge() + request.partialTick()) * FLOW_SLICES_PER_TICK * TEX_SLICE : 0.0F;
+        float start = request.newestFirst() ? flow - newestSerial * TEX_SLICE : oldestSerial * TEX_SLICE - flow;
+        return new Snapshot(this.points, this.colours, this.radii, frame.originX(), frame.originY(), frame.originZ(), TEX_SLICE, Mth.frac(start));
     }
 
-    private static double[] radii(TrailBuffer trail, StreamFrame frame, SnapshotRequest request) {
-        int size = trail.size();
-        double[] radii = new double[size];
-        for (int output = 0; output < size; output++) {
-            int phase = phaseOf(output, size, request.newestFirst());
-            double wave = phase + frame.age();
-            double raw = pointAt(trail, phase).radius() * (1.0 + RADIUS_RIPPLE_DEPTH * Math.sin(wave / RADIUS_RIPPLE_DIVISOR)) * request.radiusMultiplier();
-            if (phase > size - TAPER_WINDOW) {
-                raw *= Math.cos((phase - (size - TAPER_ZERO_OFFSET)) / TAPER_STEPS * QUARTER_TURN);
-            }
-            double[] weights = output < BLEND_WEIGHTS.length ? BLEND_WEIGHTS[output] : PLAIN_WEIGHTS;
-            radii[output] = weights[0] * frame.baseRadius() + weights[1] * raw;
+    private void fit(int count) {
+        if (this.radii.length == count) {
+            return;
         }
-        return radii;
+        this.points = new double[count][AXES];
+        this.colours = new float[count][CHANNELS];
+        this.radii = new double[count];
     }
 
-    private static float[][] colours(int size, SnapshotRequest request, SlotColouring colouring) {
-        float[][] colours = new float[size][COLOUR_CHANNELS];
-        for (int output = 0; output < size; output++) {
-            colouring.colour(colours[output], phaseOf(output, size, request.newestFirst()));
+    private static double taper(int index, int count) {
+        if (index < PINNED_TAIL_POINTS) {
+            return 0.0;
         }
-        return colours;
+        double factor = 1.0;
+        int fromTail = index - PINNED_TAIL_POINTS + 1;
+        if (fromTail <= TAIL_BLEND_POINTS) {
+            factor = Mth.smoothstep(fromTail / (double) (TAIL_BLEND_POINTS + 1));
+        }
+        int fromHead = count - 1 - index;
+        if (fromHead < HEAD_TAPER_POINTS) {
+            factor = Math.min(factor, Math.sin(fromHead / (double) HEAD_TAPER_POINTS * QUARTER_TURN));
+        }
+        return factor;
+    }
+
+    private static double ripple(int serial, float time) {
+        return 1.0 + RIPPLE_DEPTH * Math.sin(serial * RIPPLE_SPACING - time * RIPPLE_SPEED);
     }
 }

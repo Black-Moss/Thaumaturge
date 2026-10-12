@@ -31,6 +31,7 @@ public final class TTFXRenderTypes {
     public static final RenderType RIFT_GLOW = endPortal("tc_rift_glow", TTRenderPipelines.RIFT_GLOW);
     public static final RenderType RIFT_GLOW_NO_DEPTH = endPortal("tc_rift_glow_no_depth", TTRenderPipelines.RIFT_GLOW_NO_DEPTH);
     public static final RenderType RIFT_SOLID = endPortal("tc_rift_solid", TTRenderPipelines.RIFT_SOLID);
+    public static final RenderType RIFT_CORE = endPortal("thaumaturge_rift_core", TTRenderPipelines.HOLE_SURFACE);
     public static final RenderType HOLE_SURFACE = RenderType.create("tc_hole_surface",
             RenderSetup.builder(TTRenderPipelines.HOLE_SURFACE).withTexture(SAMPLER, AbstractEndPortalRenderer.END_PORTAL_LOCATION).createRenderSetup());
 

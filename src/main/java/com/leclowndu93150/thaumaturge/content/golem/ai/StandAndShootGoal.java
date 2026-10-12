@@ -31,12 +31,17 @@ public final class StandAndShootGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return liveTarget() != null;
+        LivingEntity target = liveTarget();
+        return target != null && canShootAt(target);
     }
 
     @Override
     public boolean canContinueToUse() {
-        return liveTarget() != null || !shooter.getNavigation().isDone();
+        LivingEntity target = liveTarget();
+        if (target == null) {
+            return !shooter.getNavigation().isDone();
+        }
+        return canShootAt(target);
     }
 
     @Override
@@ -90,6 +95,10 @@ public final class StandAndShootGoal extends Goal {
         }
         trigger.performRangedAttack(target, Mth.clamp(fraction, POWER_FLOOR, POWER_CEILING));
         shotCountdown = cadence.interval(fraction);
+    }
+
+    private boolean canShootAt(LivingEntity target) {
+        return rangeFraction(target) <= FULL_RANGE && shooter.getSensing().hasLineOfSight(target);
     }
 
     private float rangeFraction(LivingEntity target) {

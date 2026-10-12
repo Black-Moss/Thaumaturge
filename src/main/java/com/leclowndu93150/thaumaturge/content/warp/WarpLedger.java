@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.warp;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.warp.WarpType;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
@@ -52,8 +52,8 @@ public final class WarpLedger {
         if (type == WarpType.TEMPORARY) {
             return false;
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        if (!knowledge.isResearchComplete(FIRST_STEPS_RESEARCH) || knowledge.isResearchComplete(WARP_RESEARCH)) {
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
+        if (!knowledge.hasCompleted(FIRST_STEPS_RESEARCH) || knowledge.hasCompleted(WARP_RESEARCH)) {
             return false;
         }
         ResearchManager.complete(player, WARP_RESEARCH);

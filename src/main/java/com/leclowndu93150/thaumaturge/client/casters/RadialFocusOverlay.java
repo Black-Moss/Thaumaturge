@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.casters;
 
 import com.leclowndu93150.thaumaturge.TTIds;
+import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat.CurioPouchRef;
 import com.leclowndu93150.thaumaturge.content.casters.CasterManager;
@@ -22,6 +23,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Ease;
 import net.minecraft.util.Mth;
 import net.minecraft.util.Util;
 import net.minecraft.world.entity.player.Inventory;
@@ -38,29 +40,36 @@ import org.lwjgl.glfw.GLFW;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class RadialFocusOverlay implements GuiLayer {
-    private static final Identifier RING_ONE = TTIds.rl("textures/misc/radial.png");
-    private static final Identifier RING_TWO = TTIds.rl("textures/misc/radial2.png");
+    private static final Identifier RING_ONE = TTScreenTextures.RADIAL_INNER;
+    private static final Identifier RING_TWO = TTScreenTextures.RADIAL_OUTER;
     private static final int RING_TEXTURE_SIZE = 256;
-    private static final int RING_TINT = 0x80808080;
-    private static final float RING_ONE_FACTOR = 2.75F;
-    private static final float RING_TWO_FACTOR = 2.55F;
     private static final float RING_ART_OFFSET_DEGREES = 90.0F;
-    private static final int RING_SPIN_PERIOD_TICKS = 720;
-    private static final float RING_SPIN_DIVISOR = 2.0F;
+    private static final float RING_ONE_FACTOR = 4.2F;
+    private static final float RING_TWO_FACTOR = 4.4F;
+    private static final float RING_ONE_PERIOD_TICKS = 640.0F;
+    private static final float RING_TWO_PERIOD_TICKS = 900.0F;
+    private static final int RING_TINT = 0xA0C0C0C8;
 
-    private static final float BASE_RADIUS = 16.0F;
-    private static final float RADIUS_PER_ENTRY = 2.5F;
-    private static final int HOVER_HALF_SIZE = 10;
+    private static final float BASE_RADIUS = 26.0F;
+    private static final float RADIUS_PER_ENTRY = 3.0F;
+    private static final float START_DEGREES = -90.0F;
+    private static final float SWING_DEGREES = 50.0F;
+    private static final float PICKER_MS = 170.0F;
+    private static final float FRAME_CLAMP_MS = 100.0F;
+
+    private static final int HOVER_MARGIN = 2;
+    private static final float HOVER_SCALE_MAX = 1.45F;
+    private static final float HOVER_GROW_MS = 110.0F;
+    private static final float HOVER_DECAY_MS = 320.0F;
+    private static final float REST_SCALE = 1.0F;
+
+    private static final int TOOLTIP_OFFSET_X = -24;
+    private static final int TOOLTIP_OFFSET_Y = 20;
+
     private static final int ITEM_SIZE = 16;
     private static final int ITEM_HALF = 8;
-    private static final float HOVER_SCALE_MAX = 1.3F;
-    private static final float HOVER_GROW_MS = 150.0F;
-    private static final float HOVER_DECAY_MS = 250.0F;
-    private static final float PICKER_MS = 150.0F;
-    private static final float START_DEGREES = 90.0F;
+    private static final int HOVER_HALF_SIZE = ITEM_SIZE / 2 + HOVER_MARGIN;
     private static final float FULL_TURN_DEGREES = 360.0F;
-    private static final int TOOLTIP_OFFSET_X = -4;
-    private static final int TOOLTIP_OFFSET_Y = 20;
 
     private static final int MAIN_SLOTS = 36;
 
@@ -199,23 +208,60 @@ public final class RadialFocusOverlay implements GuiLayer {
     }
 
     private void drawPicker(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, ItemStack socketed, float partialTick) {
+        if (CasterKeyHandler.radialOpen && mc.mouseHandler.isMouseGrabbed()) {
+            mc.mouseHandler.releaseMouse();
+        }
         int centreX = graphics.guiWidth() / 2;
         int centreY = graphics.guiHeight() / 2;
-        float width = BASE_RADIUS + RADIUS_PER_ENTRY * entries.size();
-        float angle = partialTick + (player.tickCount % RING_SPIN_PERIOD_TICKS) / RING_SPIN_DIVISOR;
-        drawRing(graphics, RING_ONE, centreX, centreY, width * RING_ONE_FACTOR * pickerScale, angle);
-        drawRing(graphics, RING_TWO, centreX, centreY, width * RING_TWO_FACTOR * pickerScale, -angle);
-        if (!socketed.isEmpty()) {
-            graphics.item(socketed, centreX - ITEM_HALF, centreY - ITEM_HALF);
-        }
         int cursorX = (int) mc.mouseHandler.getScaledXPos(mc.getWindow());
         int cursorY = (int) mc.mouseHandler.getScaledYPos(mc.getWindow());
+        float radius = (BASE_RADIUS + RADIUS_PER_ENTRY * entries.size()) * Ease.outCubic(pickerScale);
+        float time = player.tickCount + partialTick;
+        drawRing(graphics, RING_ONE, centreX, centreY, radius * RING_ONE_FACTOR, time / RING_ONE_PERIOD_TICKS * FULL_TURN_DEGREES);
+        drawRing(graphics, RING_TWO, centreX, centreY, radius * RING_TWO_FACTOR, -time / RING_TWO_PERIOD_TICKS * FULL_TURN_DEGREES);
+        drawEntries(graphics, mc, centreX, centreY, radius, cursorX, cursorY);
         if (!socketed.isEmpty()) {
             handleCentre(mc, socketed, cursorX - centreX, cursorY - centreY);
+            drawIcon(graphics, socketed, centreX, centreY, pickerScale);
         }
-        drawEntries(graphics, mc, centreX, centreY, width, cursorX, cursorY);
         if (!tooltipStack.isEmpty()) {
             drawTooltip(graphics, mc, tooltipStack, centreX + TOOLTIP_OFFSET_X, centreY + TOOLTIP_OFFSET_Y);
+        }
+    }
+
+    private void drawEntries(GuiGraphicsExtractor graphics, Minecraft mc, int centreX, int centreY, float width, int cursorX, int cursorY) {
+        if (entries.isEmpty()) {
+            return;
+        }
+        float step = FULL_TURN_DEGREES / entries.size();
+        float swing = (1.0F - Ease.outCubic(pickerScale)) * SWING_DEGREES;
+        boolean testing = selectionOpen();
+        int index = 0;
+        for (Map.Entry<String, FocusEntry> mapEntry : entries.entrySet()) {
+            float radians = (START_DEGREES + index * step - swing) * Mth.DEG_TO_RAD;
+            float iconX = centreX + Mth.cos(radians) * width;
+            float iconY = centreY + Mth.sin(radians) * width;
+            FocusEntry entry = mapEntry.getValue();
+            if (testing) {
+                testEntry(mc, mapEntry.getKey(), entry, cursorX - Math.round(iconX), cursorY - Math.round(iconY));
+            }
+            drawEntryIcon(graphics, entry, iconX, iconY);
+            index++;
+        }
+    }
+
+    private void animate(long now) {
+        float elapsed = Math.min(now - lastFrame, FRAME_CLAMP_MS);
+        boolean open = CasterKeyHandler.radialOpen && Minecraft.getInstance().screen == null;
+        if (open) {
+            lastActive = true;
+        }
+        float change = elapsed / PICKER_MS;
+        pickerScale = Mth.clamp(pickerScale + (open ? change : -change), 0.0F, 1.0F);
+        float grow = elapsed / HOVER_GROW_MS * (HOVER_SCALE_MAX - REST_SCALE);
+        float decay = elapsed / HOVER_DECAY_MS * (HOVER_SCALE_MAX - REST_SCALE);
+        for (FocusEntry entry : entries.values()) {
+            entry.scale = entry.hovered ? Math.min(HOVER_SCALE_MAX, entry.scale + grow) : Math.max(REST_SCALE, entry.scale - decay);
         }
     }
 
@@ -271,28 +317,11 @@ public final class RadialFocusOverlay implements GuiLayer {
         }
     }
 
-    private void drawEntries(GuiGraphicsExtractor graphics, Minecraft mc, int centreX, int centreY, float width, int cursorX, int cursorY) {
-        int count = entries.size();
-        if (count == 0) {
-            return;
-        }
-        float start = -START_DEGREES * pickerScale;
-        float slice = FULL_TURN_DEGREES / count;
-        int index = 0;
-        for (Map.Entry<String, FocusEntry> mapEntry : entries.entrySet()) {
-            FocusEntry entry = mapEntry.getValue();
-            float radians = (start + index++ * slice) * Mth.DEG_TO_RAD;
-            float pullX = Mth.cos(radians) * width;
-            float pullY = Mth.sin(radians) * width;
-            drawEntryIcon(graphics, entry, centreX + (int) pullX * pickerScale, centreY + (int) pullY * pickerScale);
-            if (selectionOpen()) {
-                testEntry(mc, mapEntry.getKey(), entry, (int) (cursorX - (centreX + pullX)), (int) (cursorY - (centreY + pullY)));
-            }
-        }
+    private static void drawEntryIcon(GuiGraphicsExtractor graphics, FocusEntry entry, float iconX, float iconY) {
+        drawIcon(graphics, entry.stack, iconX, iconY, entry.scale * pickerScale);
     }
 
-    private static void drawEntryIcon(GuiGraphicsExtractor graphics, FocusEntry entry, float iconX, float iconY) {
-        float factor = entry.scale * pickerScale;
+    private static void drawIcon(GuiGraphicsExtractor graphics, ItemStack stack, float iconX, float iconY, float factor) {
         if (factor <= 0.0F) {
             return;
         }
@@ -300,7 +329,7 @@ public final class RadialFocusOverlay implements GuiLayer {
         matrices.pushMatrix();
         matrices.translate(iconX, iconY);
         matrices.scale(factor, factor);
-        graphics.item(entry.stack, -ITEM_HALF, -ITEM_HALF);
+        graphics.item(stack, -ITEM_HALF, -ITEM_HALF);
         matrices.popMatrix();
     }
 
@@ -344,26 +373,6 @@ public final class RadialFocusOverlay implements GuiLayer {
             }
         }
         return null;
-    }
-
-    private void animate(long now) {
-        if (now > lastFrame) {
-            float elapsed = now - lastFrame;
-            for (FocusEntry entry : entries.values()) {
-                entry.scale = entry.hovered ? Math.min(HOVER_SCALE_MAX, entry.scale + elapsed / HOVER_GROW_MS) : Math.max(1.0F, entry.scale - elapsed / HOVER_DECAY_MS);
-            }
-            float step = elapsed / PICKER_MS;
-            if (CasterKeyHandler.radialOpen) {
-                pickerScale = Math.min(1.0F, pickerScale + step);
-            } else {
-                pickerScale -= step;
-                if (pickerScale < 0.0F) {
-                    pickerScale = 0.0F;
-                    CasterKeyHandler.inputLock = false;
-                }
-            }
-        }
-        lastActive = CasterKeyHandler.radialOpen;
     }
 
     private static final class FocusEntry {

@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumaturge.client.hud.tag;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IAspectQuery;
 import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
@@ -21,6 +21,7 @@ import net.minecraft.world.phys.Vec3;
 
 public final class GogglesTagResolver {
     private static final double TOP_LIFT = 0.4;
+    private static final double FACE_HALF = 0.5;
 
     private GogglesTagResolver() {}
 
@@ -32,7 +33,7 @@ public final class GogglesTagResolver {
             return Optional.empty();
         }
         BlockPos pos = hit.getBlockPos();
-        if (level.getBlockEntity(pos) instanceof BlockEntityNode && !KnowledgeAccess.of(player).isResearchKnown(ScanNode.researchKey(level, pos))) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityNode && !PlayerResearchAccess.of(player).knows(ScanNode.researchKey(level, pos))) {
             return Optional.empty();
         }
         boolean showAmounts = true;
@@ -53,7 +54,7 @@ public final class GogglesTagResolver {
         boolean topFree = level.getBlockState(pos.above()).isAir();
         Direction face = topFree ? Direction.UP : player.getDirection().getOpposite();
         double originY = topFree ? pos.getY() + TOP_LIFT : pos.getY();
-        return Optional.of(new GogglesTagTarget(pos, aspects, showAmounts, face, new Vec3(pos.getX(), originY, pos.getZ())));
+        return Optional.of(new GogglesTagTarget(pos, aspects, showAmounts, face, new Vec3(pos.getX() + FACE_HALF * face.getStepX(), originY, pos.getZ() + FACE_HALF * face.getStepZ())));
     }
 
     private static boolean holdsScanner(LocalPlayer player) {

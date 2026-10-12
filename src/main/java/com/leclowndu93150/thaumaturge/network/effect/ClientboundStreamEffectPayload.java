@@ -10,6 +10,7 @@ public record ClientboundStreamEffectPayload(StreamEffectKind kind, double sx, d
 
     public static final byte FLAG_REVERSE = 1;
     public static final byte FLAG_WITH_SOURCE = 2;
+    public static final byte FLAG_HIT = 4;
 
     public static final Type<ClientboundStreamEffectPayload> TYPE = new Type<>(TTIds.rl("fx_stream"));
 
@@ -43,12 +44,14 @@ public record ClientboundStreamEffectPayload(StreamEffectKind kind, double sx, d
         return new ClientboundStreamEffectPayload(StreamEffectKind.BOLT, sx, sy, sz, tx, ty, tz, color, 0, 0, width, 0F, sourceEntityId, (byte) 0);
     }
 
-    public static ClientboundStreamEffectPayload beam(double sx, double sy, double sz, double tx, double ty, double tz, int color, int age, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource) {
+    public static ClientboundStreamEffectPayload beam(double sx, double sy, double sz, double tx, double ty, double tz, int color, int age, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource, boolean hit) {
         byte flags = 0;
         if (reverse)
             flags |= FLAG_REVERSE;
         if (withSource)
             flags |= FLAG_WITH_SOURCE;
+        if (hit)
+            flags |= FLAG_HIT;
         return new ClientboundStreamEffectPayload(StreamEffectKind.BEAM, sx, sy, sz, tx, ty, tz, color, age, beamType, endMod, 0F, sourceEntityId, flags);
     }
 

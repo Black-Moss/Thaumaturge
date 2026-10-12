@@ -14,12 +14,12 @@ public final class TTSlider extends AbstractWidget {
     private static final int HANDLE_SIZE = 8;
     private static final int HANDLE_U = 20;
     private static final int HANDLE_V = 20;
+    private static final int HORIZONTAL_TRACK_U = 208;
+    private static final int VERTICAL_TRACK_U = 240;
+    private static final int TRACK_V = 176;
     private static final int TRACK_THICKNESS = 4;
     private static final int TRACK_LENGTH = 32;
     private static final int TRACK_OFFSET = 2;
-    private static final int VERTICAL_TRACK_U = 240;
-    private static final int HORIZONTAL_TRACK_U = 208;
-    private static final int TRACK_V = 176;
     private static final int PRESS_INSET = HANDLE_SIZE / 2;
 
     private final Consumer<Float> onChange;

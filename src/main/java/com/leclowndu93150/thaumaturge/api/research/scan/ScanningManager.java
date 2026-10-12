@@ -2,9 +2,9 @@ package com.leclowndu93150.thaumaturge.api.research.scan;
 
 import com.leclowndu93150.thaumaturge.api.ApiBinding;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.ChatFormatting;
@@ -103,7 +103,7 @@ public final class ScanningManager {
             Identifier research = subject.research(player, target);
             if (research != null) {
                 boolean advanced = advance(player, research);
-                if (!advanced && !(KnowledgeAccess.of(player).isResearchKnown(research) && subject.rescannable(player, target))) {
+                if (!advanced && !(PlayerResearchAccess.of(player).knows(research) && subject.rescannable(player, target))) {
                     continue;
                 }
                 progressed |= advanced;
@@ -144,18 +144,18 @@ public final class ScanningManager {
         if (ScanInventories.hasInventory(player, target)) {
             return true;
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         for (IScannable subject : SUBJECTS) {
             if (!subject.matches(player, target)) {
                 continue;
             }
             Identifier research = subject.research(player, target);
-            if (research == null || !knowledge.isResearchKnown(research) || subject.rescannable(player, target)) {
+            if (research == null || !knowledge.knows(research) || subject.rescannable(player, target)) {
                 return true;
             }
         }
         for (ScanEntry entry : entries(player)) {
-            if (entry.matches(player, target) && !knowledge.isResearchKnown(entry.key())) {
+            if (entry.matches(player, target) && !knowledge.knows(entry.key())) {
                 return true;
             }
         }

@@ -3,7 +3,6 @@ package com.leclowndu93150.thaumaturge.content.misc;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.content.aura.AuraManager;
 import com.leclowndu93150.thaumaturge.content.effect.EssentiaSourceEffectTracker;
-import com.leclowndu93150.thaumaturge.content.equipment.InfusionEnchantmentEvents;
 import com.leclowndu93150.thaumaturge.content.recipe.dust.DustTriggerSwapQueue;
 import com.leclowndu93150.thaumaturge.content.research.CraftReferenceHolder;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -20,6 +19,5 @@ public final class ServerSessionReset {
         CraftReferenceHolder.resetSession();
         EssentiaSourceEffectTracker.resetSession();
         AuraManager.resetSession();
-        InfusionEnchantmentEvents.resetSession();
     }
 }

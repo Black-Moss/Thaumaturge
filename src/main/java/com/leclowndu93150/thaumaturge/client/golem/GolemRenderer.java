@@ -1,11 +1,13 @@
 package com.leclowndu93150.thaumaturge.client.golem;
 
 import com.leclowndu93150.thaumaturge.api.client.golems.GolemAccessoryAnchor;
+import com.leclowndu93150.thaumaturge.api.client.golems.GolemPartRenderHook;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPart;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemPartModel;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TTMeshPart;
+import com.leclowndu93150.thaumaturge.client.render.TTFlatRenderTypes;
 import com.leclowndu93150.thaumaturge.content.golem.EntityThaumaturgeGolem;
 import com.leclowndu93150.thaumaturge.content.golem.GolemProperties;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -41,13 +43,6 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
     private static final float SHADOW_RADIUS = 0.3F;
     private static final float ANCHOR_DROP = 1.5F;
     private static final float MAX_WALK_SPEED = 1.0F;
-    private static final float GRINDER_DEGREES_PER_TICK = 12.0F;
-    private static final float GRINDER_ATTACK_DEGREES = 180.0F;
-    private static final float GHOST_ALPHA = 0.15F;
-    private static final float XRAY_CHANNEL = 0.25F;
-    private static final float XRAY_ALPHA = 0.25F;
-    private static final int GHOST_COLOR = ARGB.white(GHOST_ALPHA);
-    private static final int XRAY_COLOR = ARGB.colorFromFloat(XRAY_ALPHA, XRAY_CHANNEL, XRAY_CHANNEL, XRAY_CHANNEL);
     private static final int OPAQUE_WHITE = -1;
     private static final int OPAQUE_ALPHA = 255;
     private static final int HAULED_SLOT = 1;
@@ -56,7 +51,11 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
     private static final float HELD_ITEM_SCALE = 0.5F;
     private static final float HELD_ITEM_LIFT = 2.0F * PIXEL;
     private static final float HELD_ITEM_FORWARD = 8.0F * PIXEL;
-    private static final float HOOK_PARTIAL_TICK = 0.0F;
+    private static final int GHOST_ALPHA = 40;
+    private static final int GHOST_COLOR = ARGB.white(GHOST_ALPHA);
+    private static final int XRAY_CHANNEL = 70;
+    private static final int XRAY_ALPHA = 96;
+    private static final int XRAY_COLOR = ARGB.color(XRAY_ALPHA, XRAY_CHANNEL, XRAY_CHANNEL, XRAY_CHANNEL);
     private static final String XRAY_TYPE_PREFIX = "thaumaturge_golem_xray_";
     private static final String XRAY_SAMPLER = "Sampler0";
     private static final GolemPartModel.AttachPoint[] LIMB_POINTS = {GolemPartModel.AttachPoint.ARMS, GolemPartModel.AttachPoint.LEGS};
@@ -121,8 +120,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         state.speedSq = moveX * moveX + moveZ * moveZ;
         state.yawDelta = golem.getYRot() - golem.yRotO;
         state.wheelRotation = golem.wheelRotation;
-        state.grinderRot = GRINDER_DEGREES_PER_TICK * state.ageInTicks + GRINDER_ATTACK_DEGREES * state.attackTime;
-        state.combat = golem.isInCombat();
+        state.combat = golem.isFighting();
     }
 
     private static void extractBuild(EntityThaumaturgeGolem golem, GolemRenderState state) {
@@ -189,7 +187,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
         if (xray) {
             return XRAY_CACHE.computeIfAbsent(texture, GolemRenderer::createXrayType);
         }
-        return ARGB.alpha(color) < OPAQUE_ALPHA ? RenderTypes.entityTranslucent(texture) : RenderTypes.entityCutout(texture);
+        return ARGB.alpha(color) < OPAQUE_ALPHA ? TTFlatRenderTypes.entityTranslucentNoDepthWrite(texture) : RenderTypes.entityCutout(texture);
     }
 
     private static RenderType createXrayType(Identifier texture) {
@@ -224,7 +222,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
             RenderType bodyType = renderType(GolemSkins.forMaterial(materialTexture), xray, color);
             collector.submitModel(rig, state, pose, bodyType, state.lightCoords, OverlayTexture.NO_OVERLAY, color, null, state.outlineColor, null);
             if (!xray) {
-                RenderType eyesType = ARGB.alpha(color) < OPAQUE_ALPHA ? RenderTypes.entityTranslucent(GolemSkins.EYES) : RenderTypes.eyes(GolemSkins.EYES);
+                RenderType eyesType = ARGB.alpha(color) < OPAQUE_ALPHA ? TTFlatRenderTypes.entityTranslucentNoDepthWrite(GolemSkins.EYES) : RenderTypes.eyes(GolemSkins.EYES);
                 collector.submitModel(rig, state, pose, eyesType, state.lightCoords, OverlayTexture.NO_OVERLAY, color, null, state.outlineColor, null);
             }
             submitAnchor(GolemAccessoryAnchor.HEAD, GolemPartModel.AttachPoint.HEAD, materialTexture);
@@ -274,7 +272,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
 
         private void submitPart(GolemPartRenderHook hook, TTMeshPart part, GolemPartModel.LimbSide side, RenderType type) {
             pose.pushPose();
-            hook.preRenderObjectPart(part.name(), state, pose, side, HOOK_PARTIAL_TICK);
+            hook.posePiece(part.name(), state, pose, side);
             int light = state.lightCoords;
             int tint = color;
             collector.submitCustomGeometry(pose, type, (matrix, buffer) -> GolemMeshes.renderPart(part, matrix, buffer, light, tint));
@@ -282,7 +280,7 @@ public final class GolemRenderer extends EntityRenderer<EntityThaumaturgeGolem, 
                 pose.popPose();
                 return;
             }
-            hook.postRenderObjectPart(part.name(), state, pose, collector, side);
+            hook.decoratePiece(part.name(), state, pose, collector, side);
             pose.popPose();
         }
 

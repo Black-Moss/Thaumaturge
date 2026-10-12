@@ -3,10 +3,9 @@ package com.leclowndu93150.thaumaturge.content.entity;
 import com.leclowndu93150.thaumaturge.content.entity.ai.CultistHurtByTargetGoal;
 import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakTracker;
 import com.leclowndu93150.thaumaturge.content.entity.cloak.CloakWearer;
+import com.leclowndu93150.thaumaturge.content.entity.portal.CultistPortals;
 import java.util.Map;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -18,6 +17,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
@@ -62,6 +62,7 @@ public abstract class EntityCultist extends Monster implements CloakWearer {
         }
     }
 
+    static final int SWIM_PRIORITY = 0;
     static final int DOOR_PRIORITY = 4;
     static final int RESTRICTION_PRIORITY = 5;
     static final int STROLL_PRIORITY = 6;
@@ -73,7 +74,6 @@ public abstract class EntityCultist extends Monster implements CloakWearer {
     private static final double ATTACK_DAMAGE = 4.0;
     private static final int EXPERIENCE = 10;
     private static final float ARMOR_DROP_CHANCE = 0.05F;
-    private static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.CHEST, EquipmentSlot.FEET, EquipmentSlot.HEAD, EquipmentSlot.LEGS};
     private static final Map<EquipmentSlot, Float> NO_DROP_OVERRIDES = Map.of();
     private static final boolean LOOT_PICKUP_ENABLED = false;
     private static final double WALK_SPEED = 0.8;
@@ -82,8 +82,6 @@ public abstract class EntityCultist extends Monster implements CloakWearer {
     private static final int PLAYER_PRIORITY = 2;
     private static final int GUARDIAN_PRIORITY = 3;
     private static final int ILLAGER_PRIORITY = 4;
-    private static final int ARRIVAL_PUFFS = 20;
-    private static final double ARRIVAL_DRIFT = 0.05;
     private static final float LOOK_YAW_OFFSET = 90.0F;
 
     private final CloakTracker cloak = new CloakTracker();
@@ -91,8 +89,10 @@ public abstract class EntityCultist extends Monster implements CloakWearer {
     protected EntityCultist(EntityType<? extends EntityCultist> type, Level level) {
         super(type, level);
         this.xpReward = EXPERIENCE;
-        for (EquipmentSlot slot : ARMOR_SLOTS) {
-            this.setDropChance(slot, ARMOR_DROP_CHANCE);
+        for (EquipmentSlot slot : EquipmentSlot.VALUES) {
+            if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
+                this.setDropChance(slot, ARMOR_DROP_CHANCE);
+            }
         }
     }
 
@@ -148,27 +148,18 @@ public abstract class EntityCultist extends Monster implements CloakWearer {
         this.setXRot(Mth.approachDegrees(this.getXRot(), angles.pitch(), pitchStep));
     }
 
-    public void spawnCultistArrivalParticles() {
-        if (this.level() instanceof ServerLevel server) {
-            server.broadcastEntityEvent(this, ARRIVAL_EVENT);
-        }
-    }
-
     @Override
     public void handleEntityEvent(byte id) {
-        if (id != ARRIVAL_EVENT) {
+        if (id == ARRIVAL_EVENT) {
+            CultistPortals.showArrival(this);
+        } else {
             super.handleEntityEvent(id);
-            return;
-        }
-        RandomSource random = this.getRandom();
-        for (int i = 0; i < ARRIVAL_PUFFS; i++) {
-            this.level().addParticle(ParticleTypes.POOF, this.getRandomX(1.0), this.getRandomY(), this.getRandomZ(1.0), random.nextGaussian() * ARRIVAL_DRIFT, random.nextGaussian() * ARRIVAL_DRIFT,
-                    random.nextGaussian() * ARRIVAL_DRIFT);
         }
     }
 
     final void addIdleGoals() {
         this.getNavigation().setCanOpenDoors(true);
+        this.goalSelector.addGoal(SWIM_PRIORITY, new FloatGoal(this));
         this.goalSelector.addGoal(DOOR_PRIORITY, new OpenDoorGoal(this, true));
         this.goalSelector.addGoal(RESTRICTION_PRIORITY, new MoveTowardsRestrictionGoal(this, WALK_SPEED));
         this.goalSelector.addGoal(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, WALK_SPEED));

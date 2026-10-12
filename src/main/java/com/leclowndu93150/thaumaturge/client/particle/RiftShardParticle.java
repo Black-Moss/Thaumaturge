@@ -7,23 +7,30 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.util.RandomSource;
 
 public final class RiftShardParticle extends TTParticle {
-    private static final int FRAME_COUNT = 16;
-    private static final int BASE_LIFETIME = 16;
-    private static final float FRICTION = 0.75F;
-    private static final float DRIFT = 0.01F;
+    private static final float RED = 0.2F;
+    private static final float GREEN = 0.38F;
+    private static final float BLUE = 1.0F;
+    private static final float SIZE_UNIT = 0.15F;
+    private static final float MIN_SCALE = 0.1F;
+    private static final int LIFETIME_BASE = 20;
+    private static final int LIFETIME_RANGE = 10;
+    private static final float DRAG = 0.82F;
+    private static final double WOBBLE = 0.006;
 
     private RiftShardParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RiftShardParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
-        setColor(0.25F, 0.25F, 1.0F);
-        this.lifetime = BASE_LIFETIME + this.random.nextInt(16);
-        this.friction = FRICTION;
-        this.quadSize = options.scale() * 0.1F;
-        frame(this.random.nextInt(FRAME_COUNT));
+        setColor(RED, GREEN, BLUE);
+        this.alpha = 1.0F;
+        this.friction = DRAG;
+        this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
+        this.quadSize = Math.max(MIN_SCALE, options.scale()) * SIZE_UNIT;
+        frame(this.random.nextInt(sheetFrames()));
+        setSpin(this.random.nextFloat(), 0.0F);
     }
 
     @Override
     protected void update() {
-        drift(DRIFT, DRIFT, DRIFT);
+        jitterVelocity(WOBBLE);
         this.alpha = 1.0F - progress();
     }
 

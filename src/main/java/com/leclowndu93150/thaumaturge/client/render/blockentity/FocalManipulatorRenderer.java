@@ -1,7 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
@@ -10,7 +9,6 @@ import com.leclowndu93150.thaumaturge.content.taint.item.EssentiaCrystalFactory;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -20,61 +18,68 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.core.Holder;
+import net.minecraft.core.BlockPos;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Quaternionf;
+import org.joml.Matrix4fc;
 import org.jspecify.annotations.Nullable;
 
 public final class FocalManipulatorRenderer implements BlockEntityRenderer<BlockEntityFocalManipulator, FocalManipulatorRenderState> {
+    private static final int VIEW_DISTANCE = 64;
+    private static final double BOUNDS_HEIGHT = 2.0;
     private static final float CENTER = 0.5F;
-    private static final float FOCUS_HEIGHT = 0.8F;
-    private static final float FOCUS_BOB_AMPLITUDE = 0.1F;
-    private static final float FOCUS_BOB_PERIOD = 14.0F;
-    private static final float FOCUS_BOB_SWAY = 0.2F;
     private static final float FULL_TURN = 360.0F;
-    private static final float RING_TURN = 720.0F;
-    private static final float RING_RADIUS = 0.4F;
-    private static final float CRYSTAL_BOB_AMPLITUDE = 0.02F;
-    private static final float CRYSTAL_BOB_PERIOD = 12.0F;
-    private static final float CRYSTAL_BOB_PHASE = 10.0F;
-    private static final float GLOW_HEIGHT = 1.3F;
-    private static final float GLOW_HALF = 0.175F;
-    private static final float GLOW_ALPHA = 0.66F;
-    private static final int GLOW_FRAMES = 16;
-    private static final float CRYSTAL_HEIGHT = 1.05F;
-    private static final float CRYSTAL_SCALE = 0.5F;
-    private static final float RAY_APEX_OFFSET = 0.475F;
-    private static final float RAY_SCALE = 0.5F;
-    private static final int RAY_SECOND_STRIDE = 5;
-    private static final float RAY_PAN_AMPLITUDE = 15.0F;
-    private static final float RAY_PAN_PERIOD = 15.0F;
-    private static final float RAY_APERTURE_AMPLITUDE = 2.0F;
-    private static final float RAY_APERTURE_PERIOD = 14.0F;
-    private static final float RAY_RAMP_TICKS = 10.0F;
-    private static final float RAY_LENGTH_BASE = 10.0F;
-    private static final float RAY_LENGTH_RANGE = 20.0F;
-    private static final float RAY_WIDTH_BASE = 6.0F;
-    private static final float RAY_WIDTH_RANGE = 4.0F;
-    private static final float RAY_DIVISOR = 30.0F;
-    private static final float RAY_SPREAD_X = 0.8F;
-    private static final float RAY_SPREAD_Z = 0.5F;
-    private static final float[] GLOW_CORNER_X = {-1.0F, -1.0F, 1.0F, 1.0F};
-    private static final float[] GLOW_CORNER_Y = {-1.0F, 1.0F, 1.0F, -1.0F};
-    private static final float[] RAY_BASE_X = {-RAY_SPREAD_X, RAY_SPREAD_X, 0.0F};
-    private static final float[] RAY_BASE_Z = {-RAY_SPREAD_Z, -RAY_SPREAD_Z, 1.0F};
-    private static final int VIEW_DISTANCE = 32;
-    private static final int SALT_ROLL = 0;
-    private static final int SALT_LENGTH = 1;
-    private static final int SALT_WIDTH = 2;
-    private static final int SALT_STRIDE = 4;
-    private static final float HASH_RANGE = 1 << 24;
-    private static final int HASH_SHIFT = 8;
+    private static final float HALF_TURN = 180.0F;
+
+    private static final float FOCUS_CENTRE_Y = 1.32F;
+    private static final float FOCUS_SCALE = 1.0F;
+    private static final float FOCUS_SPIN_PER_TICK = 1.6F;
+    private static final float FOCUS_BOB_HEIGHT = 0.035F;
+    private static final float FOCUS_BOB_PERIOD_TICKS = 70.0F;
+
+    private static final float ORBIT_RADIUS = 0.36F;
+    private static final float ORBIT_SPIN_RATIO = 0.5F;
+    private static final float CRYSTAL_SCALE = 0.45F;
+    private static final float CRYSTAL_BOB_HEIGHT = 0.025F;
+    private static final float CRYSTAL_BOB_PERIOD_TICKS = 46.0F;
+    private static final float CRYSTAL_BOB_PHASE_STEP = 1.3F;
+
+    private static final float GLINT_RISE = 0.17F;
+    private static final float GLINT_SIZE = 0.2F;
+    private static final float GLINT_HALF = 0.5F;
+    private static final float GLINT_ALPHA = 0.85F;
+    private static final float GLINT_TICKS_PER_FRAME = 2.0F;
+    private static final int GLINT_FRAME_STEP = 5;
+
+    private static final int BEAM_COUNT = 2;
+    private static final float BEAM_START = 0.03F;
+    private static final float BEAM_SPREAD_DEGREES = 22.0F;
+    private static final float BEAM_SWAY_DEGREES = 14.0F;
+    private static final float BEAM_SWAY_PERIOD_TICKS = 90.0F;
+    private static final float BEAM_TILT_DEGREES = 10.0F;
+    private static final float BEAM_TILT_PERIOD_TICKS = 130.0F;
+    private static final float BEAM_BASE_HALF = 0.012F;
+    private static final float BEAM_TIP_HALF = 0.07F;
+    private static final float BEAM_WIDTH_SWING = 0.35F;
+    private static final float BEAM_WIDTH_PERIOD_TICKS = 60.0F;
+    private static final float BEAM_MIN_LENGTH = 0.22F;
+    private static final float BEAM_LENGTH_RANGE = 0.16F;
+    private static final float BEAM_ALPHA = 0.5F;
+    private static final int FADED = 0;
+    private static final float FLAT_UV = 0.5F;
+
+    private static final int PROPERTY_LENGTH = 0;
+    private static final int PROPERTY_ROLL = 1;
+    private static final int PROPERTY_PHASE = 2;
+    private static final int PROPERTY_COUNT = 3;
+    private static final int UNIT_SHIFT = 8;
+    private static final float UNIT_SCALE = 1.0F / (1 << 24);
 
     private final ItemModelResolver itemModelResolver;
 
@@ -93,135 +98,135 @@ public final class FocalManipulatorRenderer implements BlockEntityRenderer<Block
     }
 
     @Override
-    public void extractRenderState(BlockEntityFocalManipulator manipulator, FocalManipulatorRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
-        BlockEntityRenderer.super.extractRenderState(manipulator, state, partialTicks, cameraPosition, breakProgress);
+    public AABB getRenderBoundingBox(BlockEntityFocalManipulator table) {
+        BlockPos pos = table.getBlockPos();
+        return new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1.0, pos.getY() + BOUNDS_HEIGHT, pos.getZ() + 1.0);
+    }
+
+    @Override
+    public void extractRenderState(BlockEntityFocalManipulator table, FocalManipulatorRenderState state, float partialTicks, Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(table, state, partialTicks, cameraPosition, breakProgress);
         Entity viewer = Minecraft.getInstance().getCameraEntity();
         state.ticks = (viewer == null ? 0 : viewer.tickCount) + partialTicks;
-        int seed = Long.hashCode(manipulator.getBlockPos().asLong());
-        extractFocus(manipulator, state, seed);
-        extractCrystals(manipulator, state, seed);
-    }
-
-    private void extractFocus(BlockEntityFocalManipulator manipulator, FocalManipulatorRenderState state, int seed) {
-        ItemStack stack = manipulator.focusStack();
-        if (stack.isEmpty()) {
-            state.focus = null;
+        state.seed = Long.hashCode(table.getBlockPos().asLong());
+        state.focus = null;
+        state.crystals.clear();
+        state.crystalColors.clear();
+        ItemStack focus = table.focusStack();
+        if (!focus.isEmpty()) {
+            ItemStackRenderState item = new ItemStackRenderState();
+            itemModelResolver.updateForTopItem(item, focus, ItemDisplayContext.GROUND, table.getLevel(), null, state.seed);
+            state.focus = item;
+            state.focusLift = LegacyItemLift.centerLift(item);
+        }
+        if (!table.inscribing()) {
             return;
         }
-        ItemStackRenderState target = state.focus == null ? new ItemStackRenderState() : state.focus;
-        itemModelResolver.updateForTopItem(target, stack, ItemDisplayContext.GROUND, manipulator.getLevel(), null, seed);
-        state.focus = target;
-        state.focusLift = LegacyItemLift.centerLift(target);
-    }
-
-    private void extractCrystals(BlockEntityFocalManipulator manipulator, FocalManipulatorRenderState state, int seed) {
-        List<AspectInstance> entries = manipulator.crystals().entries();
-        if (state.crystals.size() > entries.size()) {
-            state.crystals.subList(entries.size(), state.crystals.size()).clear();
+        for (AspectInstance cost : table.crystals().entries()) {
+            ItemStackRenderState crystal = new ItemStackRenderState();
+            itemModelResolver.updateForTopItem(crystal, EssentiaCrystalFactory.of(cost.aspect()), ItemDisplayContext.GROUND, table.getLevel(), null, state.seed);
+            state.crystals.add(crystal);
+            state.crystalColors.add(cost.aspect().value().color());
         }
-        state.crystalColors.clear();
-        for (int index = 0; index < entries.size(); index++) {
-            Holder<IAspect> aspect = entries.get(index).aspect();
-            if (index == state.crystals.size()) {
-                state.crystals.add(new ItemStackRenderState());
-            }
-            ItemStackRenderState slot = state.crystals.get(index);
-            itemModelResolver.updateForTopItem(slot, EssentiaCrystalFactory.of(aspect), ItemDisplayContext.GROUND, manipulator.getLevel(), null, seed);
-            state.crystalColors.add(aspect.value().color());
-            state.crystalLift = LegacyItemLift.centerLift(slot);
+        if (!state.crystals.isEmpty()) {
+            state.crystalLift = LegacyItemLift.centerLift(state.crystals.getFirst());
         }
     }
 
     @Override
     public void submit(FocalManipulatorRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
-        float time = state.ticks;
         if (state.focus != null) {
-            float bob = FOCUS_BOB_AMPLITUDE * Mth.sin(FOCUS_BOB_SWAY * Mth.sin(time / FOCUS_BOB_PERIOD) + FOCUS_BOB_SWAY);
+            float bob = Mth.sin(state.ticks * Mth.TWO_PI / FOCUS_BOB_PERIOD_TICKS) * FOCUS_BOB_HEIGHT;
             poseStack.pushPose();
-            poseStack.translate(CENTER, FOCUS_HEIGHT + bob, CENTER);
-            poseStack.mulPose(Axis.YP.rotationDegrees(time % FULL_TURN));
+            poseStack.translate(CENTER, FOCUS_CENTRE_Y + bob - LegacyItemLift.LEGACY_CENTER_Y * FOCUS_SCALE, CENTER);
+            poseStack.mulPose(Axis.YP.rotationDegrees(state.ticks * FOCUS_SPIN_PER_TICK % FULL_TURN));
+            poseStack.scale(FOCUS_SCALE, FOCUS_SCALE, FOCUS_SCALE);
             poseStack.translate(0.0F, state.focusLift, 0.0F);
             state.focus.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
             poseStack.popPose();
         }
         int count = state.crystals.size();
-        float ring = time % RING_TURN / 2.0F;
         for (int index = 0; index < count; index++) {
-            float angle = ring + index * (FULL_TURN / count);
-            float sin = Mth.sin(angle * Mth.DEG_TO_RAD);
-            float cos = Mth.cos(angle * Mth.DEG_TO_RAD);
-            float x = CENTER + RING_RADIUS * sin;
-            float z = CENTER + RING_RADIUS * cos;
-            float bob = CRYSTAL_BOB_AMPLITUDE * Mth.sin((time + CRYSTAL_BOB_PHASE * index) / CRYSTAL_BOB_PERIOD) + CRYSTAL_BOB_AMPLITUDE;
-            int color = state.crystalColors.get(index);
-            submitGlow(poseStack, collector, camera, x, GLOW_HEIGHT + bob, z, time, color);
-            poseStack.pushPose();
-            poseStack.translate(x, CRYSTAL_HEIGHT + bob + CRYSTAL_SCALE * state.crystalLift, z);
-            poseStack.scale(CRYSTAL_SCALE, CRYSTAL_SCALE, CRYSTAL_SCALE);
-            state.crystals.get(index).submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
-            poseStack.popPose();
-            float apexY = CRYSTAL_HEIGHT + bob + CRYSTAL_SCALE * (RAY_APEX_OFFSET + state.crystalLift);
-            submitRay(poseStack, collector, x, apexY, z, -sin, -cos, angle, index, time, color);
-            submitRay(poseStack, collector, x, apexY, z, -sin, -cos, angle, (index + 1) * RAY_SECOND_STRIDE, time, color);
+            submitCrystal(state, index, count, poseStack, collector, camera);
         }
     }
 
-    private static void submitGlow(PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera, float x, float y, float z, float time, int color) {
-        int frame = (int) (time % GLOW_FRAMES);
-        float left = StripUv.u0(frame, ParticleTextures.STAR_GLINT_FRAMES);
-        float right = StripUv.u1(frame, ParticleTextures.STAR_GLINT_FRAMES);
-        float red = ARGB.redFloat(color);
-        float green = ARGB.greenFloat(color);
-        float blue = ARGB.blueFloat(color);
+    private static void submitCrystal(FocalManipulatorRenderState state, int index, int count, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        float orbitDegrees = (state.ticks * FOCUS_SPIN_PER_TICK * ORBIT_SPIN_RATIO + index * FULL_TURN / count) % FULL_TURN;
+        float radians = orbitDegrees * Mth.DEG_TO_RAD;
+        float y = FOCUS_CENTRE_Y + Mth.sin(state.ticks * Mth.TWO_PI / CRYSTAL_BOB_PERIOD_TICKS + index * CRYSTAL_BOB_PHASE_STEP) * CRYSTAL_BOB_HEIGHT;
+        int color = state.crystalColors.getInt(index);
+
         poseStack.pushPose();
-        poseStack.translate(x, y, z);
+        poseStack.translate(CENTER, y, CENTER);
+        poseStack.mulPose(Axis.YP.rotationDegrees(orbitDegrees));
+        poseStack.translate(ORBIT_RADIUS, 0.0F, 0.0F);
+        poseStack.pushPose();
+        poseStack.translate(0.0F, -LegacyItemLift.LEGACY_CENTER_Y * CRYSTAL_SCALE, 0.0F);
+        poseStack.scale(CRYSTAL_SCALE, CRYSTAL_SCALE, CRYSTAL_SCALE);
+        poseStack.translate(0.0F, state.crystalLift, 0.0F);
+        state.crystals.get(index).submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        poseStack.popPose();
+        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN));
+        for (int beam = 0; beam < BEAM_COUNT; beam++) {
+            submitBeam(state, index, beam, color, poseStack, collector);
+        }
+        poseStack.popPose();
+
+        poseStack.pushPose();
+        poseStack.translate(CENTER + Mth.cos(radians) * ORBIT_RADIUS, y + GLINT_RISE, CENTER - Mth.sin(radians) * ORBIT_RADIUS);
         poseStack.mulPose(camera.orientation);
-        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.STAR_GLINT), (pose, buffer) -> {
-            for (int corner = 0; corner < GLOW_CORNER_X.length; corner++) {
-                float cornerX = GLOW_CORNER_X[corner];
-                float cornerY = GLOW_CORNER_Y[corner];
-                buffer.addVertex(pose, cornerX * GLOW_HALF, cornerY * GLOW_HALF, 0.0F).setUv(cornerX < 0.0F ? right : left, cornerY < 0.0F ? StripUv.V1 : StripUv.V0)
-                        .setColor(red, green, blue, GLOW_ALPHA).setLight(LightCoordsUtil.FULL_BRIGHT);
-            }
-        });
+        poseStack.scale(GLINT_SIZE, GLINT_SIZE, GLINT_SIZE);
+        int frame = Math.floorMod((int) (state.ticks / GLINT_TICKS_PER_FRAME) + index * GLINT_FRAME_STEP, ParticleTextures.STAR_GLINT_FRAMES);
+        float u0 = StripUv.u0(frame, ParticleTextures.STAR_GLINT_FRAMES);
+        float u1 = StripUv.u1(frame, ParticleTextures.STAR_GLINT_FRAMES);
+        int tint = ARGB.color(GLINT_ALPHA, color);
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.STAR_GLINT), (pose, buffer) -> writeGlint(buffer, pose.pose(), u0, u1, tint));
         poseStack.popPose();
     }
 
-    private static void submitRay(PoseStack poseStack, SubmitNodeCollector collector, float x, float y, float z, float inwardX, float inwardZ, float ringAngle, int ray, float time, int color) {
-        float phase = time + CRYSTAL_BOB_PHASE * ray;
-        float ramp = Math.min(time, RAY_RAMP_TICKS) / RAY_RAMP_TICKS;
-        float pan = RAY_PAN_AMPLITUDE * Mth.sin(phase / RAY_PAN_PERIOD);
-        float aperture = RAY_APERTURE_AMPLITUDE * Mth.sin(phase / RAY_APERTURE_PERIOD);
-        float reach = RAY_SCALE * (unit(ray, SALT_LENGTH) * RAY_LENGTH_RANGE + RAY_LENGTH_BASE) / RAY_DIVISOR * ramp;
-        float girth = RAY_SCALE * (unit(ray, SALT_WIDTH) * RAY_WIDTH_RANGE + RAY_WIDTH_BASE + aperture) / RAY_DIVISOR * ramp;
-        float spin = ringAngle + unit(ray, SALT_ROLL) * FULL_TURN;
-        float lean = pan * Mth.DEG_TO_RAD;
+    private static void submitBeam(FocalManipulatorRenderState state, int crystal, int beam, int color, PoseStack poseStack, SubmitNodeCollector collector) {
+        float side = beam == 0 ? -1.0F : 1.0F;
+        float phase = stable(state.seed, crystal, beam, PROPERTY_PHASE) * Mth.TWO_PI;
+        float yaw = side * BEAM_SPREAD_DEGREES + Mth.sin(state.ticks * Mth.TWO_PI / BEAM_SWAY_PERIOD_TICKS + phase) * BEAM_SWAY_DEGREES;
+        float tilt = Mth.cos(state.ticks * Mth.TWO_PI / BEAM_TILT_PERIOD_TICKS + phase) * BEAM_TILT_DEGREES;
+        float roll = stable(state.seed, crystal, beam, PROPERTY_ROLL) * HALF_TURN;
+        float length = BEAM_MIN_LENGTH + stable(state.seed, crystal, beam, PROPERTY_LENGTH) * BEAM_LENGTH_RANGE;
+        float tipHalf = BEAM_TIP_HALF * (1.0F + Mth.sin(state.ticks * Mth.TWO_PI / BEAM_WIDTH_PERIOD_TICKS - phase) * BEAM_WIDTH_SWING);
+        int base = ARGB.color(BEAM_ALPHA, color);
         poseStack.pushPose();
-        poseStack.translate(x, y, z);
-        poseStack.mulPose(rayAim(inwardX, inwardZ, lean));
-        poseStack.mulPose(Axis.YP.rotationDegrees(spin));
-        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.SPARKLE, (pose, buffer) -> writeRayFan(pose, buffer, color, girth, reach));
+        poseStack.mulPose(Axis.YP.rotationDegrees(yaw));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(tilt));
+        poseStack.mulPose(Axis.XP.rotationDegrees(roll));
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.WHITE), (pose, buffer) -> writeFan(buffer, pose.pose(), length, tipHalf, base));
         poseStack.popPose();
     }
 
-    private static Quaternionf rayAim(float inwardX, float inwardZ, float lean) {
-        float flatten = Mth.cos(lean);
-        return new Quaternionf().rotationTo(0.0F, 1.0F, 0.0F, inwardX * flatten, Mth.sin(lean), inwardZ * flatten);
+    private static float stable(int seed, int crystal, int beam, int property) {
+        int key = (crystal * BEAM_COUNT + beam) * PROPERTY_COUNT + property;
+        return (Mth.murmurHash3Mixer(seed + Mth.murmurHash3Mixer(key)) >>> UNIT_SHIFT) * UNIT_SCALE;
     }
 
-    private static void writeRayFan(PoseStack.Pose pose, VertexConsumer buffer, int color, float girth, float reach) {
-        float red = ARGB.redFloat(color);
-        float green = ARGB.greenFloat(color);
-        float blue = ARGB.blueFloat(color);
-        for (int edge = 0; edge < RAY_BASE_X.length; edge++) {
-            int next = (edge + 1) % RAY_BASE_X.length;
-            buffer.addVertex(pose, 0.0F, 0.0F, 0.0F).setColor(red, green, blue, GLOW_ALPHA);
-            buffer.addVertex(pose, RAY_BASE_X[edge] * girth, reach, RAY_BASE_Z[edge] * girth).setColor(red, green, blue, 0.0F);
-            buffer.addVertex(pose, RAY_BASE_X[next] * girth, reach, RAY_BASE_Z[next] * girth).setColor(red, green, blue, 0.0F);
-        }
+    private static void writeGlint(VertexConsumer buffer, Matrix4fc matrix, float u0, float u1, int tint) {
+        buffer.addVertex(matrix, -GLINT_HALF, -GLINT_HALF, 0.0F).setUv(u0, StripUv.V1).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, GLINT_HALF, -GLINT_HALF, 0.0F).setUv(u1, StripUv.V1).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, GLINT_HALF, GLINT_HALF, 0.0F).setUv(u1, StripUv.V0).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
+        buffer.addVertex(matrix, -GLINT_HALF, GLINT_HALF, 0.0F).setUv(u0, StripUv.V0).setColor(tint).setLight(LightCoordsUtil.FULL_BRIGHT);
     }
 
-    private static float unit(int index, int salt) {
-        return (Mth.murmurHash3Mixer(Mth.murmurHash3Mixer(index * SALT_STRIDE + salt)) >>> HASH_SHIFT) / HASH_RANGE;
+    private static void writeFan(VertexConsumer buffer, Matrix4fc matrix, float length, float tipHalf, int base) {
+        float tip = BEAM_START + length;
+        fanVertex(buffer, matrix, BEAM_START, -BEAM_BASE_HALF, 0.0F, base);
+        fanVertex(buffer, matrix, BEAM_START, BEAM_BASE_HALF, 0.0F, base);
+        fanVertex(buffer, matrix, tip, tipHalf, 0.0F, FADED);
+        fanVertex(buffer, matrix, tip, -tipHalf, 0.0F, FADED);
+        fanVertex(buffer, matrix, BEAM_START, 0.0F, -BEAM_BASE_HALF, base);
+        fanVertex(buffer, matrix, BEAM_START, 0.0F, BEAM_BASE_HALF, base);
+        fanVertex(buffer, matrix, tip, 0.0F, tipHalf, FADED);
+        fanVertex(buffer, matrix, tip, 0.0F, -tipHalf, FADED);
+    }
+
+    private static void fanVertex(VertexConsumer buffer, Matrix4fc matrix, float x, float y, float z, int color) {
+        buffer.addVertex(matrix, x, y, z).setUv(FLAT_UV, FLAT_UV).setColor(color).setLight(LightCoordsUtil.FULL_BRIGHT);
     }
 }

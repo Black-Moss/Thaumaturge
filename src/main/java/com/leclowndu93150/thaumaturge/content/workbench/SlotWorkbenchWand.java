@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.workbench;
 
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.Slot;
@@ -13,7 +13,7 @@ public final class SlotWorkbenchWand extends Slot {
     }
 
     public static boolean isUsableWand(ItemStack stack) {
-        if (!(stack.getItem() instanceof ICaster)) {
+        if (!(stack.getItem() instanceof FocusCaster)) {
             return false;
         }
         if (stack.getItem() instanceof ItemWand wand && wand.usesStaffRod(stack)) {

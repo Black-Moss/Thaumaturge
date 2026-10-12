@@ -7,4 +7,5 @@ public final class JarBrainRenderState extends BlockEntityRenderState {
     public float bobOffset;
     public float ageInTicks;
     public float xpResponse;
+    public int xp;
 }

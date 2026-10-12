@@ -2,114 +2,136 @@ package com.leclowndu93150.thaumaturge.client.render;
 
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BeamRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BoreBeamRenderType;
+import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
+import net.minecraft.client.GraphicsPreset;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
-import net.minecraft.util.ARGB;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Matrix4fc;
+import org.joml.Vector3f;
 
 public final class BoreDrillFx {
-    private static final float SCROLL_PER_TICK = 0.2F;
-    private static final float SCROLL_WRAP = 2.0F;
-    private static final long SPIN_PERIOD_TICKS = 72L;
-    private static final float SPIN_DEGREES_PER_TICK = 5.0F;
-    private static final int TIP_FRAME_BASE = 96;
-    private static final int TIP_FRAME_CYCLE = 32;
-    private static final int TIP_SHEET_COLUMNS = 32;
-    private static final float TIP_FORWARD = 0.5F;
-    private static final float TIP_RAISE = 0.075F;
-    private static final int STRIP_COUNT = 3;
-    private static final float STRIP_SPREAD_DEGREES = 120.0F;
-    private static final float STRIP_LENGTH = 5.0F;
-    private static final float STRIP_HALF_WIDTH = 0.15F;
-    private static final float STRIP_V_START = -1.0F;
-    private static final float BEAM_RED = 0.0F;
-    private static final float BEAM_GREEN = 1.0F;
-    private static final float BEAM_BLUE = 0.4F;
-    private static final float BEAM_ALPHA = 0.4F;
-    private static final float FLARE_ALPHA = 0.8F;
-    private static final float FLARE_HALF = 0.5F;
-    private static final int BEAM_LIGHT = 0xC8;
+    private static final double TIP_FORWARD = 0.6;
+    private static final double TIP_RISE = 0.05;
+    private static final float SCROLL_PER_TICK = 0.045F;
+    private static final float SPIN_DEGREES_PER_TICK = 6.0F;
+    private static final float FULL_CIRCLE_DEGREES = 360.0F;
+    private static final int STRIPS = 3;
+    private static final float STRIP_STEP_DEGREES = 60.0F;
+    private static final float CONE_HALF_WIDTH = 0.16F;
+    private static final float CONE_LENGTH = 4.5F;
+    private static final float CONE_TEXTURE_REPEATS = 1.5F;
+    private static final float CONE_OPACITY = 0.32F;
+    private static final float FLARE_OPACITY = 0.9F;
+    private static final float FLARE_HALF_SIZE = 0.32F;
+    private static final int FLARE_FRAMES = 32;
+    private static final int FLARE_ROW = 1;
+    private static final float SHEET_CELLS = 32.0F;
+    private static final float MINT_RED = 0.45F;
+    private static final float MINT_GREEN = 1.0F;
+    private static final float MINT_BLUE = 0.72F;
+    private static final double VIEW_RANGE = 64.0;
+    private static final double VIEW_RANGE_FAST = 32.0;
+    private static final double PARALLEL_LIMIT = 0.99;
 
     private BoreDrillFx() {}
 
     public static float beamUvScroll(float ticks) {
-        return ticks * SCROLL_PER_TICK;
+        return -(ticks * SCROLL_PER_TICK % 1.0F);
     }
 
     public static float beamSpin(long gameTime, float partialTick) {
-        return (gameTime % SPIN_PERIOD_TICKS) * SPIN_DEGREES_PER_TICK + SPIN_DEGREES_PER_TICK * partialTick;
+        long period = (long) (FULL_CIRCLE_DEGREES / SPIN_DEGREES_PER_TICK);
+        return ((gameTime % period) + partialTick) * SPIN_DEGREES_PER_TICK;
     }
 
     public static int tipFrame(int ticks) {
-        return TIP_FRAME_BASE + Math.floorMod(ticks, TIP_FRAME_CYCLE);
+        return Math.floorMod(ticks, FLARE_FRAMES);
     }
 
     public static Vec3 tipOffset(float yawDegrees, float pitchDegrees, float eyeHeight) {
-        float yaw = yawDegrees * Mth.DEG_TO_RAD;
-        float pitch = pitchDegrees * Mth.DEG_TO_RAD;
-        float reach = TIP_FORWARD * Mth.cos(pitch) + TIP_RAISE * Mth.sin(pitch);
-        return new Vec3(-Mth.sin(yaw) * reach, eyeHeight + TIP_RAISE * Mth.cos(pitch) - TIP_FORWARD * Mth.sin(pitch), Mth.cos(yaw) * reach);
+        Vec3 aim = Vec3.directionFromRotation(pitchDegrees, yawDegrees);
+        return new Vec3(aim.x * TIP_FORWARD, eyeHeight + aim.y * TIP_FORWARD + TIP_RISE, aim.z * TIP_FORWARD);
     }
 
     public static void submit(PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera, Vec3 tip, float yaw, float pitch, float uvScroll, float spin, int tipFrame) {
-        submitBeams(poseStack, collector, tip, yaw, pitch, uvScroll, spin);
-        submitFlare(poseStack, collector, camera, tip, tipFrame);
-    }
-
-    private static void submitBeams(PoseStack poseStack, SubmitNodeCollector collector, Vec3 tip, float yaw, float pitch, float uvScroll, float spin) {
-        float scroll = uvScroll - Mth.floor(uvScroll / SCROLL_WRAP) * SCROLL_WRAP;
-        int color = ARGB.colorFromFloat(BEAM_ALPHA, BEAM_RED, BEAM_GREEN, BEAM_BLUE);
-        poseStack.pushPose();
-        poseStack.translate(tip.x, tip.y, tip.z);
-        poseStack.mulPose(Axis.YP.rotationDegrees(-yaw));
-        poseStack.mulPose(Axis.XP.rotationDegrees(pitch));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(spin));
-        for (int strip = 0; strip < STRIP_COUNT; strip++) {
-            float nearV = STRIP_V_START + scroll + (float) strip / STRIP_COUNT;
-            poseStack.pushPose();
-            poseStack.mulPose(Axis.ZP.rotationDegrees(strip * STRIP_SPREAD_DEGREES));
-            collector.submitCustomGeometry(poseStack, BoreBeamRenderType.DRILL_BEAM, (pose, buffer) -> writeStrip(pose, buffer, nearV, color));
-            poseStack.popPose();
+        if (beyondView(poseStack, tip)) {
+            return;
         }
-        poseStack.popPose();
-    }
-
-    private static void writeStrip(PoseStack.Pose pose, VertexConsumer buffer, float nearV, int color) {
-        float farV = nearV + STRIP_LENGTH;
-        stripVertex(pose, buffer, -STRIP_HALF_WIDTH, 0.0F, 1.0F, nearV, color);
-        stripVertex(pose, buffer, STRIP_HALF_WIDTH, 0.0F, 0.0F, nearV, color);
-        stripVertex(pose, buffer, 0.0F, STRIP_LENGTH, 0.0F, farV, color);
-        stripVertex(pose, buffer, 0.0F, STRIP_LENGTH, 1.0F, farV, color);
-    }
-
-    private static void stripVertex(PoseStack.Pose pose, VertexConsumer buffer, float across, float along, float u, float v, int color) {
-        buffer.addVertex(pose, across, 0.0F, along).setUv(u, v).setColor(color).setLight(BEAM_LIGHT);
-    }
-
-    private static void submitFlare(PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera, Vec3 tip, int tipFrame) {
-        float cell = 1.0F / TIP_SHEET_COLUMNS;
-        float uMin = (tipFrame % TIP_SHEET_COLUMNS) * cell;
-        float vMin = (tipFrame / TIP_SHEET_COLUMNS) * cell;
-        int color = ARGB.colorFromFloat(FLARE_ALPHA, BEAM_RED, BEAM_GREEN, BEAM_BLUE);
+        Vec3 aim = Vec3.directionFromRotation(pitch, yaw);
         poseStack.pushPose();
         poseStack.translate(tip.x, tip.y, tip.z);
+        collector.submitCustomGeometry(poseStack, BoreBeamRenderType.DRILL_BEAM, (pose, buffer) -> writeCone(buffer, pose.pose(), aim, uvScroll, spin));
         poseStack.mulPose(camera.orientation);
-        collector.submitCustomGeometry(poseStack, BeamRenderType.NODE_TYPE, (pose, buffer) -> writeFlare(pose, buffer, uMin, uMin + cell, vMin, vMin + cell, color));
+        int frame = Math.floorMod(tipFrame, FLARE_FRAMES);
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(BeamRenderType.NODE), (pose, buffer) -> writeFlare(buffer, pose.pose(), frame));
         poseStack.popPose();
     }
 
-    private static void writeFlare(PoseStack.Pose pose, VertexConsumer buffer, float uMin, float uMax, float vMin, float vMax, int color) {
-        flareVertex(pose, buffer, -FLARE_HALF, -FLARE_HALF, uMax, vMax, color);
-        flareVertex(pose, buffer, -FLARE_HALF, FLARE_HALF, uMax, vMin, color);
-        flareVertex(pose, buffer, FLARE_HALF, FLARE_HALF, uMin, vMin, color);
-        flareVertex(pose, buffer, FLARE_HALF, -FLARE_HALF, uMin, vMax, color);
+    private static boolean beyondView(PoseStack poseStack, Vec3 tip) {
+        Vector3f relative = poseStack.last().pose().transformPosition((float) tip.x, (float) tip.y, (float) tip.z, new Vector3f());
+        double range = Minecraft.getInstance().options.graphicsPreset().get() == GraphicsPreset.FAST ? VIEW_RANGE_FAST : VIEW_RANGE;
+        return relative.lengthSquared() > range * range;
     }
 
-    private static void flareVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float u, float v, int color) {
-        buffer.addVertex(pose, x, y, 0.0F).setUv(u, v).setColor(color);
+    private static void writeCone(VertexConsumer buffer, Matrix4fc matrix, Vec3 aim, float uvScroll, float spin) {
+        double hx = 0.0;
+        double hy = 1.0;
+        if (Math.abs(aim.y) > PARALLEL_LIMIT) {
+            hx = 1.0;
+            hy = 0.0;
+        }
+        double along = hx * aim.x + hy * aim.y;
+        double px = hx - along * aim.x;
+        double py = hy - along * aim.y;
+        double pz = -along * aim.z;
+        double length = Math.sqrt(px * px + py * py + pz * pz);
+        px /= length;
+        py /= length;
+        pz /= length;
+        double qx = aim.y * pz - aim.z * py;
+        double qy = aim.z * px - aim.x * pz;
+        double qz = aim.x * py - aim.y * px;
+        float endX = (float) (aim.x * CONE_LENGTH);
+        float endY = (float) (aim.y * CONE_LENGTH);
+        float endZ = (float) (aim.z * CONE_LENGTH);
+        for (int strip = 0; strip < STRIPS; strip++) {
+            double angle = (spin + strip * STRIP_STEP_DEGREES) * Mth.DEG_TO_RAD;
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            float ex = (float) ((cos * px + sin * qx) * CONE_HALF_WIDTH);
+            float ey = (float) ((cos * py + sin * qy) * CONE_HALF_WIDTH);
+            float ez = (float) ((cos * pz + sin * qz) * CONE_HALF_WIDTH);
+            float v0 = uvScroll + (float) strip / STRIPS;
+            float v1 = v0 + CONE_TEXTURE_REPEATS;
+            coneVertex(buffer, matrix, -ex, -ey, -ez, 0.0F, v0);
+            coneVertex(buffer, matrix, ex, ey, ez, 1.0F, v0);
+            coneVertex(buffer, matrix, endX, endY, endZ, 1.0F, v1);
+            coneVertex(buffer, matrix, endX, endY, endZ, 0.0F, v1);
+        }
+    }
+
+    private static void coneVertex(VertexConsumer buffer, Matrix4fc matrix, float x, float y, float z, float u, float v) {
+        buffer.addVertex(matrix, x, y, z).setUv(u, v).setColor(MINT_RED, MINT_GREEN, MINT_BLUE, CONE_OPACITY).setLight(LightCoordsUtil.FULL_BRIGHT);
+    }
+
+    private static void writeFlare(VertexConsumer buffer, Matrix4fc matrix, int frame) {
+        float u0 = frame / SHEET_CELLS;
+        float u1 = (frame + 1) / SHEET_CELLS;
+        float v0 = FLARE_ROW / SHEET_CELLS;
+        float v1 = (FLARE_ROW + 1) / SHEET_CELLS;
+        flareVertex(buffer, matrix, -FLARE_HALF_SIZE, -FLARE_HALF_SIZE, u0, v1);
+        flareVertex(buffer, matrix, FLARE_HALF_SIZE, -FLARE_HALF_SIZE, u1, v1);
+        flareVertex(buffer, matrix, FLARE_HALF_SIZE, FLARE_HALF_SIZE, u1, v0);
+        flareVertex(buffer, matrix, -FLARE_HALF_SIZE, FLARE_HALF_SIZE, u0, v0);
+    }
+
+    private static void flareVertex(VertexConsumer buffer, Matrix4fc matrix, float x, float y, float u, float v) {
+        buffer.addVertex(matrix, x, y, 0.0F).setUv(u, v).setColor(MINT_RED, MINT_GREEN, MINT_BLUE, FLARE_OPACITY).setLight(LightCoordsUtil.FULL_BRIGHT);
     }
 }

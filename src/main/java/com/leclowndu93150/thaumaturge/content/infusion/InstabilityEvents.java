@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.infusion;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.infusion.instability.InstabilityContext;
 import com.leclowndu93150.thaumaturge.content.infusion.instability.InstabilityOutcome;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
@@ -21,14 +21,14 @@ public final class InstabilityEvents {
 
     private InstabilityEvents() {}
 
-    public static void trigger(ServerLevel level, BlockPos matrixPos, List<BlockPos> pedestals) {
+    public static void trigger(ServerLevel level, BlockPos matrixPos, List<BlockPos> pedestals, float stability) {
         grantInstabilityResearch(level, matrixPos);
-        InstabilityOutcome.roll(level.registryAccess(), level.getRandom()).ifPresent(outcome -> outcome.effect().apply(new InstabilityContext(level, matrixPos, pedestals)));
+        InstabilityOutcome.roll(level.registryAccess(), level.getRandom()).ifPresent(outcome -> outcome.effect().apply(new InstabilityContext(level, matrixPos, pedestals, stability)));
     }
 
     private static void grantInstabilityResearch(ServerLevel level, BlockPos matrixPos) {
         for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, new AABB(matrixPos).inflate(RESEARCH_RANGE))) {
-            if (!KnowledgeAccess.of(player).isResearchKnown(INSTABILITY_RESEARCH) && ResearchManager.complete(player, INSTABILITY_RESEARCH)) {
+            if (!PlayerResearchAccess.of(player).knows(INSTABILITY_RESEARCH) && ResearchManager.complete(player, INSTABILITY_RESEARCH)) {
                 player.connection.send(new ClientboundSetActionBarTextPacket(Component.translatable("message.thaumaturge.discovery.instability").withStyle(ChatFormatting.DARK_PURPLE)));
             }
         }

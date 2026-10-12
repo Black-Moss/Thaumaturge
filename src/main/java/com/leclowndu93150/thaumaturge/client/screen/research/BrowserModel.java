@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.screen.research;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.ResearchEntryMeta;
@@ -59,8 +59,8 @@ final class BrowserModel {
         return player;
     }
 
-    IPlayerKnowledge knowledge() {
-        return KnowledgeAccess.of(player);
+    PlayerResearch knowledge() {
+        return PlayerResearchAccess.of(player);
     }
 
     List<CategoryRef> builtIn() {
@@ -103,8 +103,8 @@ final class BrowserModel {
     }
 
     boolean shown(CategoryRef category) {
-        IPlayerKnowledge knowledge = knowledge();
-        return category.data().requiredResearch().map(knowledge::isResearchComplete).orElse(true);
+        PlayerResearch knowledge = knowledge();
+        return category.data().requiredResearch().map(knowledge::hasCompleted).orElse(true);
     }
 
     List<CategoryRef> shownBuiltIn() {
@@ -120,13 +120,13 @@ final class BrowserModel {
     }
 
     boolean canUnlock(EntryNode node) {
-        IPlayerKnowledge knowledge = knowledge();
+        PlayerResearch knowledge = knowledge();
         for (ResearchParent parent : node.value().parents()) {
             if (!parent.isSatisfiedBy(knowledge)) {
                 return false;
             }
         }
-        return knowledge.isResearchKnown(node.id()) || ResearchUnlockConditions.passes(player, knowledge, node.id());
+        return knowledge.knows(node.id()) || ResearchUnlockConditions.passes(player, knowledge, node.id());
     }
 
     boolean visible(EntryNode node) {
@@ -141,7 +141,7 @@ final class BrowserModel {
     }
 
     private boolean evaluateVisible(EntryNode node) {
-        if (knowledge().isResearchKnown(node.id())) {
+        if (knowledge().knows(node.id())) {
             return true;
         }
         IResearchEntry entry = node.value();

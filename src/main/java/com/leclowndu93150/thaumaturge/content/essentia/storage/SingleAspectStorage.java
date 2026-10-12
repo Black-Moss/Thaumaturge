@@ -73,7 +73,7 @@ public final class SingleAspectStorage {
         @Override
         public int insert(Holder<IAspect> aspect, int amount, TransactionContext transaction) {
             ResourceKey<IAspect> key = aspect.unwrapKey().orElse(null);
-            if (amount <= 0 || key == null || !host.canInputFrom(side)) {
+            if (amount <= 0 || key == null || !host.receivesOn(side)) {
                 return 0;
             }
             ResourceKey<IAspect> filter = host.aspectFilterKey();
@@ -99,7 +99,7 @@ public final class SingleAspectStorage {
         public int extract(Holder<IAspect> aspect, int amount, TransactionContext transaction) {
             ResourceKey<IAspect> key = aspect.unwrapKey().orElse(null);
             int current = host.amount();
-            if (amount <= 0 || key == null || current <= 0 || !host.canOutputTo(side) || !key.equals(host.aspectKey())) {
+            if (amount <= 0 || key == null || current <= 0 || !host.releasesOn(side) || !key.equals(host.aspectKey())) {
                 return 0;
             }
             int taken = Math.min(amount, current);

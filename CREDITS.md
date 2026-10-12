@@ -300,6 +300,15 @@ tag_x.png (for golems) https://opengameart.org/content/700-rpg-icons
 gui_golembuilder.png craft button anvil: https://github.com/SlimeKnights/TinkersConstruct textures/item/slot/upgrade.png (MIT, Copyright (c) 2022 SlimeKnights)
 
 
+## Third-party code
+
+Code from these sources is kept as it is and credited here. It is not Thaumcraft code, and the clean-room rewrites do not replace it.
+
+| Code | License | Source | Used in |
+| --- | --- | --- | --- |
+| GLE Tubing and Extrusion Library by Linas Vepstas (polycone extrusion, ported to Java) | IBM example source code license (free use, distribution and modification, no warranty); GPL 2 also offered | http://www.linas.org/gle/ | `client/effect/geometry/PolyCone.java` (paths under `src/main/java/com/leclowndu93150/thaumaturge/`) |
+| Minecraft end portal shader by Mojang (layered starfield, adapted) | Minecraft EULA and Mojang's usage guidelines | `assets/minecraft/shaders/core/rendertype_end_portal.vsh` and `.fsh` in the Minecraft client | `shaders/core/tc_portal.vsh`, `shaders/core/tc_portal.fsh` (paths under `src/main/resources/assets/thaumaturge/`) |
+
 ## Text
 
 ### Thaumcraft 6 localization (MIT)

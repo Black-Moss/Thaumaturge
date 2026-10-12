@@ -13,7 +13,6 @@ import net.minecraft.world.entity.OwnableEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.RangedAttackGoal;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.fish.WaterAnimal;
 import net.minecraft.world.entity.monster.Enemy;
@@ -33,6 +32,7 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
     private static final int ATTACK_INTERVAL_MIN = 20;
     private static final int ATTACK_INTERVAL_MAX = 40;
     private static final double MOVE_DAMPING = 15.0;
+    private static final double KNOCKBACK_SHARE = 0.05;
 
     public EntityTurretCrossbowAdvanced(EntityType<? extends EntityTurretCrossbowAdvanced> type, Level level) {
         super(type, level);
@@ -53,8 +53,13 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
         setFilter(TurretFilter.MOBS, true);
         goalSelector.addGoal(RANGED_PRIORITY, new RangedAttackGoal(this, HOLD_POSITION, ATTACK_INTERVAL_MIN, ATTACK_INTERVAL_MAX, ATTACK_RADIUS));
         goalSelector.addGoal(LOOK_PRIORITY, new WatchTargetGoal(this));
-        targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
+        targetSelector.addGoal(RETALIATE_PRIORITY, retaliateGoal(this));
         targetSelector.addGoal(SCAN_PRIORITY, scanGoal(this, this::acceptsTarget));
+    }
+
+    @Override
+    protected boolean mayRetaliateAgainst(LivingEntity attacker) {
+        return attacker != this && attacker.isAlive() && kindAllowed(attacker);
     }
 
     private boolean acceptsTarget(LivingEntity candidate, ServerLevel level) {
@@ -179,5 +184,10 @@ public class EntityTurretCrossbowAdvanced extends EntityTurretCrossbow {
     @Override
     protected double moveDamping() {
         return MOVE_DAMPING;
+    }
+
+    @Override
+    protected double knockbackShare() {
+        return KNOCKBACK_SHARE;
     }
 }

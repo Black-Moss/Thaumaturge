@@ -20,7 +20,6 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Ghast;
@@ -48,7 +47,6 @@ public final class EntityFireBat extends Monster {
     private static final int ATTACK_PRIORITY = 4;
     private static final int WANDER_PRIORITY = 5;
     private static final int LOOK_PRIORITY = 7;
-    private static final int RETALIATE_PRIORITY = 1;
     private static final int PLAYER_PRIORITY = 2;
     private static final int PLAYER_SCAN_INTERVAL = 10;
     private static final int SPAWN_LIGHT_BOUND = 7;
@@ -110,7 +108,6 @@ public final class EntityFireBat extends Monster {
         this.goalSelector.addGoal(ATTACK_PRIORITY, new FireBatAttackGoal(this));
         this.goalSelector.addGoal(WANDER_PRIORITY, new FlyingWanderGoal(this, false, this::isFlying));
         this.goalSelector.addGoal(LOOK_PRIORITY, new Ghast.GhastLookGoal(this));
-        this.targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(PLAYER_PRIORITY, new NearestAttackableTargetGoal<>(this, Player.class, PLAYER_SCAN_INTERVAL, false, false, this::isNotOwner));
     }
 

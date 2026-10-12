@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumaturge.api.capability.ResearchStatus;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
@@ -33,7 +33,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import org.jspecify.annotations.Nullable;
 
-public final class PlayerKnowledge implements IPlayerKnowledge {
+public final class PlayerKnowledge implements PlayerResearch {
     private static final String RESEARCH_FIELD = "research";
     private static final String KNOWLEDGE_FIELD = "knowledge";
     private static final String NO_CATEGORY_SORT_KEY = "";
@@ -202,14 +202,14 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     @Override
-    public void clear() {
+    public void wipe() {
         researchKeys.clear();
         details.clear();
         points.clear();
     }
 
     @Override
-    public void sync(ServerPlayer player) {
+    public void queueSync(ServerPlayer owner) {
         pendingSync = true;
     }
 
@@ -220,17 +220,17 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     @Override
-    public boolean isResearchKnown(Identifier research) {
+    public boolean knows(Identifier research) {
         return research != null && researchKeys.contains(research);
     }
 
     @Override
-    public boolean addResearch(Identifier research) {
+    public boolean learn(Identifier research) {
         return research != null && researchKeys.add(research);
     }
 
     @Override
-    public boolean removeResearch(Identifier research) {
+    public boolean forget(Identifier research) {
         boolean wasKnown = researchKeys.remove(research);
         if (wasKnown) {
             details.remove(research);
@@ -239,13 +239,13 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     @Override
-    public Set<Identifier> researchList() {
+    public Set<Identifier> knownEntries() {
         return researchKeyView;
     }
 
     @Override
-    public int researchStage(Identifier research) {
-        if (!isResearchKnown(research)) {
+    public int stageOf(Identifier research) {
+        if (!knows(research)) {
             return -1;
         }
         ResearchDetail detail = details.get(research);
@@ -253,18 +253,18 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     @Override
-    public boolean isResearchKnown(Identifier research, int minimumStage) {
-        return isResearchKnown(research) && researchStage(research) >= minimumStage;
+    public boolean hasReachedStage(Identifier research, int stage) {
+        return knows(research) && stageOf(research) >= stage;
     }
 
     @Override
-    public boolean setResearchStage(Identifier research, int stage) {
-        return stage > 0 && isResearchKnown(research) && detailFor(research).restage(stage);
+    public boolean setStage(Identifier research, int stage) {
+        return stage > 0 && knows(research) && detailFor(research).restage(stage);
     }
 
     @Override
-    public ResearchStatus researchStatus(Identifier research) {
-        if (!isResearchKnown(research)) {
+    public ResearchStatus status(Identifier research) {
+        if (!knows(research)) {
             return ResearchStatus.UNKNOWN;
         }
         ResearchDetail detail = details.get(research);
@@ -273,12 +273,12 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     @Override
-    public boolean isResearchComplete(Identifier research) {
-        return researchStatus(research) == ResearchStatus.COMPLETE;
+    public boolean hasCompleted(Identifier research) {
+        return status(research) == ResearchStatus.COMPLETE;
     }
 
     public boolean markComplete(Identifier research) {
-        return isResearchKnown(research) && detailFor(research).finish();
+        return knows(research) && detailFor(research).finish();
     }
 
     public boolean clearComplete(Identifier research) {
@@ -286,36 +286,36 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     @Override
-    public boolean hasResearchFlag(Identifier research, ResearchFlag flag) {
+    public boolean hasFlag(Identifier research, ResearchFlag flag) {
         return (maskFor(research) & maskOf(flag)) != 0;
     }
 
     @Override
-    public boolean setResearchFlag(Identifier research, ResearchFlag flag) {
+    public boolean addFlag(Identifier research, ResearchFlag flag) {
         return detailFor(research).raiseFlag(maskOf(flag));
     }
 
     @Override
-    public boolean clearResearchFlag(Identifier research, ResearchFlag flag) {
+    public boolean removeFlag(Identifier research, ResearchFlag flag) {
         return details.containsKey(research) && details.get(research).dropFlag(maskOf(flag));
     }
 
     @Override
-    public int rawKnowledge(KnowledgeType type, ResourceKey<IResearchCategory> category) {
+    public int knowledgePoints(KnowledgeType type, ResourceKey<IResearchCategory> category) {
         return type == null ? 0 : points.getInt(new KnowledgeKey(type, category));
     }
 
     @Override
-    public int knowledge(KnowledgeType type, ResourceKey<IResearchCategory> category) {
-        return type == null ? 0 : rawKnowledge(type, category) / type.progression();
+    public int knowledgeLevel(KnowledgeType type, ResourceKey<IResearchCategory> category) {
+        return type == null ? 0 : knowledgePoints(type, category) / type.progression();
     }
 
     @Override
-    public boolean addKnowledge(KnowledgeType type, ResourceKey<IResearchCategory> category, int amount) {
+    public boolean addKnowledgePoints(KnowledgeType type, ResourceKey<IResearchCategory> category, int amount) {
         if (type == null || amount == 0) {
             return false;
         }
-        int previous = rawKnowledge(type, category);
+        int previous = knowledgePoints(type, category);
         KnowledgeKey slot = new KnowledgeKey(type, category);
         int updated = Math.max(0, previous + amount);
         if (updated == 0) {
@@ -344,7 +344,7 @@ public final class PlayerKnowledge implements IPlayerKnowledge {
     }
 
     public void copyFrom(PlayerKnowledge other) {
-        clear();
+        wipe();
         absorb(other);
     }
 

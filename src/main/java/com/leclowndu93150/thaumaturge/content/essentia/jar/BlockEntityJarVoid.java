@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -27,8 +26,7 @@ public final class BlockEntityJarVoid extends BlockEntityJar {
         if (requested <= 0) {
             return 0;
         }
-        ResourceKey<IAspect> filter = aspectFilterKey();
-        if (filter != null && !filter.equals(key) || amount() > 0 && !key.equals(aspectKey())) {
+        if (refuses(key)) {
             return requested;
         }
         if (super.doAddToContainer(key, requested) > 0) {
@@ -59,12 +57,17 @@ public final class BlockEntityJarVoid extends BlockEntityJar {
     }
 
     @Override
-    public int getSuctionAmount(Direction face) {
+    protected int acceptable(ResourceKey<IAspect> key, int requested) {
+        return requested <= 0 || refuses(key) ? 0 : requested;
+    }
+
+    @Override
+    protected int pullStrength() {
         return aspectFilterKey() != null && amount() < CAPACITY ? FILTERED_SUCTION : UNFILTERED_SUCTION;
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return aspectFilterKey() != null ? FILTERED_MINIMUM_SUCTION : UNFILTERED_MINIMUM_SUCTION;
     }
 

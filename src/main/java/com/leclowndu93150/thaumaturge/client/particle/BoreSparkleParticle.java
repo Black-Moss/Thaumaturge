@@ -9,13 +9,13 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
 public final class BoreSparkleParticle extends SeekerParticle {
-    private static final float DRIFT_STRENGTH = 0.01F;
-    private static final float SIZE_BASE = 0.5F;
-    private static final float SIZE_RANGE = 0.5F;
-    private static final float SIZE_UNIT = 0.1F;
-    private static final float PULSE_DIVISOR = 3.0F;
-    private static final float PULSE_AMPLITUDE = 0.5F;
     private static final int FRAME_COUNT = 4;
+    private static final float DRIFT_STRENGTH = 0.004F;
+    private static final float SIZE_UNIT = 0.1F;
+    private static final float SIZE_BASE = 0.5F;
+    private static final float SIZE_RANGE = 0.3F;
+    private static final float PULSE_AMPLITUDE = 0.3F;
+    private static final float PULSE_DIVISOR = 2.0F;
 
     private BoreSparkleParticle(ClientLevel level, double x, double y, double z, BoreSparkleParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, sheet, options.targetEntityId(), new Vec3(options.tx(), options.ty(), options.tz()), Vec3.ZERO, DRIFT_STRENGTH);

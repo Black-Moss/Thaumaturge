@@ -1,37 +1,37 @@
 package com.leclowndu93150.thaumaturge.client.item;
 
-import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
+import com.leclowndu93150.thaumaturge.api.research.scan.ScanTarget;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanningManager;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
-import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
-import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.client.screen.TTTooltips;
+import com.leclowndu93150.thaumaturge.content.aspect.EntityAspects;
 import com.leclowndu93150.thaumaturge.content.item.ThaumometerItem;
+import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.network.ServerboundScanSlotPayload;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.jspecify.annotations.Nullable;
 
@@ -102,7 +102,7 @@ public final class InventoryScanHandler {
     }
 
     private static void renderKnownAspects(GuiGraphicsExtractor graphics, Minecraft minecraft, LocalPlayer player, ItemStack stack, int centreX, int y) {
-        if (!KnowledgeAccess.of(player).isResearchKnown(ScanKeys.item(stack.getItem()))) {
+        if (!PlayerResearchAccess.of(player).knows(ScanKeys.item(stack.getItem()))) {
             return;
         }
         AspectList aspects = AspectIndexAccess.index().of(stack);

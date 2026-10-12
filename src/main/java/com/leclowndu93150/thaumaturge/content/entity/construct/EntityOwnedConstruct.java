@@ -214,10 +214,23 @@ public abstract class EntityOwnedConstruct extends PathfinderMob implements Owna
     }
 
     final void jolt() {
-        float newYaw = perturb(getYRot(), JOLT_YAW_SCALE);
+        float newYaw = perturb(getYHeadRot(), JOLT_YAW_SCALE);
         float newPitch = perturb(getXRot(), JOLT_PITCH_SCALE);
         setXRot(newPitch);
-        setYRot(newYaw);
+        setYHeadRot(newYaw);
+        swivelWithHead();
+    }
+
+    final void swivelWithHead() {
+        float yaw = getYHeadRot();
+        setYRot(yaw);
+        setYBodyRot(yaw);
+    }
+
+    final void regenerate(int interval, float amount) {
+        if (tickCount % interval == 0 && getHealth() < getMaxHealth()) {
+            heal(amount);
+        }
     }
 
     @Override

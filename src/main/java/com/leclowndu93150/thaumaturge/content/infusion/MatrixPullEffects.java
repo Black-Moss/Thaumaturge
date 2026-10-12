@@ -5,29 +5,31 @@ import com.leclowndu93150.thaumaturge.content.particle.InfusionCrumbsParticleOpt
 import java.util.Iterator;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.phys.Vec3;
 
 final class MatrixPullEffects {
-    private static final int CLIENT_SOURCE_BASE_COUNT = 4;
-    private static final float CLIENT_SPARKLE_CHANCE = 0.33F;
-    private static final float SPARKLE_RED_BASE = 0.4F;
-    private static final float SPARKLE_RED_SPREAD = 0.2F;
-    private static final float SPARKLE_GREEN = 0.2F;
-    private static final float SPARKLE_BLUE_BASE = 0.6F;
-    private static final float SPARKLE_BLUE_SPREAD = 0.3F;
     private static final double SPAWN_LIFT = 1.0;
-    private static final double CRUMB_XZ_BASE = 0.4;
-    private static final double CRUMB_XZ_SPREAD = 0.2;
-    private static final double CRUMB_Y_BASE = 1.23;
-    private static final double CRUMB_Y_SPREAD = 0.2;
-    private static final double CRUMB_SPEED = 0.03;
     private static final double TARGET_XZ_OFFSET = 0.5;
     private static final double TARGET_Y_OFFSET = -0.5;
+
+    private static final int CLIENT_SOURCE_BASE_COUNT = 3;
+    private static final int CLIENT_SPARKLE_ODDS = 3;
+    private static final float SPARKLE_VIOLET_RED = 0.62F;
+    private static final float SPARKLE_PURPLE_RED = 0.45F;
+    private static final float SPARKLE_GREEN = 0.18F;
+    private static final float SPARKLE_BLUE_MIN = 0.75F;
+    private static final float SPARKLE_BLUE_SPAN = 0.25F;
+    private static final double PEDESTAL_CENTRE = 0.5;
+    private static final double CRUMB_ITEM_SPOT_LIFT = 0.3;
+    private static final double CRUMB_ITEM_SPOT_RADIUS = 0.08;
+    private static final double CRUMB_ITEM_KICK = 0.02;
 
     private MatrixPullEffects() {}
 
@@ -51,29 +53,38 @@ final class MatrixPullEffects {
         }
     }
 
-    private static void spawn(Level level, BlockPos matrix, BlockPos pedestal, ItemStack stack) {
+    private static void spawn(Level level, BlockPos matrix, BlockPos source, ItemStack item) {
         RandomSource random = level.getRandom();
-        double targetX = matrix.getX() + TARGET_XZ_OFFSET;
-        double targetY = matrix.getY() + TARGET_Y_OFFSET;
-        double targetZ = matrix.getZ() + TARGET_XZ_OFFSET;
-        if (random.nextFloat() < CLIENT_SPARKLE_CHANCE) {
-            BoreSparkleParticleOptions sparkle = new BoreSparkleParticleOptions(targetX, targetY, targetZ, SPARKLE_RED_BASE + SPARKLE_RED_SPREAD * random.nextFloat(), SPARKLE_GREEN,
-                    SPARKLE_BLUE_BASE + SPARKLE_BLUE_SPREAD * random.nextFloat());
-            level.addParticle(sparkle, pedestal.getX() + random.nextFloat(), pedestal.getY() + SPAWN_LIFT + random.nextFloat(), pedestal.getZ() + random.nextFloat(), 0.0, 0.0, 0.0);
+        Vec3 goal = new Vec3(matrix.getX() + TARGET_XZ_OFFSET, matrix.getY() + TARGET_Y_OFFSET, matrix.getZ() + TARGET_XZ_OFFSET);
+        if (random.nextInt(CLIENT_SPARKLE_ODDS) == 0) {
+            spawnSparkle(level, source, goal, random);
             return;
         }
-        boolean blockItem = stack.getItem() instanceof BlockItem;
-        ItemStackTemplate template = new ItemStackTemplate(stack.getItem());
+        ItemStackTemplate template = ItemStackTemplate.fromNonEmptyStack(item);
+        boolean block = item.getItem() instanceof BlockItem;
         for (int i = 0; i < CLIENT_SOURCE_BASE_COUNT; i++) {
-            if (blockItem) {
-                level.addParticle(new InfusionCrumbsParticleOptions(template, targetX, targetY, targetZ, 0.0, 0.0, 0.0), pedestal.getX() + random.nextFloat(),
-                        pedestal.getY() + SPAWN_LIFT + random.nextFloat(), pedestal.getZ() + random.nextFloat(), 0.0, 0.0, 0.0);
+            if (block) {
+                Vec3 start = randomAbove(source, random);
+                level.addParticle(new InfusionCrumbsParticleOptions(template, goal.x, goal.y, goal.z, 0.0, 0.0, 0.0), start.x, start.y, start.z, 0.0, 0.0, 0.0);
             } else {
-                InfusionCrumbsParticleOptions crumb = new InfusionCrumbsParticleOptions(template, targetX, targetY, targetZ, random.nextGaussian() * CRUMB_SPEED, random.nextGaussian() * CRUMB_SPEED,
-                        random.nextGaussian() * CRUMB_SPEED);
-                level.addParticle(crumb, pedestal.getX() + CRUMB_XZ_BASE + CRUMB_XZ_SPREAD * random.nextFloat(), pedestal.getY() + CRUMB_Y_BASE + CRUMB_Y_SPREAD * random.nextFloat(),
-                        pedestal.getZ() + CRUMB_XZ_BASE + CRUMB_XZ_SPREAD * random.nextFloat(), 0.0, 0.0, 0.0);
+                double x = source.getX() + PEDESTAL_CENTRE + random.nextGaussian() * CRUMB_ITEM_SPOT_RADIUS;
+                double y = source.getY() + SPAWN_LIFT + CRUMB_ITEM_SPOT_LIFT + random.nextGaussian() * CRUMB_ITEM_SPOT_RADIUS;
+                double z = source.getZ() + PEDESTAL_CENTRE + random.nextGaussian() * CRUMB_ITEM_SPOT_RADIUS;
+                InfusionCrumbsParticleOptions options = new InfusionCrumbsParticleOptions(template, goal.x, goal.y, goal.z, random.nextGaussian() * CRUMB_ITEM_KICK,
+                        random.nextGaussian() * CRUMB_ITEM_KICK, random.nextGaussian() * CRUMB_ITEM_KICK);
+                level.addParticle(options, x, y, z, 0.0, 0.0, 0.0);
             }
         }
+    }
+
+    private static void spawnSparkle(Level level, BlockPos source, Vec3 goal, RandomSource random) {
+        Vec3 start = randomAbove(source, random);
+        float red = Mth.lerp(random.nextFloat(), SPARKLE_PURPLE_RED, SPARKLE_VIOLET_RED);
+        float blue = SPARKLE_BLUE_MIN + random.nextFloat() * SPARKLE_BLUE_SPAN;
+        level.addParticle(new BoreSparkleParticleOptions(goal.x, goal.y, goal.z, red, SPARKLE_GREEN, blue), start.x, start.y, start.z, 0.0, 0.0, 0.0);
+    }
+
+    private static Vec3 randomAbove(BlockPos source, RandomSource random) {
+        return new Vec3(source.getX() + random.nextDouble(), source.getY() + SPAWN_LIFT + random.nextDouble(), source.getZ() + random.nextDouble());
     }
 }

@@ -6,6 +6,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.data.AtlasIds;
@@ -17,13 +18,13 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class InfusionCrumbsParticle extends SeekerParticle {
-    private static final float DRIFT_STRENGTH = 0.005F;
-    private static final float GREY = 0.6F;
-    private static final float ALPHA = 0.3F;
-    private static final float SIZE_BASE = 0.4F;
-    private static final float SIZE_RANGE = 0.3F;
-    private static final float SIZE_UNIT = 0.1F;
     private static final float WINDOW_FRACTION = 0.25F;
+    private static final float DRIFT_STRENGTH = 0.004F;
+    private static final float GREY = 0.88F;
+    private static final float ALPHA = 0.4F;
+    private static final float SIZE_UNIT = 1.0F / 32.0F;
+    private static final float SIZE_BASE = 0.5F;
+    private static final float SIZE_RANGE = 1.5F;
 
     private final float windowU;
     private final float windowV;
@@ -36,7 +37,17 @@ public final class InfusionCrumbsParticle extends SeekerParticle {
         this.quadSize = (SIZE_BASE + this.random.nextFloat() * SIZE_RANGE) * SIZE_UNIT;
         this.windowU = this.random.nextFloat() * (1.0F - WINDOW_FRACTION);
         this.windowV = this.random.nextFloat() * (1.0F - WINDOW_FRACTION);
-        this.layer = Layer.bySprite(sprite);
+        this.layer = translucentLayer(sprite);
+    }
+
+    private static Layer translucentLayer(TextureAtlasSprite sprite) {
+        if (sprite.atlasLocation().equals(TextureAtlas.LOCATION_BLOCKS)) {
+            return Layer.TRANSLUCENT_TERRAIN;
+        }
+        if (sprite.atlasLocation().equals(TextureAtlas.LOCATION_ITEMS)) {
+            return Layer.TRANSLUCENT_ITEMS;
+        }
+        return Layer.TRANSLUCENT;
     }
 
     @Override

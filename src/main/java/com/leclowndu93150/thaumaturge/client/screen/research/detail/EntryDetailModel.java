@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.screen.research.detail;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.ResearchAddendum;
@@ -53,7 +53,7 @@ public final class EntryDetailModel {
     }
 
     public static boolean knowsResearch(@Nullable Player player, Identifier research) {
-        return player != null && KnowledgeAccess.of(player).isResearchComplete(research);
+        return player != null && PlayerResearchAccess.of(player).hasCompleted(research);
     }
 
     public static boolean hasRequirements(IResearchStage stage) {
@@ -98,10 +98,10 @@ public final class EntryDetailModel {
         if (player == null) {
             return 0;
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        complete = knowledge.isResearchComplete(entryId);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
+        complete = knowledge.hasCompleted(entryId);
         int stageCount = stages().size();
-        int storedStage = knowledge.researchStage(entryId);
+        int storedStage = knowledge.stageOf(entryId);
         int resolved = Math.max(storedStage, 0);
         if (complete || resolved >= stageCount) {
             resolved = stageCount - 1;
@@ -151,8 +151,8 @@ public final class EntryDetailModel {
         if (!complete || player == null) {
             return List.of();
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        return research().addenda().stream().filter(addendum -> addendum.requiredResearch().stream().allMatch(knowledge::isResearchComplete)).toList();
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
+        return research().addenda().stream().filter(addendum -> addendum.requiredResearch().stream().allMatch(knowledge::hasCompleted)).toList();
     }
 
     public List<Identifier> displayRecipes(IResearchStage stage, @Nullable Player player) {

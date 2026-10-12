@@ -6,8 +6,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
 import com.leclowndu93150.thaumaturge.api.entity.trait.MobTrait;
 import com.leclowndu93150.thaumaturge.api.entity.trait.MobTraits;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
@@ -295,11 +295,11 @@ public final class TTCommands {
 
     private static int resetResearch(CommandSourceStack source) throws CommandSyntaxException {
         ServerPlayer player = source.getPlayerOrException();
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
-        int cleared = knowledge.researchList().size();
-        knowledge.clear();
+        PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(player);
+        int cleared = knowledge.knownEntries().size();
+        knowledge.wipe();
         ResearchManager.applyAutoUnlock(player);
-        knowledge.sync(player);
+        knowledge.queueSync(player);
         success(source, "research.reset", cleared);
         return Command.SINGLE_SUCCESS;
     }
@@ -328,16 +328,16 @@ public final class TTCommands {
     private static int revokeGate(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         ServerPlayer player = ctx.getSource().getPlayerOrException();
         ResourceKey<IResearchEntry> key = ResourceKeyArgument.getRegistryKey(ctx, "entry", IResearchEntry.REGISTRY_KEY, ERROR_INVALID_GATE);
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+        PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(player);
         String id = key.identifier().toString();
-        if (!knowledge.isResearchKnown(key.identifier())) {
+        if (!knowledge.knows(key.identifier())) {
             success(ctx.getSource(), "research.not_known", id);
             return Command.SINGLE_SUCCESS;
         }
-        if (!knowledge.removeResearch(key.identifier())) {
+        if (!knowledge.forget(key.identifier())) {
             return failure(ctx.getSource(), "research.revoke_failed", id);
         }
-        knowledge.sync(player);
+        knowledge.queueSync(player);
         success(ctx.getSource(), "research.revoked", id);
         return Command.SINGLE_SUCCESS;
     }
@@ -347,7 +347,7 @@ public final class TTCommands {
         ResourceKey<IResearchEntry> key = ResourceKeyArgument.getRegistryKey(ctx, "entry", IResearchEntry.REGISTRY_KEY, ERROR_INVALID_GATE);
         Holder<IResearchEntry> holder = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).getOrThrow(key);
         String id = key.identifier().toString();
-        if (KnowledgeAccess.of(player).isResearchComplete(key.identifier())) {
+        if (PlayerResearchAccess.of(player).hasCompleted(key.identifier())) {
             success(ctx.getSource(), "research.already_complete", id);
             return Command.SINGLE_SUCCESS;
         }
@@ -617,12 +617,12 @@ public final class TTCommands {
             ctx.getSource().sendSuccess(problem::message, false);
         }
         ItemStack held = player.getMainHandItem();
-        if (held.getItem() instanceof ICaster caster) {
-            ItemStack previous = caster.getFocusStack(held);
+        if (held.getItem() instanceof FocusCaster caster) {
+            ItemStack previous = caster.socketedFocus(held);
             if (!previous.isEmpty()) {
                 player.getInventory().add(previous);
             }
-            caster.setFocus(held, focusStack);
+            caster.socketFocus(held, focusStack);
             success(ctx.getSource(), "focus.socketed", summary.complexity(), summary.budget());
         } else {
             player.getInventory().add(focusStack);

@@ -42,8 +42,8 @@ public final class GolemInteractionHelper {
         }
         player.setShiftKeyDown(false);
         returnInventory(serverLevel, golem, entity, player);
-        golem.addRankXp(CLICK_RANK_XP);
-        golem.swingArm();
+        golem.grantRankExperience(CLICK_RANK_XP);
+        golem.animateSwing();
     }
 
     private static void rightClick(ServerLevel level, LivingEntity entity, FakePlayer player, BlockPos pos, Direction face, ItemStack stack) {

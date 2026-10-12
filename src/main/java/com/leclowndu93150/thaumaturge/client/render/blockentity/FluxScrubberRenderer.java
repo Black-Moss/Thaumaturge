@@ -22,10 +22,10 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
     private static final Identifier MESH = TTIds.rl("models/mesh/flux_scrubber.ttmesh");
     private static final Identifier TEXTURE = TTIds.rl("textures/block/flux_scrubber.png");
     private static final String TIP_PART = "Tip";
-    private static final float BOB_PERIOD = 8.0F;
-    private static final float BOB_AMPLITUDE = 0.075F;
     private static final long PHASE_RANGE = 1000L;
     private static final int WHITE = 0xFFFFFFFF;
+    private static final float PULSE_PERIOD = 140.0F;
+    private static final float PULSE_DEPTH = 0.055F;
 
     public FluxScrubberRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -39,8 +39,14 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
         BlockEntityRenderer.super.extractRenderState(scrubber, state, partialTicks, cameraPosition, breakProgress);
         state.facing = scrubber.getBlockState().getValue(BlockStateProperties.FACING);
         Level level = scrubber.getLevel();
-        float time = (level == null ? 0L : level.getGameTime()) + partialTicks + Math.floorMod(scrubber.getBlockPos().asLong(), PHASE_RANGE);
-        state.bob = BOB_AMPLITUDE * Mth.sin(time / BOB_PERIOD) + BOB_AMPLITUDE;
+        if (level == null) {
+            state.bob = 0.0F;
+            return;
+        }
+        long phase = Math.floorMod(Mth.getSeed(scrubber.getBlockPos()), PHASE_RANGE);
+        float cycle = Mth.frac(((level.getGameTime() + phase) % (long) PULSE_PERIOD + partialTicks) / PULSE_PERIOD);
+        float swing = 1.0F - Math.abs(2.0F * cycle - 1.0F);
+        state.bob = (float) Mth.smoothstep(swing) * PULSE_DEPTH;
     }
 
     @Override

@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
@@ -21,7 +21,7 @@ abstract class HuntBehavior implements ISealBehavior {
         Task hunt = Task.onEntity(seal.pos(), target);
         hunt.setLife(MARK_LIFE);
         hunt.setPriority(seal.priority());
-        GolemHelper.addGolemTask(level, hunt);
+        GolemDispatch.postTask(level, hunt);
     }
 
     @Override
@@ -57,7 +57,7 @@ abstract class HuntBehavior implements ISealBehavior {
         }
         if (isQuarry(level, seal, quarry)) {
             hunter.setTarget(quarry);
-            golem.addRankXp(ENGAGE_XP);
+            golem.grantRankExperience(ENGAGE_XP);
         }
     }
 }

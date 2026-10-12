@@ -4,9 +4,9 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.KnowledgeReward;
@@ -42,11 +42,11 @@ public final class ResearchNotes {
         return count;
     }
 
-    private static boolean isReachableTheoryRow(IPlayerKnowledge knowledge, Identifier entryId, IResearchEntry entry, int ordinal) {
-        if (!knowledge.isResearchKnown(entryId) || knowledge.isResearchComplete(entryId)) {
+    private static boolean isReachableTheoryRow(PlayerResearch knowledge, Identifier entryId, IResearchEntry entry, int ordinal) {
+        if (!knowledge.knows(entryId) || knowledge.hasCompleted(entryId)) {
             return false;
         }
-        int stage = Math.max(0, knowledge.researchStage(entryId));
+        int stage = Math.max(0, knowledge.stageOf(entryId));
         if (stage >= entry.stages().size()) {
             return false;
         }
@@ -117,12 +117,12 @@ public final class ResearchNotes {
     public static boolean obtainNote(ServerPlayer player, Identifier entryId, int ordinal) {
         ResourceKey<IResearchEntry> key = ResourceKey.create(IResearchEntry.REGISTRY_KEY, entryId);
         IResearchEntry entry = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).get(key).map(holder -> holder.value()).orElse(null);
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+        PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(player);
         if (entry == null || !isReachableTheoryRow(knowledge, entryId, entry, ordinal)) {
             return false;
         }
         Identifier learnKey = ResearchNoteData.learnKey(entryId, ordinal);
-        if (knowledge.isResearchKnown(learnKey) || hasNoteFor(player, learnKey)) {
+        if (knowledge.knows(learnKey) || hasNoteFor(player, learnKey)) {
             return false;
         }
         if ((!consumeInk(player, true) || !hasItem(player, Items.PAPER)) && !player.getAbilities().instabuild) {

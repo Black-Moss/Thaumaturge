@@ -31,6 +31,7 @@ final class JadeConfig {
     static final Identifier CENTRIFUGES = option("centrifuges");
     static final Identifier CRYSTALIZERS = option("crystalizers");
     static final Identifier RESERVOIRS = option("reservoirs");
+    static final Identifier BRAIN_JARS = option("brain_jars");
     static final Identifier FLUX_SCRUBBERS = option("flux_scrubbers");
     static final Identifier GOLEM_BUILDERS = option("golem_builders");
     static final Identifier VOID_SIPHONS = option("void_siphons");
@@ -41,8 +42,8 @@ final class JadeConfig {
     static final Identifier FOCAL_MANIPULATORS = option("focal_manipulators");
 
     private static final List<Identifier> OPTIONS = List.of(NODES, GOLEMS, VIS_RELAYS, NODE_TRANSDUCERS, SMELTERS, ADVANCED_ALCHEMICAL_FURNACES, JARS, ALEMBICS, CRUCIBLES, TUBES, VALVES,
-            RESTRICTED_TUBES, FILTER_TUBES, ONE_WAY_TUBES, BUFFERS, THAUMATORIUMS, CENTRIFUGES, CRYSTALIZERS, RESERVOIRS, FLUX_SCRUBBERS, GOLEM_BUILDERS, VOID_SIPHONS, DECONSTRUCTION_TABLES, SPAS,
-            EVERFULL_URNS, INFERNAL_FURNACES, FOCAL_MANIPULATORS);
+            RESTRICTED_TUBES, FILTER_TUBES, ONE_WAY_TUBES, BUFFERS, THAUMATORIUMS, CENTRIFUGES, CRYSTALIZERS, RESERVOIRS, BRAIN_JARS, FLUX_SCRUBBERS, GOLEM_BUILDERS, VOID_SIPHONS,
+            DECONSTRUCTION_TABLES, SPAS, EVERFULL_URNS, INFERNAL_FURNACES, FOCAL_MANIPULATORS);
 
     private JadeConfig() {}
 

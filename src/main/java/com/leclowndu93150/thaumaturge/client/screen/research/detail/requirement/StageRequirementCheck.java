@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client.screen.research.detail.requirement;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.KnowledgeReward;
 import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
@@ -30,20 +30,20 @@ public final class StageRequirementCheck {
         if (!EntryDetailModel.hasRequirements(stage)) {
             return false;
         }
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        return stage.requiredResearch().stream().allMatch(knowledge::isResearchComplete) && stage.obtain().stream().allMatch(requirement -> countMatching(player, requirement) >= requirement.amount())
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
+        return stage.requiredResearch().stream().allMatch(knowledge::hasCompleted) && stage.obtain().stream().allMatch(requirement -> countMatching(player, requirement) >= requirement.amount())
                 && stage.craft().stream().allMatch(requirement -> ResearchManager.isCraftSatisfied(player, knowledge, requirement))
                 && knowledgeSatisfied(player, knowledge, model, stage, displayedStage);
     }
 
-    private static boolean knowledgeSatisfied(Player player, IPlayerKnowledge knowledge, EntryDetailModel model, IResearchStage stage, int displayedStage) {
+    private static boolean knowledgeSatisfied(Player player, PlayerResearch knowledge, EntryDetailModel model, IResearchStage stage, int displayedStage) {
         List<KnowledgeReward> rewards = stage.requiredKnowledge();
         int theoryOrdinal = ResearchNotes.theoryRowsBefore(model.research(), displayedStage);
         boolean satisfied = true;
         for (KnowledgeReward reward : rewards) {
             if (reward.type() == KnowledgeType.THEORY) {
                 Identifier learnKey = ResearchNoteData.learnKey(model.entryId(), theoryOrdinal++);
-                satisfied &= knowledge.isResearchKnown(learnKey);
+                satisfied &= knowledge.knows(learnKey);
             } else {
                 satisfied &= AspectPools.canAfford(player, ResearchNotes.observationCost(model.research(), reward.amount()));
             }

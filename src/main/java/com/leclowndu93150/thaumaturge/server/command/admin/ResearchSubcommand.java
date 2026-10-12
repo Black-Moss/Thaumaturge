@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.server.command.admin;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.CategoryComponents;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
@@ -100,7 +100,7 @@ final class ResearchSubcommand implements AdminSubcommand {
         List<Holder.Reference<IResearchEntry>> entries = source.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).listElements().toList();
         List<Holder.Reference<IResearchCategory>> categories = CommandSupport.categories(source.registryAccess());
         for (ServerPlayer player : targets) {
-            IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+            PlayerResearch knowledge = PlayerResearchAccess.of(player);
             int total = countComplete(knowledge, entries, null);
             source.sendSuccess(() -> Component.translatable("commands.thaumaturge.research.query", player.getDisplayName(), total, entries.size()), false);
             for (Holder.Reference<IResearchCategory> category : categories) {
@@ -112,10 +112,10 @@ final class ResearchSubcommand implements AdminSubcommand {
         return targets.size();
     }
 
-    private static int countComplete(IPlayerKnowledge knowledge, List<Holder.Reference<IResearchEntry>> entries, Holder.@Nullable Reference<IResearchCategory> category) {
+    private static int countComplete(PlayerResearch knowledge, List<Holder.Reference<IResearchEntry>> entries, Holder.@Nullable Reference<IResearchCategory> category) {
         int count = 0;
         for (Holder.Reference<IResearchEntry> entry : entries) {
-            if ((category == null || entry.value().category().is(category.key())) && knowledge.isResearchComplete(entry.key().identifier())) {
+            if ((category == null || entry.value().category().is(category.key())) && knowledge.hasCompleted(entry.key().identifier())) {
                 count++;
             }
         }

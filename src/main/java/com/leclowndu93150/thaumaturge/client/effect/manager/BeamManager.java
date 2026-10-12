@@ -7,9 +7,9 @@ import com.leclowndu93150.thaumaturge.client.effect.instance.BoltInstance;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.ArcRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BeamRenderType;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.BoltRenderType;
+import com.leclowndu93150.thaumaturge.client.particle.support.ParticleCulling;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -19,6 +19,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
@@ -29,38 +31,48 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     private static final List<BoltInstance> BOLTS = new ArrayList<>();
     private static final List<BeamInstance> BEAMS = new ArrayList<>();
 
-    private static final float ARC_HALF_SIZE = 0.125F;
-    private static final float BOLT_RADIUS_DIVISOR = 10.0F;
-    private static final float BOLT_CORE_DIVISOR = 3.0F;
     private static final float BOLT_TEX_SLICE = 1.0F;
-    private static final int MIN_BOLT_POINTS = 3;
-    private static final int COLOUR_CHANNELS = 4;
-    private static final int POSITION_AXES = 3;
+    private static final float BOLT_TEX_START = 0.0F;
     private static final int TRUNK_SLOTS = 4;
     private static final int STRIPS = 3;
-    private static final float STRIP_SPACING_DEGREES = 60.0F;
-    private static final float YAW_FLIP_DEGREES = 180.0F;
-    private static final float PITCH_TURN_DEGREES = 90.0F;
-    private static final float STRIP_HALF_WIDTH = 0.15F;
-    private static final float STRIP_V_BASE = -1.0F;
-    private static final int GLOW_GRID = 32;
-    private static final int GLOW_ROW = 3;
-    private static final float GLOW_HALF_SIZE = 0.33F;
+    private static final float STRIP_STEP_DEGREES = 60.0F;
+    private static final float STRIP_HALF_WIDTH = 0.14F;
+    private static final float STRIP_V_PER_BLOCK = 0.5F;
+    private static final double MIN_BEAM_LENGTH = 1.0E-3;
+    private static final double PARALLEL_LIMIT = 0.99;
+    private static final double BEAM_VIEW_RANGE = 50.0;
+    private static final double BEAM_VIEW_RANGE_FAST = 25.0;
+    private static final int GLOW_FRAMES = 16;
+    private static final int GLOW_ROW = 25;
+    private static final float GLOW_SHEET_CELLS = 32.0F;
+    private static final float GLOW_HALF_SIZE = 0.4F;
     private static final float GLOW_OPACITY = 0.8F;
-    private static final float GLOW_FADE_STEP = 0.2F;
-    private static final int FADE_TICKS = 4;
+    private static final float FLARE_HALF_SIZE = 0.3F;
+    private static final float FLARE_OPACITY = 1.0F;
+    private static final float FLARE_WHITE_MIX = 0.5F;
+    private static final float ARC_HALF_WIDTH = 0.045F;
 
     private BeamManager() {}
 
     public static void addArc(ArcInstance arc) {
-        ARCS.add(arc);
+        if (!arc.isExpired()) {
+            ARCS.add(arc);
+        }
     }
 
     public static void addBolt(BoltInstance bolt) {
-        BOLTS.add(bolt);
+        if (!bolt.isExpired()) {
+            BOLTS.add(bolt);
+        }
     }
 
     public static void addBeam(BeamInstance beam) {
+        for (BeamInstance existing : BEAMS) {
+            if (existing.sameSourceAs(beam)) {
+                existing.refresh(beam);
+                return;
+            }
+        }
         BEAMS.add(beam);
     }
 
@@ -117,8 +129,9 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             if (alpha <= 0.0F) {
                 continue;
             }
+            Vec3 origin = arc.origin();
             poseStack.pushPose();
-            poseStack.translate(arc.origin.x - cameraPos.x, arc.origin.y - cameraPos.y, arc.origin.z - cameraPos.z);
+            poseStack.translate(origin.x - cameraPos.x, origin.y - cameraPos.y, origin.z - cameraPos.z);
             drawArc(consumer, poseStack.last().pose(), arc, alpha);
             poseStack.popPose();
         }
@@ -126,20 +139,40 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     }
 
     private static void drawArc(VertexConsumer consumer, Matrix4f matrix, ArcInstance arc, float alpha) {
-        float uScale = arc.chordLength > 0.0F ? 1.0F / arc.chordLength : 0.0F;
-        for (int i = 0; i < arc.path.size() - 1; i++) {
-            Vec3 from = arc.path.get(i);
-            Vec3 to = arc.path.get(i + 1);
-            float u0 = i * uScale;
-            float u1 = (i + 1) * uScale;
-            vertex(consumer, matrix, from.x, from.y - ARC_HALF_SIZE, from.z, u0, 1.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
-            vertex(consumer, matrix, from.x, from.y + ARC_HALF_SIZE, from.z, u0, 0.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
-            vertex(consumer, matrix, to.x, to.y + ARC_HALF_SIZE, to.z, u1, 0.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
-            vertex(consumer, matrix, to.x, to.y - ARC_HALF_SIZE, to.z, u1, 1.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
-            vertex(consumer, matrix, from.x - ARC_HALF_SIZE, from.y, from.z - ARC_HALF_SIZE, u0, 1.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
-            vertex(consumer, matrix, from.x + ARC_HALF_SIZE, from.y, from.z + ARC_HALF_SIZE, u0, 0.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
-            vertex(consumer, matrix, to.x + ARC_HALF_SIZE, to.y, to.z + ARC_HALF_SIZE, u1, 0.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
-            vertex(consumer, matrix, to.x - ARC_HALF_SIZE, to.y, to.z - ARC_HALF_SIZE, u1, 1.0F, arc.colorR, arc.colorG, arc.colorB, alpha);
+        double[][] points = arc.points();
+        int count = points.length;
+        if (count < 2) {
+            return;
+        }
+        double[] last = points[count - 1];
+        double sideX = -last[2];
+        double sideZ = last[0];
+        double flat = Math.sqrt(sideX * sideX + sideZ * sideZ);
+        if (flat < MIN_BEAM_LENGTH) {
+            sideX = 1.0;
+            sideZ = 0.0;
+        } else {
+            sideX /= flat;
+            sideZ /= flat;
+        }
+        float red = Mth.clamp(arc.red(), 0.0F, 1.0F);
+        float green = Mth.clamp(arc.green(), 0.0F, 1.0F);
+        float blue = Mth.clamp(arc.blue(), 0.0F, 1.0F);
+        double sx = sideX * ARC_HALF_WIDTH;
+        double sz = sideZ * ARC_HALF_WIDTH;
+        for (int i = 0; i < count - 1; i++) {
+            double[] a = points[i];
+            double[] b = points[i + 1];
+            float v0 = (float) i / (count - 1);
+            float v1 = (float) (i + 1) / (count - 1);
+            vertex(consumer, matrix, a[0], a[1] - ARC_HALF_WIDTH, a[2], 0.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, a[0], a[1] + ARC_HALF_WIDTH, a[2], 1.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0], b[1] + ARC_HALF_WIDTH, b[2], 1.0F, v1, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0], b[1] - ARC_HALF_WIDTH, b[2], 0.0F, v1, red, green, blue, alpha);
+            vertex(consumer, matrix, a[0] - sx, a[1], a[2] - sz, 0.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, a[0] + sx, a[1], a[2] + sz, 1.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0] + sx, b[1], b[2] + sz, 1.0F, v1, red, green, blue, alpha);
+            vertex(consumer, matrix, b[0] - sx, b[1], b[2] - sz, 0.0F, v1, red, green, blue, alpha);
         }
     }
 
@@ -150,33 +183,12 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         RenderType type = BoltRenderType.RENDER_TYPE;
         VertexConsumer consumer = buffers.getBuffer(type);
         for (BoltInstance bolt : BOLTS) {
-            List<BoltInstance.PathStep> path = bolt.computePath(partialTick);
-            if (path.size() < MIN_BOLT_POINTS) {
-                continue;
-            }
-            int count = path.size();
-            double[][] points = new double[count][POSITION_AXES];
-            float[][] colours = new float[count][COLOUR_CHANNELS];
-            double[] radii = new double[count];
-            float alpha = bolt.alpha(partialTick);
-            for (int i = 0; i < count; i++) {
-                BoltInstance.PathStep step = path.get(i);
-                points[i][0] = step.x();
-                points[i][1] = step.y();
-                points[i][2] = step.z();
-                colours[i][0] = bolt.colorR;
-                colours[i][1] = bolt.colorG;
-                colours[i][2] = bolt.colorB;
-                colours[i][3] = alpha;
-                radii[i] = step.width() / BOLT_RADIUS_DIVISOR;
-            }
+            bolt.shape(partialTick);
+            Vec3 origin = bolt.origin();
             poseStack.pushPose();
-            poseStack.translate(bolt.startX - cameraPos.x, bolt.startY - cameraPos.y, bolt.startZ - cameraPos.z);
-            PolyCone.render(poseStack, consumer, points, colours, radii, 0, BOLT_TEX_SLICE, 0.0F);
-            for (int i = 0; i < count; i++) {
-                radii[i] /= BOLT_CORE_DIVISOR;
-            }
-            PolyCone.render(poseStack, consumer, points, colours, radii, 0, BOLT_TEX_SLICE, 0.0F);
+            poseStack.translate(origin.x - cameraPos.x, origin.y - cameraPos.y, origin.z - cameraPos.z);
+            PolyCone.render(poseStack, consumer, bolt.points(), bolt.sheathColours(), bolt.sheathRadii(), LightCoordsUtil.FULL_BRIGHT, BOLT_TEX_SLICE, BOLT_TEX_START);
+            PolyCone.render(poseStack, consumer, bolt.points(), bolt.coreColours(), bolt.coreRadii(), LightCoordsUtil.FULL_BRIGHT, BOLT_TEX_SLICE, BOLT_TEX_START);
             poseStack.popPose();
         }
         buffers.endBatch(type);
@@ -203,67 +215,138 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             if (beam.withSource()) {
                 drawGlow(poseStack, nodeConsumer, camera, beam, partialTick);
             }
+            if (beam.hit()) {
+                drawFlare(poseStack, nodeConsumer, camera, beam, partialTick);
+            }
         }
         buffers.endBatch(nodeType);
     }
 
-    private static int trunkSlot(BeamInstance beam) {
-        int type = beam.beamType();
-        return type >= 0 && type < TRUNK_SLOTS ? type : 0;
+    private static boolean outOfView(Vec3 source) {
+        return ParticleCulling.beyondSpawnRange(source.x, source.y, source.z, BEAM_VIEW_RANGE, BEAM_VIEW_RANGE_FAST);
     }
 
     private static void drawTrunk(PoseStack poseStack, VertexConsumer consumer, Vec3 cameraPos, BeamInstance beam, float partialTick) {
+        Vec3 source = beam.sourcePos(partialTick);
+        if (outOfView(source)) {
+            return;
+        }
         float opacity = beam.computeOpacity(partialTick);
         float size = beam.computeSize(partialTick);
         if (opacity <= 0.0F || size <= 0.0F) {
             return;
         }
-        Vec3 source = beam.sourcePos(partialTick);
-        float stripLength = (float) source.distanceTo(beam.targetPos(partialTick)) * size;
-        float sourceHalf = STRIP_HALF_WIDTH * size;
-        float farHalf = sourceHalf * beam.endMod();
+        Vec3 target = beam.targetPos(partialTick);
+        double dx = target.x - source.x;
+        double dy = target.y - source.y;
+        double dz = target.z - source.z;
+        double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (length < MIN_BEAM_LENGTH) {
+            return;
+        }
+        double ax = dx / length;
+        double ay = dy / length;
+        double az = dz / length;
+        double hx = 0.0;
+        double hy = 1.0;
+        if (Math.abs(ay) > PARALLEL_LIMIT) {
+            hx = 1.0;
+            hy = 0.0;
+        }
+        double along = hx * ax + hy * ay;
+        double px = hx - along * ax;
+        double py = hy - along * ay;
+        double pz = -along * az;
+        double pLength = Math.sqrt(px * px + py * py + pz * pz);
+        px /= pLength;
+        py /= pLength;
+        pz /= pLength;
+        double qx = ay * pz - az * py;
+        double qy = az * px - ax * pz;
+        double qz = ax * py - ay * px;
+        double reach = length * size;
+        double endX = ax * reach;
+        double endY = ay * reach;
+        double endZ = az * reach;
+        float nearWidth = STRIP_HALF_WIDTH * size;
+        float farWidth = nearWidth * beam.endMod();
         float scroll = beam.texScroll(partialTick);
-        float worldRotation = beam.worldRotation(partialTick);
+        float spin = beam.worldRotation(partialTick);
+        float vLength = (float) reach * STRIP_V_PER_BLOCK;
+        float red = Mth.clamp(beam.colorR(), 0.0F, 1.0F);
+        float green = Mth.clamp(beam.colorG(), 0.0F, 1.0F);
+        float blue = Mth.clamp(beam.colorB(), 0.0F, 1.0F);
+        float alpha = Mth.clamp(opacity, 0.0F, 1.0F);
         poseStack.pushPose();
         poseStack.translate(source.x - cameraPos.x, source.y - cameraPos.y, source.z - cameraPos.z);
-        poseStack.mulPose(Axis.YP.rotationDegrees(beam.yawAt(partialTick) + YAW_FLIP_DEGREES));
-        poseStack.mulPose(Axis.XP.rotationDegrees(beam.pitchAt(partialTick) + PITCH_TURN_DEGREES));
+        Matrix4f matrix = poseStack.last().pose();
         for (int strip = 0; strip < STRIPS; strip++) {
-            poseStack.pushPose();
-            poseStack.mulPose(Axis.YP.rotationDegrees(worldRotation + STRIP_SPACING_DEGREES * (strip + 1)));
-            Matrix4f matrix = poseStack.last().pose();
-            float sourceV = STRIP_V_BASE + scroll + (float) strip / STRIPS;
-            float farV = sourceV + stripLength;
-            vertex(consumer, matrix, -farHalf, stripLength, 0.0F, 1.0F, farV, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-            vertex(consumer, matrix, -sourceHalf, 0.0F, 0.0F, 1.0F, sourceV, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-            vertex(consumer, matrix, sourceHalf, 0.0F, 0.0F, 0.0F, sourceV, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-            vertex(consumer, matrix, farHalf, stripLength, 0.0F, 0.0F, farV, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-            poseStack.popPose();
+            double angle = (spin + strip * STRIP_STEP_DEGREES) * Mth.DEG_TO_RAD;
+            double cos = Math.cos(angle);
+            double sin = Math.sin(angle);
+            double ex = cos * px + sin * qx;
+            double ey = cos * py + sin * qy;
+            double ez = cos * pz + sin * qz;
+            float v0 = scroll + (float) strip / STRIPS;
+            float v1 = v0 + vLength;
+            vertex(consumer, matrix, -ex * nearWidth, -ey * nearWidth, -ez * nearWidth, 0.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, ex * nearWidth, ey * nearWidth, ez * nearWidth, 1.0F, v0, red, green, blue, alpha);
+            vertex(consumer, matrix, endX + ex * farWidth, endY + ey * farWidth, endZ + ez * farWidth, 1.0F, v1, red, green, blue, alpha);
+            vertex(consumer, matrix, endX - ex * farWidth, endY - ey * farWidth, endZ - ez * farWidth, 0.0F, v1, red, green, blue, alpha);
         }
         poseStack.popPose();
     }
 
     private static void drawGlow(PoseStack poseStack, VertexConsumer consumer, Camera camera, BeamInstance beam, float partialTick) {
-        int remaining = beam.maxAge() - beam.age();
-        float opacity = remaining > FADE_TICKS ? GLOW_OPACITY : Math.max(0.0F, GLOW_OPACITY - (FADE_TICKS - remaining) * GLOW_FADE_STEP);
-        if (opacity <= 0.0F) {
+        Vec3 source = beam.sourcePos(partialTick);
+        if (outOfView(source)) {
             return;
         }
-        Vec3 source = beam.sourcePos(partialTick);
+        float alpha = Mth.clamp(GLOW_OPACITY * beam.fadeFactor(partialTick), 0.0F, 1.0F);
+        if (alpha <= 0.0F) {
+            return;
+        }
+        float red = Mth.clamp(beam.colorR(), 0.0F, 1.0F);
+        float green = Mth.clamp(beam.colorG(), 0.0F, 1.0F);
+        float blue = Mth.clamp(beam.colorB(), 0.0F, 1.0F);
+        drawGlowFrame(poseStack, consumer, camera, source, beam.age(), GLOW_HALF_SIZE, red, green, blue, alpha);
+    }
+
+    private static void drawFlare(PoseStack poseStack, VertexConsumer consumer, Camera camera, BeamInstance beam, float partialTick) {
+        if (outOfView(beam.sourcePos(partialTick))) {
+            return;
+        }
+        float halfSize = FLARE_HALF_SIZE * beam.hitFactor(partialTick);
+        if (halfSize <= 0.0F) {
+            return;
+        }
+        float red = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorR(), 1.0F), 0.0F, 1.0F);
+        float green = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorG(), 1.0F), 0.0F, 1.0F);
+        float blue = Mth.clamp(Mth.lerp(FLARE_WHITE_MIX, beam.colorB(), 1.0F), 0.0F, 1.0F);
+        drawGlowFrame(poseStack, consumer, camera, beam.targetPos(partialTick), beam.age(), halfSize, red, green, blue, FLARE_OPACITY);
+    }
+
+    private static void drawGlowFrame(PoseStack poseStack, VertexConsumer consumer, Camera camera, Vec3 at, int tick, float halfSize, float red, float green, float blue, float alpha) {
         Vec3 cameraPos = camera.position();
-        float u0 = (float) (beam.age() % GLOW_GRID) / GLOW_GRID;
-        float u1 = u0 + 1.0F / GLOW_GRID;
-        float v0 = (float) GLOW_ROW / GLOW_GRID;
-        float v1 = (float) (GLOW_ROW + 1) / GLOW_GRID;
+        int frame = Math.floorMod(tick, GLOW_FRAMES);
+        float u0 = frame / GLOW_SHEET_CELLS;
+        float u1 = (frame + 1) / GLOW_SHEET_CELLS;
+        float v0 = GLOW_ROW / GLOW_SHEET_CELLS;
+        float v1 = (GLOW_ROW + 1) / GLOW_SHEET_CELLS;
         poseStack.pushPose();
-        poseStack.translate(source.x - cameraPos.x, source.y - cameraPos.y, source.z - cameraPos.z);
+        poseStack.translate(at.x - cameraPos.x, at.y - cameraPos.y, at.z - cameraPos.z);
         poseStack.mulPose(camera.rotation());
         Matrix4f matrix = poseStack.last().pose();
-        vertex(consumer, matrix, -GLOW_HALF_SIZE, -GLOW_HALF_SIZE, 0.0F, u1, v1, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-        vertex(consumer, matrix, -GLOW_HALF_SIZE, GLOW_HALF_SIZE, 0.0F, u1, v0, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-        vertex(consumer, matrix, GLOW_HALF_SIZE, GLOW_HALF_SIZE, 0.0F, u0, v0, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-        vertex(consumer, matrix, GLOW_HALF_SIZE, -GLOW_HALF_SIZE, 0.0F, u0, v1, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
+        vertex(consumer, matrix, -halfSize, -halfSize, 0.0, u0, v1, red, green, blue, alpha);
+        vertex(consumer, matrix, halfSize, -halfSize, 0.0, u1, v1, red, green, blue, alpha);
+        vertex(consumer, matrix, halfSize, halfSize, 0.0, u1, v0, red, green, blue, alpha);
+        vertex(consumer, matrix, -halfSize, halfSize, 0.0, u0, v0, red, green, blue, alpha);
         poseStack.popPose();
+    }
+
+    private static int trunkSlot(BeamInstance beam) {
+        int type = beam.beamType();
+        return type >= 0 && type < TRUNK_SLOTS ? type : 0;
     }
 
     private static void vertex(VertexConsumer consumer, Matrix4f matrix, double x, double y, double z, float u, float v, float red, float green, float blue, float alpha) {

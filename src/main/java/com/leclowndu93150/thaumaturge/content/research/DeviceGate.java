@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetActionBarTextPacket;
@@ -12,7 +12,7 @@ public final class DeviceGate {
     private DeviceGate() {}
 
     public static boolean passes(Player player, Identifier research) {
-        if (KnowledgeAccess.of(player).isResearchComplete(research)) {
+        if (PlayerResearchAccess.of(player).hasCompleted(research)) {
             return true;
         }
         if (player instanceof ServerPlayer serverPlayer) {

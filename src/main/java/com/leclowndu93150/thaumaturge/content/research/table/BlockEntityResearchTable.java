@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchTableAid;
 import com.leclowndu93150.thaumaturge.content.aspect.AspectCombinations;
@@ -332,7 +332,7 @@ public final class BlockEntityResearchTable extends AbstractSyncedBlockEntity im
     }
 
     private static boolean completed(Player player, Identifier research) {
-        return KnowledgeAccess.of(player).isResearchComplete(research);
+        return PlayerResearchAccess.of(player).hasCompleted(research);
     }
 
     private int available(Player player, Holder<IAspect> aspect, boolean fromBonus) {

@@ -59,8 +59,9 @@ public final class WarpHelper {
     }
 
     /**
-     * Computes the warp a single stack contributes while held or worn: the {@link IWarpingGear} value, plus the stack's
-     * {@code thaumaturge:warp} data component, plus any {@code thaumaturge:warp} data-map entry on the item.
+     * Computes the warp a single stack contributes while held or worn: the {@link IWarpingGear} value plus the stack's
+     * {@code thaumaturge:warp} data component. The {@code thaumaturge:warp} data-map entry is crafting warp, granted once
+     * when the item is crafted, and is not part of this value.
      *
      * @param stack the stack to evaluate; empty stacks contribute zero
      * @param wearer the entity holding or wearing the stack

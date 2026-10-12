@@ -16,19 +16,19 @@ import org.jspecify.annotations.Nullable;
 
 public final class WispyMoteParticle extends TTParticle {
     private static final int EMISSIVE_LIGHT = 0x00F000F0;
-    private static final double WIND_SCALE = 0.001;
-    private static final float DRIFT = 0.0025F;
     private static final int FRAME_COUNT = 16;
-    private static final float PEAK_ALPHA = 0.6F;
-    private static final float SIZE_START = 0.1F;
-    private static final float SIZE_END = 0.05F;
+    private static final float SIZE_START = 0.06F;
+    private static final float SIZE_END = 0.03F;
     private static final float LIFETIME_JITTER = 0.5F;
-    private static final float NEAR_TARGET_SHRINK = 0.9F;
-    private static final double ARRIVAL_DISTANCE = 0.25;
-    private static final double NEAR_DISTANCE = 4.0;
-    private static final double PUSH = 0.3;
-    private static final double PUSH_NEAR = 0.6;
-    private static final double MAX_SPEED = 0.35;
+    private static final float PEAK_ALPHA = 0.6F;
+    private static final float DRIFT = 0.0015F;
+    private static final double WIND_SCALE = 4.0E-4;
+    private static final float NEAR_TARGET_SHRINK = 0.92F;
+    private static final double ARRIVAL_DISTANCE = 0.35;
+    private static final double NEAR_DISTANCE = 3.0;
+    private static final double PUSH = 0.008;
+    private static final double PUSH_NEAR = 0.02;
+    private static final double MAX_SPEED = 0.2;
     private static final HomingTuning HOMING = new HomingTuning(ARRIVAL_DISTANCE, NEAR_DISTANCE, PUSH, PUSH_NEAR, MAX_SPEED);
 
     private final @Nullable TargetEntityResolver targetResolver;

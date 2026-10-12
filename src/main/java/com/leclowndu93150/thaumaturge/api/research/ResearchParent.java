@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.api.research;
 
 import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import net.minecraft.resources.Identifier;
@@ -34,17 +35,32 @@ public record ResearchParent(Identifier id, int stage, boolean inherit) {
     }
 
     /**
+     * Tests whether a player's research progress meets this reference. A reference with a stage is met by reaching
+     * that stage or by completing the parent outright; one without a stage only by completing the parent.
+     *
+     * @param research the player's research progress
+     * @return {@code true} when the reference is met
+     * @since 1.1.0
+     */
+    public boolean isSatisfiedBy(PlayerResearch research) {
+        if (research.hasCompleted(id)) {
+            return true;
+        }
+        return stage > 0 && research.hasReachedStage(id, stage - 1);
+    }
+
+    /**
      * Tests whether the given knowledge satisfies this reference. A stage-qualified reference is
      * satisfied by either reaching the stage or completing the parent outright.
      *
      * @param knowledge the player knowledge to test
      * @return {@code true} when satisfied
+     * @deprecated use {@link #isSatisfiedBy(PlayerResearch)}
      */
+    @Deprecated(since = "1.1.0", forRemoval = true)
+    @SuppressWarnings("removal")
     public boolean isSatisfiedBy(IPlayerKnowledge knowledge) {
-        if (knowledge.isResearchComplete(id)) {
-            return true;
-        }
-        return stage > 0 && knowledge.isResearchKnown(id, stage - 1);
+        return isSatisfiedBy((PlayerResearch) knowledge);
     }
 
     private static DataResult<ResearchParent> parse(String value) {

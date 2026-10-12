@@ -61,8 +61,7 @@ public final class ResearchTableModel {
     }
 
     private static CubeListBuilder inkwellShape() {
-        return CubeListBuilder.create().mirror()
-                .texOffs(0, 44).addBox(0.0F, 0.0F, 0.0F, 4.0F, 3.0F, 4.0F);
+        return CubeListBuilder.create().mirror().texOffs(0, 44).addBox(0.0F, 0.0F, 0.0F, 4.0F, 3.0F, 4.0F);
     }
 
     private static CubeListBuilder scrollRowShape() {

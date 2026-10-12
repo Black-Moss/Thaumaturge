@@ -90,7 +90,7 @@ public final class BlockEntityRechargePedestal extends BlockEntityPedestal {
             if (tickCounter % WAND_DRAW_INTERVAL == 0 && (drawFromNode(level, stack) || drawFromRelay(level, stack))) {
                 commitCharge(level, stack);
             }
-        } else if (tickCounter % RECHARGE_INTERVAL == 0 && RechargeAccess.rechargeItem(level, stack, worldPosition, null, RECHARGE_UNITS) > 0.0F) {
+        } else if (tickCounter % RECHARGE_INTERVAL == 0 && RechargeAccess.drawFromAura(level, stack, worldPosition, null, RECHARGE_UNITS) > 0) {
             commitCharge(level, stack);
         }
     }

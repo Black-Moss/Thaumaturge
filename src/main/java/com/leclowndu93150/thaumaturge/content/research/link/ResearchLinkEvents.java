@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research.link;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.ResearchEvent;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
@@ -127,10 +127,10 @@ public final class ResearchLinkEvents {
     }
 
     private static boolean capture(ResearchLinkData.Link link, ServerPlayer player) {
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+        PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(player);
         boolean changed = false;
-        for (Identifier research : knowledge.researchList()) {
-            ResearchLinkData.Progress observed = new ResearchLinkData.Progress(Math.max(0, knowledge.researchStage(research)), knowledge.isResearchComplete(research));
+        for (Identifier research : knowledge.knownEntries()) {
+            ResearchLinkData.Progress observed = new ResearchLinkData.Progress(Math.max(0, knowledge.stageOf(research)), knowledge.hasCompleted(research));
             ResearchLinkData.Progress previous = link.progress().get(research);
             ResearchLinkData.Progress merged = previous == null ? observed : previous.merge(observed);
             if (!merged.equals(previous)) {
@@ -142,7 +142,7 @@ public final class ResearchLinkEvents {
     }
 
     private static void applySharedProgress(ServerPlayer player, ResearchLinkData.Link link) {
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+        PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(player);
         HolderLookup.RegistryLookup<IResearchEntry> entries = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY);
         boolean changed = false;
         boolean progressed;
@@ -153,7 +153,7 @@ public final class ResearchLinkEvents {
                 Holder<IResearchEntry> holder = entries.get(ResourceKey.create(IResearchEntry.REGISTRY_KEY, research)).orElse(null);
                 if (holder == null) {
                     progressed |= ResearchManager.unlock(player, research);
-                    if (shared.getValue().complete() && knowledge.isResearchKnown(research)) {
+                    if (shared.getValue().complete() && knowledge.knows(research)) {
                         progressed |= ResearchManager.complete(player, research);
                     }
                     continue;
@@ -166,21 +166,21 @@ public final class ResearchLinkEvents {
             changed |= progressed;
         } while (progressed);
         if (changed) {
-            knowledge.sync(player);
+            knowledge.queueSync(player);
         }
     }
 
     private static boolean applyProgress(ServerPlayer player, PlayerKnowledge knowledge, Identifier research, IResearchEntry entry, ResearchLinkData.Progress shared) {
         boolean changed = ResearchManager.unlock(player, research);
-        if (!knowledge.isResearchKnown(research))
+        if (!knowledge.knows(research))
             return false;
         int targetStage = shared.complete() ? entry.stages().size() : Math.min(shared.stage(), entry.stages().size());
-        while (!knowledge.isResearchComplete(research) && knowledge.researchStage(research) < targetStage) {
+        while (!knowledge.hasCompleted(research) && knowledge.stageOf(research) < targetStage) {
             if (!ResearchManager.advanceStage(player, research, false))
                 break;
             changed = true;
         }
-        if (shared.complete() && !knowledge.isResearchComplete(research) && (entry.stages().isEmpty() || knowledge.researchStage(research) >= entry.stages().size())) {
+        if (shared.complete() && !knowledge.hasCompleted(research) && (entry.stages().isEmpty() || knowledge.stageOf(research) >= entry.stages().size())) {
             changed |= ResearchManager.complete(player, research);
         }
         return changed;
