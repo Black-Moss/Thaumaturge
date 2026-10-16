@@ -2,7 +2,6 @@ package com.leclowndu93150.thaumaturge.content.entity;
 
 import com.leclowndu93150.thaumaturge.content.entity.ai.ThaumicSlimeSpitGoal;
 import com.leclowndu93150.thaumaturge.content.particle.FluxGooDropletParticleOptions;
-import com.leclowndu93150.thaumaturge.mixin.world.entity.monster.SlimeAccessor;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -10,6 +9,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -31,17 +31,30 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.scores.PlayerTeam;
 import org.jspecify.annotations.Nullable;
 
 public final class ThaumicSlime extends Slime {
-    public static final int PARTICLE_COLOR = 0xB200FF;
-    public static final float PARTICLE_ALPHA = 0.4F;
     private static final EntityDataAccessor<Integer> LAUNCH_TIMER = SynchedEntityData.defineId(ThaumicSlime.class, EntityDataSerializers.INT);
+    private static final int SPAWN_SIZE_BASE_SHIFT = 1;
+    private static final int SPAWN_SIZE_VARIANTS = 3;
     private static final int LAUNCH_TICKS = 10;
-    private static final int[] SPAWN_SIZES = {2, 4, 8};
+    private static final int PARTICLE_COLOR = 0xB200FF;
+    private static final float PARTICLE_ALPHA = 0.4F;
+    private static final int DEFAULT_DROPLET_LIFETIME = 0;
+    private static final double DROPLET_LIFETIME_NUMERATOR = 66.0;
+    private static final double DROPLET_LIFETIME_RANDOM_SCALE = 0.9;
+    private static final double DROPLET_LIFETIME_RANDOM_FLOOR = 0.1;
+    private static final int LAUNCH_COUNT_BONUS = 1;
+    private static final float RING_RADIUS_PER_SIZE = 0.5F;
+    private static final float RING_FACTOR_MIN = 0.5F;
+    private static final float RING_FACTOR_RANGE = 0.5F;
+    private static final double MID_HEIGHT = 0.5;
     private static final int SPLIT_CHILD_SIZE = 1;
-    private static final double SPLIT_SCATTER_DIVISOR = 4.0;
+    private static final double SPLIT_SPACING_DIVISOR = 4.0;
+    private static final int SPLIT_GRID_COLUMNS = 2;
+    private static final double SPLIT_GRID_CENTER = 0.5;
     private static final double SPLIT_LIFT = 0.5;
     private static final float FULL_TURN_DEGREES = 360.0F;
     private static final int EXPERIENCE_BONUS = 2;
@@ -52,19 +65,15 @@ public final class ThaumicSlime extends Slime {
     private static final float ATTACK_PITCH_BASE = 1.0F;
     private static final float PITCH_SPREAD = 0.2F;
     private static final float HOP_PITCH_FACTOR = 0.8F;
-    private static final float LANDING_SQUISH = -0.5F;
     private static final int LANDING_DROPLETS_PER_SIZE = 2;
-    private static final float DROPLET_RADIUS_MIN = 0.5F;
-    private static final float DROPLET_RADIUS_RANGE = 0.5F;
-    private static final float DROPLET_LIFETIME_NUMERATOR = 66.0F;
-    private static final float DROPLET_LIFETIME_BASE = 0.1F;
-    private static final float DROPLET_LIFETIME_RANGE = 0.9F;
     private static final double MAX_HEALTH_PLACEHOLDER = 1.0;
     private static final double SPEED_PLACEHOLDER = 0.0;
     private static final double DAMAGE_PLACEHOLDER = 0.0;
     private static final int SPIT_PRIORITY = 3;
     private static final int SPIT_MIN_SIZE_EXCLUSIVE = 2;
     private static final double SPIT_MIN_DISTANCE_SQR = 16.0;
+
+    private boolean landingSoundPending;
 
     public ThaumicSlime(EntityType<? extends ThaumicSlime> type, Level level) {
         super(type, level);
@@ -97,8 +106,82 @@ public final class ThaumicSlime extends Slime {
     }
 
     @Override
+    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
+        setSize(1 << (SPAWN_SIZE_BASE_SHIFT + level.getRandom().nextInt(SPAWN_SIZE_VARIANTS)), true);
+        return groupData;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (level().isClientSide()) {
+            spawnTrail();
+            return;
+        }
+        tickLaunch();
+    }
+
+    private void tickLaunch() {
+        int left = entityData.get(LAUNCH_TIMER);
+        if (left > 0) {
+            entityData.set(LAUNCH_TIMER, left - 1);
+        }
+    }
+
+    private void spawnTrail() {
+        int timer = entityData.get(LAUNCH_TIMER);
+        if (timer > 0) {
+            spawnRingDroplets(getSize() * (timer + LAUNCH_COUNT_BONUS));
+        }
+    }
+
+    private ParticleOptions dropletOptions() {
+        int lifetime = (int) (DROPLET_LIFETIME_NUMERATOR / (random.nextDouble() * DROPLET_LIFETIME_RANDOM_SCALE + DROPLET_LIFETIME_RANDOM_FLOOR));
+        return new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, lifetime);
+    }
+
+    @Override
+    protected boolean spawnCustomParticles() {
+        landingSoundPending = true;
+        if (level().isClientSide()) {
+            spawnDroplets();
+        }
+        return true;
+    }
+
+    private void spawnDroplets() {
+        spawnRingDroplets(getSize() * LANDING_DROPLETS_PER_SIZE);
+    }
+
+    private void spawnRingDroplets(int count) {
+        double y = getY(MID_HEIGHT);
+        for (int i = 0; i < count; i++) {
+            float angle = random.nextFloat() * Mth.TWO_PI;
+            float factor = RING_FACTOR_MIN + random.nextFloat() * RING_FACTOR_RANGE;
+            double radius = getSize() * RING_RADIUS_PER_SIZE * factor;
+            level().addParticle(dropletOptions(), getX() + Mth.sin(angle) * radius, y, getZ() + Mth.cos(angle) * radius, 0.0, 0.0, 0.0);
+        }
+    }
+
+    @Override
+    public void playSound(SoundEvent sound, float volume, float pitch) {
+        if (!landingSoundPending) {
+            super.playSound(sound, volume, pitch);
+            return;
+        }
+        landingSoundPending = false;
+        super.playSound(getJumpSound(), getSoundVolume(), ((random.nextFloat() - random.nextFloat()) * PITCH_SPREAD + ATTACK_PITCH_BASE) * HOP_PITCH_FACTOR);
+    }
+
+    @Override
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        entityData.set(LAUNCH_TIMER, 0);
+    }
+
+    @Override
     protected ParticleOptions getParticleType() {
-        return new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, 0);
+        return new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, DEFAULT_DROPLET_LIFETIME);
     }
 
     @Override
@@ -122,58 +205,6 @@ public final class ThaumicSlime extends Slime {
         return reach * reach;
     }
 
-    @Override
-    public void tick() {
-        SlimeAccessor accessor = (SlimeAccessor) (Slime) this;
-        boolean grounded = accessor.thaumaturge$getWasOnGround();
-        float squishBefore = targetSquish;
-        if (!grounded) {
-            accessor.thaumaturge$setWasOnGround(true);
-        }
-        super.tick();
-        if (!grounded) {
-            if (onGround()) {
-                land();
-            } else {
-                targetSquish = squishBefore;
-                decreaseSquish();
-            }
-        }
-        tickLaunch();
-    }
-
-    private void land() {
-        if (level().isClientSide()) {
-            spawnDroplets(getSize() * LANDING_DROPLETS_PER_SIZE);
-        } else {
-            playSound(getJumpSound(), getSoundVolume(), HOP_PITCH_FACTOR * (1.0F + (random.nextFloat() - random.nextFloat()) * PITCH_SPREAD));
-        }
-        targetSquish = LANDING_SQUISH;
-    }
-
-    private void tickLaunch() {
-        int timer = entityData.get(LAUNCH_TIMER);
-        if (timer <= 0) {
-            return;
-        }
-        if (level().isClientSide()) {
-            spawnDroplets(getSize() * (timer + 1));
-        } else {
-            entityData.set(LAUNCH_TIMER, timer - 1);
-        }
-    }
-
-    private void spawnDroplets(int count) {
-        float halfWidth = getBbWidth() / 2.0F;
-        double y = getY() + getBbHeight() / 2.0;
-        for (int i = 0; i < count; i++) {
-            float angle = random.nextFloat() * Mth.TWO_PI;
-            float radius = halfWidth * (DROPLET_RADIUS_MIN + DROPLET_RADIUS_RANGE * random.nextFloat());
-            int lifetime = (int) (DROPLET_LIFETIME_NUMERATOR / (DROPLET_LIFETIME_BASE + DROPLET_LIFETIME_RANGE * random.nextFloat()));
-            level().addParticle(new FluxGooDropletParticleOptions(PARTICLE_COLOR, PARTICLE_ALPHA, lifetime), getX() + Mth.cos(angle) * radius, y, getZ() + Mth.sin(angle) * radius, 0.0, 0.0, 0.0);
-        }
-    }
-
     public void markLaunched() {
         entityData.set(LAUNCH_TIMER, LAUNCH_TICKS);
     }
@@ -192,25 +223,19 @@ public final class ThaumicSlime extends Slime {
 
     private void split() {
         int count = getSize();
-        double scatter = count / SPLIT_SCATTER_DIVISOR;
+        double spacing = count / SPLIT_SPACING_DIVISOR;
         double y = getY() + SPLIT_LIFT;
         PlayerTeam team = getTeam();
         setSize(SPLIT_CHILD_SIZE, false);
         for (int i = 0; i < count; i++) {
-            double x = getX() + (random.nextDouble() * 2.0 - 1.0) * scatter;
-            double z = getZ() + (random.nextDouble() * 2.0 - 1.0) * scatter;
+            double x = getX() + (i % SPLIT_GRID_COLUMNS - SPLIT_GRID_CENTER) * spacing;
+            double z = getZ() + (i / SPLIT_GRID_COLUMNS - SPLIT_GRID_CENTER) * spacing;
             float yaw = random.nextFloat() * FULL_TURN_DEGREES;
             convertTo(TTEntities.THAUMIC_SLIME.get(), new ConversionParams(ConversionType.SPLIT_ON_DEATH, false, false, team), EntitySpawnReason.TRIGGERED, child -> {
                 child.setSize(SPLIT_CHILD_SIZE, true);
                 child.snapTo(x, y, z, yaw, 0.0F);
             });
         }
-    }
-
-    @Override
-    public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
-        setSize(SPAWN_SIZES[level.getRandom().nextInt(SPAWN_SIZES.length)], true);
-        return groupData;
     }
 
     public boolean canSpitAt(Player player) {

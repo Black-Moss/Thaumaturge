@@ -19,9 +19,9 @@ public interface SingleAspectEssentiaHost {
 
     AspectList getAspects();
 
-    boolean canInputFrom(Direction face);
+    boolean receivesOn(Direction face);
 
-    boolean canOutputTo(Direction face);
+    boolean releasesOn(Direction face);
 
     int storageInsertLimit(int requested);
 

@@ -19,10 +19,10 @@ public final class CurlyWispParticle extends TTParticle {
     private static final float END_SIZE_RANGE = 0.4F;
     private static final float SPIN_BASE = 2.0F;
     private static final float SPIN_RANGE = 2.0F;
-    private static final float END_RED = 0.1F;
-    private static final float END_GREEN = 0.0F;
-    private static final float END_BLUE = 0.1F;
     private static final double TILT_DEVIATION_DEGREES = 90.0;
+    private static final float END_RED = 0.10F;
+    private static final float END_GREEN = 0.0F;
+    private static final float END_BLUE = 0.10F;
 
     private final float startAlpha;
     private final float startRed;

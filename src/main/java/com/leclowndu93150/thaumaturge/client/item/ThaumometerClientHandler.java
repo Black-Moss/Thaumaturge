@@ -26,20 +26,23 @@ import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class ThaumometerClientHandler {
-    private static final int HIGHLIGHT_INTERVAL_TICKS = 5;
     private static final int LOCK_WINDOW_TICKS = 2;
     private static final int PULSE_INTERVAL_TICKS = 2;
-    private static final float SOUND_VOLUME = 0.2F;
-    private static final float SOUND_PITCH_BASE = 0.45F;
-    private static final float SOUND_PITCH_SPREAD = 0.1F;
-    private static final float RUNE_CHANNEL_MIN = 0.3F;
-    private static final float RUNE_CHANNEL_SPREAD = 0.7F;
+    private static final int HIGHLIGHT_INTERVAL_TICKS = 5;
+    private static final float RUNE_RED_BASE = 0.3F;
+    private static final float RUNE_RED_RANGE = 0.7F;
+    private static final float RUNE_BLUE_BASE = 0.3F;
+    private static final float RUNE_BLUE_RANGE = 0.7F;
+    private static final float RUNE_GREEN = 0.0F;
     private static final float RUNE_GRAVITY = 0.03F;
+    private static final double RUNE_CENTRE_OFFSET = 0.5;
+    private static final double EYE_HEIGHT_DIVISOR = 2.0;
     private static final float ENTITY_RUNE_TICKS_PER_HEIGHT = 15.0F;
     private static final int BLOCK_RUNE_TICKS = 15;
-    private static final double BLOCK_RUNE_Y_OFFSET = 0.25;
-    private static final double RUNE_CENTRE_OFFSET = 0.5;
-    private static final float EYE_HEIGHT_DIVISOR = 2.0F;
+    private static final double BLOCK_RUNE_LIFT = 0.25;
+    private static final float SOUND_VOLUME = 0.2F;
+    private static final float SOUND_PITCH_BASE = 0.45F;
+    private static final float SOUND_PITCH_RANGE = 0.1F;
 
     private static @Nullable Identity lockedTarget;
 
@@ -96,6 +99,21 @@ public final class ThaumometerClientHandler {
         }
     }
 
+    private static void pulse(ClientLevel level, LocalPlayer player, ScanTarget target) {
+        RandomSource random = level.getRandom();
+        float pitch = SOUND_PITCH_BASE + random.nextFloat() * SOUND_PITCH_RANGE;
+        level.playLocalSound(player.getX(), player.getY(), player.getZ(), TTSounds.CAMERA_TICKS.get(), SoundSource.PLAYERS, SOUND_VOLUME, pitch, false);
+        float red = RUNE_RED_BASE + random.nextFloat() * RUNE_RED_RANGE;
+        float blue = RUNE_BLUE_BASE + random.nextFloat() * RUNE_BLUE_RANGE;
+        if (target instanceof ScannedEntity(Entity entity)) {
+            double middle = entity.getY() + entity.getEyeHeight() / EYE_HEIGHT_DIVISOR;
+            int duration = Math.max(1, (int) (entity.getBbHeight() * ENTITY_RUNE_TICKS_PER_HEIGHT));
+            ClientEffects.runeGlyph(level, entity.getX() - RUNE_CENTRE_OFFSET, middle, entity.getZ() - RUNE_CENTRE_OFFSET, red, RUNE_GREEN, blue, duration, RUNE_GRAVITY);
+        } else if (target instanceof ScannedBlock(BlockPos pos)) {
+            ClientEffects.runeGlyph(level, pos.getX(), pos.getY() + BLOCK_RUNE_LIFT, pos.getZ(), red, RUNE_GREEN, blue, BLOCK_RUNE_TICKS, RUNE_GRAVITY);
+        }
+    }
+
     private static boolean keepsLock(int elapsed, ScanTarget target) {
         Identity current = Identity.of(target);
         if (elapsed < LOCK_WINDOW_TICKS) {
@@ -110,23 +128,6 @@ public final class ThaumometerClientHandler {
         MultiPlayerGameMode gameMode = minecraft.gameMode;
         if (gameMode != null) {
             gameMode.releaseUsingItem(player);
-        }
-    }
-
-    private static void pulse(ClientLevel level, LocalPlayer player, ScanTarget target) {
-        RandomSource random = level.getRandom();
-        float pitch = SOUND_PITCH_BASE + random.nextFloat() * SOUND_PITCH_SPREAD;
-        level.playLocalSound(player.getX(), player.getY(), player.getZ(), TTSounds.CAMERA_TICKS.get(), SoundSource.PLAYERS, SOUND_VOLUME, pitch, false);
-        float red = RUNE_CHANNEL_MIN + random.nextFloat() * RUNE_CHANNEL_SPREAD;
-        float blue = RUNE_CHANNEL_MIN + random.nextFloat() * RUNE_CHANNEL_SPREAD;
-        if (target instanceof ScannedEntity(Entity entity)) {
-            double x = entity.getX() - RUNE_CENTRE_OFFSET;
-            double y = entity.getY() + entity.getEyeHeight() / EYE_HEIGHT_DIVISOR;
-            double z = entity.getZ() - RUNE_CENTRE_OFFSET;
-            int lifetime = (int) (entity.getBoundingBox().getYsize() * ENTITY_RUNE_TICKS_PER_HEIGHT);
-            ClientEffects.runeGlyph(level, x, y, z, red, 0.0F, blue, lifetime, RUNE_GRAVITY);
-        } else if (target instanceof ScannedBlock(BlockPos pos)) {
-            ClientEffects.runeGlyph(level, pos.getX(), pos.getY() + BLOCK_RUNE_Y_OFFSET, pos.getZ(), red, 0.0F, blue, BLOCK_RUNE_TICKS, RUNE_GRAVITY);
         }
     }
 

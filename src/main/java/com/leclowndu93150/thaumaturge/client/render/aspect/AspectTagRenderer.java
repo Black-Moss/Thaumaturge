@@ -23,23 +23,24 @@ public final class AspectTagRenderer {
 
     private static final String AMOUNT_PATTERN = "#######.##";
     private static final DecimalFormat AMOUNT_FORMAT = new DecimalFormat(AMOUNT_PATTERN);
-    private static final int MONOCHROME_RGB = 0x1A1A1A;
-    private static final float MONOCHROME_ALPHA_FACTOR = 0.8F;
     private static final float CHANNEL_MAX = 255.0F;
     private static final int CHANNEL_MAX_INT = 255;
     private static final float MASKED_ALPHA = 0.45F;
     private static final float SMALL_TEXT_SCALE = 0.5F;
-    private static final float LARGE_TEXT_FACTOR = 0.5F;
     private static final int OUTLINE_COLOR = 0xFF000000;
     private static final int TEXT_COLOR = 0xFFFFFFFF;
     private static final int BADGE_SIZE = 16;
-    private static final int BADGE_OFFSET = 4;
     private static final int BADGE_FRAMES = 16;
     private static final int BADGE_STRIP_WIDTH = 256;
-    private static final int BONUS_TEXT_X = 8;
-    private static final int BONUS_TEXT_Y = 15;
-    private static final int SCALED_PIXEL = 2;
-    private static final int HALF_DIVISOR = 2;
+    private static final int BADGE_DRAW_SIZE = 16;
+    private static final int BADGE_OFFSET = 4;
+    private static final int BONUS_TEXT_X = 4;
+    private static final int BONUS_TEXT_Y = 3;
+    private static final double AMOUNT_TEXT_X = TAG_SIZE;
+    private static final double AMOUNT_TEXT_Y = 11.5;
+    private static final float HALF = 0.5F;
+    private static final int MONOCHROME_RGB = 0x1A1A1A;
+    private static final float MONOCHROME_ALPHA_FACTOR = 0.8F;
 
     private AspectTagRenderer() {}
 
@@ -93,8 +94,11 @@ public final class AspectTagRenderer {
     }
 
     public static int colorOf(IAspect aspect, float alpha, boolean monochrome) {
-        int rgb = monochrome ? MONOCHROME_RGB : aspect.color() & 0xFFFFFF;
-        return ARGB.color(alphaByte(monochrome ? alpha * MONOCHROME_ALPHA_FACTOR : alpha), rgb);
+        float opacity = Mth.clamp(alpha, 0.0F, 1.0F);
+        if (monochrome) {
+            return ARGB.color(alphaByte(opacity * MONOCHROME_ALPHA_FACTOR), MONOCHROME_RGB);
+        }
+        return ARGB.color(alphaByte(opacity), aspect.color());
     }
 
     private static int alphaByte(float factor) {
@@ -108,6 +112,33 @@ public final class AspectTagRenderer {
         if (spec.bonus() > 0) {
             drawBonus(graphics, font, spec.x(), spec.y(), spec.bonus());
         }
+    }
+
+    private static void drawAmount(GuiGraphicsExtractor graphics, Font font, double x, double y, float amount) {
+        String text = AMOUNT_FORMAT.format(amount);
+        drawScaledText(graphics, font, text, x + AMOUNT_TEXT_X - font.width(text) * HALF, y + AMOUNT_TEXT_Y, true);
+    }
+
+    private static void drawBonus(GuiGraphicsExtractor graphics, Font font, double x, double y, int bonus) {
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.translate((float) x, (float) y);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, ParticleTextures.BONUS_GLINT, -BADGE_OFFSET, -BADGE_OFFSET, badgeFrame() * BADGE_SIZE, 0.0F, BADGE_DRAW_SIZE, BADGE_DRAW_SIZE, BADGE_SIZE,
+                BADGE_SIZE, BADGE_STRIP_WIDTH, BADGE_SIZE);
+        pose.popMatrix();
+        if (bonus > 1) {
+            String text = Integer.toString(bonus);
+            drawScaledText(graphics, font, text, x + BONUS_TEXT_X - (font.width(text) / 2) * HALF, y + BONUS_TEXT_Y, false);
+        }
+    }
+
+    private static void drawScaledText(GuiGraphicsExtractor graphics, Font font, String text, double screenLeft, double screenTop, boolean outlined) {
+        float scale = ThaumaturgeClientConfig.largeTagText() ? 1.0F : SMALL_TEXT_SCALE;
+        Matrix3x2fStack pose = graphics.pose();
+        pose.pushMatrix();
+        pose.scale(scale, scale);
+        putText(graphics, font, text, (int) (screenLeft / scale), (int) (screenTop / scale), outlined);
+        pose.popMatrix();
     }
 
     private static Font defaultFont() {
@@ -134,54 +165,17 @@ public final class AspectTagRenderer {
         pose.popMatrix();
     }
 
-    private static void drawAmount(GuiGraphicsExtractor graphics, Font font, double x, double y, float amount) {
-        String label = AMOUNT_FORMAT.format(amount);
-        int rightEdge = doubledCell(x);
-        int baseline = doubledCell(y);
-        drawScaledText(graphics, font, label, rightEdge - font.width(label), baseline - font.lineHeight, true);
-    }
-
-    private static int doubledCell(double coordinate) {
-        return TEXTURE_SIZE + SCALED_PIXEL * (int) coordinate;
-    }
-
-    private static void drawBonus(GuiGraphicsExtractor graphics, Font font, double x, double y, int bonus) {
-        int cellX = (int) x;
-        int cellY = (int) y;
-        float glintU = badgeFrame() * BADGE_SIZE;
-        graphics.blit(RenderPipelines.GUI_TEXTURED, ParticleTextures.BONUS_GLINT, cellX - BADGE_OFFSET, cellY - BADGE_OFFSET, glintU, 0.0F, BADGE_SIZE, BADGE_SIZE, BADGE_STRIP_WIDTH, BADGE_SIZE);
-        if (bonus <= 1) {
-            return;
-        }
-        String text = Integer.toString(bonus);
-        int centerShift = font.width(text) / HALF_DIVISOR;
-        drawScaledText(graphics, font, text, BONUS_TEXT_X + SCALED_PIXEL * cellX - centerShift, BONUS_TEXT_Y + SCALED_PIXEL * cellY - font.lineHeight, false);
-    }
-
-    private static void drawScaledText(GuiGraphicsExtractor graphics, Font font, String text, int originX, int originY, boolean outlined) {
-        float factor = ThaumaturgeClientConfig.largeTagText() ? LARGE_TEXT_FACTOR : 1.0F;
-        boolean shrink = factor == 1.0F;
-        if (shrink) {
-            graphics.pose().pushMatrix();
-            graphics.pose().scale(SMALL_TEXT_SCALE, SMALL_TEXT_SCALE);
-        }
-        putText(graphics, font, text, originX * factor, originY * factor, outlined);
-        if (shrink) {
-            graphics.pose().popMatrix();
-        }
-    }
-
-    private static void putText(GuiGraphicsExtractor graphics, Font font, String text, float drawX, float drawY, boolean outlined) {
+    private static void putText(GuiGraphicsExtractor graphics, Font font, String text, int drawX, int drawY, boolean outlined) {
         if (outlined) {
             for (int axis = 0; axis < 2; axis++) {
                 for (int sign = -1; sign <= 1; sign += 2) {
                     int dx = axis == 0 ? sign : 0;
                     int dy = axis == 0 ? 0 : sign;
-                    graphics.text(font, text, (int) (drawX + dx), (int) (drawY + dy), OUTLINE_COLOR, false);
+                    graphics.text(font, text, drawX + dx, drawY + dy, OUTLINE_COLOR, false);
                 }
             }
         }
-        graphics.text(font, text, (int) drawX, (int) drawY, TEXT_COLOR, !outlined);
+        graphics.text(font, text, drawX, drawY, TEXT_COLOR, !outlined);
     }
 
     private static int badgeFrame() {

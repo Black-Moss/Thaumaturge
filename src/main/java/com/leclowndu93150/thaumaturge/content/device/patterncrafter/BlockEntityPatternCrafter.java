@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.device.patterncrafter;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
+import com.leclowndu93150.thaumaturge.api.items.ItemMatch;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -38,7 +39,6 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     private static final int SPIN_DURATION = 10;
     private static final float SPIN_ACCELERATION = 1.0F;
     private static final float SPIN_DECAY = 0.8F;
-    private static final float SPIN_REST_SPEED = 0.5F;
     private static final float CLACK_PITCH = 1.7F;
     private static final float CLACK_VOLUME = 0.2F;
     private static final Direction TAKE_FACE = Direction.DOWN;
@@ -48,7 +48,6 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     public float rotSpeed;
     public float rot;
 
-    private int clackTimer;
     private int workTimer;
     private float power;
     private byte type;
@@ -79,36 +78,27 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     }
 
     private void animate(Level level, BlockPos pos) {
-        advanceSpin();
-        if (rotSpeed <= 0.0F) {
-            clackTimer = 0;
-            return;
-        }
-        rot += rotSpeed;
-        if (++clackTimer >= Math.max(1, (int) rotSpeed)) {
-            clackTimer = 0;
+        if (advanceSpin()) {
             Vec3 center = Vec3.atCenterOf(pos);
             level.playLocalSound(center.x, center.y, center.z, TTSounds.CLACK.get(), SoundSource.BLOCKS, CLACK_VOLUME, CLACK_PITCH, false);
         }
+        rot += rotSpeed;
     }
 
-    private void advanceSpin() {
+    private boolean advanceSpin() {
         if (rotTicks > 0) {
+            int interval = Math.max(1, (int) rotSpeed);
             rotTicks--;
             rotSpeed += SPIN_ACCELERATION;
-            return;
+            return rotTicks % interval == 0;
         }
-        if (rotSpeed > 0.0F) {
-            rotSpeed *= SPIN_DECAY;
-            if (rotSpeed < SPIN_REST_SPEED) {
-                rotSpeed = 0.0F;
-            }
-        }
+        rotSpeed *= SPIN_DECAY;
+        return false;
     }
 
     private void work(ServerLevel level, BlockPos pos) {
-        ResourceHandler<ItemResource> input = InvHelper.getItemHandlerAt(level, pos.above(), TAKE_FACE);
-        ResourceHandler<ItemResource> output = InvHelper.getItemHandlerAt(level, pos.below(), GIVE_FACE);
+        ResourceHandler<ItemResource> input = InvHelper.handlerAt(level, pos.above(), TAKE_FACE);
+        ResourceHandler<ItemResource> output = InvHelper.handlerAt(level, pos.below(), GIVE_FACE);
         if (input == null || output == null) {
             return;
         }
@@ -158,7 +148,7 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     private boolean craft(ServerLevel level, BlockPos pos, ResourceHandler<ItemResource> input, ResourceHandler<ItemResource> output, ItemStack sample) {
         int[] cells = PATTERNS[type];
         ItemStack required = sample.copyWithCount(cells.length);
-        if (InvHelper.removeStackFrom(input, required, InvHelper.InvFilter.STRICT, true).getCount() < cells.length) {
+        if (InvHelper.extract(input, required, ItemMatch.EXACT, true).getCount() < cells.length) {
             return false;
         }
         CraftingInput grid = gridFor(cells, sample);
@@ -171,7 +161,7 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
         if (!canStoreAll(output, result, leftovers)) {
             return false;
         }
-        InvHelper.removeStackFrom(input, required, InvHelper.InvFilter.STRICT, false);
+        InvHelper.extract(input, required, ItemMatch.EXACT, false);
         store(level, pos, output, result);
         for (ItemStack leftover : leftovers) {
             if (!leftover.isEmpty()) {
@@ -187,7 +177,7 @@ public final class BlockEntityPatternCrafter extends AbstractSyncedBlockEntity {
     private static void store(ServerLevel level, BlockPos pos, ResourceHandler<ItemResource> output, ItemStack stack) {
         ItemStack overflow = InvHelper.insertStack(output, stack, false);
         if (!overflow.isEmpty()) {
-            InvHelper.ejectStackAt(level, pos, Direction.DOWN, overflow);
+            InvHelper.eject(level, pos, Direction.DOWN, overflow);
         }
     }
 

@@ -17,39 +17,43 @@ import net.minecraft.world.level.block.Block;
 import org.jspecify.annotations.Nullable;
 
 public final class LabelledVesselActions {
+    private static final float LABEL_VOLUME = 1.0F;
+    private static final float NEUTRAL_PITCH = 1.0F;
     private static final float POUR_JAR_VOLUME = 0.4F;
     private static final float POUR_FILL_VOLUME = 0.5F;
     private static final float POUR_FILL_SPREAD = 0.3F;
-    private static final float LABEL_VOLUME = 1.0F;
-    private static final float NEUTRAL_PITCH = 1.0F;
 
     private LabelledVesselActions() {}
-
-    public static void pourOut(Level level, BlockPos pos, int amount) {
-        RandomSource random = level.getRandom();
-        level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, POUR_JAR_VOLUME, NEUTRAL_PITCH);
-        level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, POUR_FILL_VOLUME, NEUTRAL_PITCH + (random.nextFloat() - random.nextFloat()) * POUR_FILL_SPREAD);
-        AuraHelper.polluteAura(level, pos, amount, true);
-    }
 
     public static void removeLabel(Level level, BlockPos pos, Direction clickedFace) {
         playLabelSound(level, pos);
         Block.popResourceFromFace(level, pos, clickedFace, new ItemStack(TTItems.LABEL.get()));
     }
 
+    public static void pourOut(Level level, BlockPos pos, int amount) {
+        if (amount > 0) {
+            AuraHelper.polluteAura(level, pos, amount, true);
+        }
+        RandomSource random = level.getRandom();
+        level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, POUR_JAR_VOLUME, NEUTRAL_PITCH);
+        level.playSound(null, pos, SoundEvents.BOTTLE_FILL, SoundSource.BLOCKS, POUR_FILL_VOLUME, NEUTRAL_PITCH + (random.nextFloat() - random.nextFloat()) * POUR_FILL_SPREAD);
+    }
+
     public static void playLabelSound(Level level, BlockPos pos) {
         level.playSound(null, pos, TTSounds.PAGE.get(), SoundSource.BLOCKS, LABEL_VOLUME, NEUTRAL_PITCH);
     }
 
-    public static @Nullable ResourceKey<IAspect> aspectToLabel(ItemStack labelStack, Direction face, @Nullable ResourceKey<IAspect> existingFilter, @Nullable ResourceKey<IAspect> heldAspect, int amount) {
-        if (!(labelStack.getItem() instanceof ILabel label) || face.getAxis().isVertical() || existingFilter != null) {
+    public static @Nullable ResourceKey<IAspect> aspectToLabel(ItemStack labelStack, @Nullable ResourceKey<IAspect> existingFilter, @Nullable ResourceKey<IAspect> heldAspect, int amount) {
+        if (!(labelStack.getItem() instanceof ILabel label) || existingFilter != null) {
             return null;
         }
-        ResourceKey<IAspect> current = amount > 0 ? heldAspect : null;
-        ResourceKey<IAspect> written = label.getFilteredAspect(labelStack);
-        if (written != null && current != null && !written.equals(current)) {
+        ResourceKey<IAspect> labelled = label.getFilteredAspect(labelStack);
+        if (amount <= 0) {
+            return labelled;
+        }
+        if (heldAspect == null || labelled != null && !labelled.equals(heldAspect)) {
             return null;
         }
-        return current != null ? current : written;
+        return heldAspect;
     }
 }

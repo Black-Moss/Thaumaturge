@@ -19,13 +19,13 @@ public final class PechCurseParticle extends TTParticle {
     private static final float END_BLUE_BASE = 0.5F;
     private static final float END_COLOR_JITTER = 0.1F;
     private static final float START_SIZE = 0.3F;
+    private static final float SIZE_UNIT = 0.1F;
     private static final float END_SIZE_BASE = 5.0F;
     private static final float END_SIZE_RANGE = 2.0F;
-    private static final float SIZE_UNIT = 0.1F;
-    private static final float ALPHA_SCALE = 0.75F;
     private static final float SPIN_BASE = 3.0F;
     private static final float SPIN_RANGE = 3.0F;
     private static final double TILT_DEVIATION_DEGREES = 90.0;
+    private static final float ALPHA_SCALE = 0.75F;
 
     private final float endRed;
     private final float endBlue;

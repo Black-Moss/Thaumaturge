@@ -1,6 +1,5 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
-import com.leclowndu93150.thaumaturge.content.particle.CurlyWispParticleOptions;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -9,7 +8,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
@@ -30,37 +28,28 @@ public final class EntityFluxRift extends Entity {
     public static final float MAX_STABILITY = 100.0F;
     public static final float MIN_STABILITY = -100.0F;
 
-    private static final String SIZE_KEY = "rift_size";
-    private static final String COLLAPSE_SIZE_KEY = "collapse_size";
-    private static final String SEED_KEY = "rift_seed";
-    private static final String STABILITY_KEY = "stability_value";
-    private static final String COLLAPSING_KEY = "is_collapsing";
-    private static final String OLD_COLLAPSING_KEY = "collapse";
+    private static final String SIZE_KEY = "RiftSize";
+    private static final String COLLAPSE_SIZE_KEY = "MaxSize";
+    private static final String SEED_KEY = "RiftSeed";
+    private static final String STABILITY_KEY = "Stability";
+    private static final String COLLAPSING_KEY = "collapse";
 
     private static final EntityDataAccessor<Integer> DATA_SIZE = SynchedEntityData.defineId(EntityFluxRift.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> DATA_SEED = SynchedEntityData.defineId(EntityFluxRift.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Float> DATA_STABILITY = SynchedEntityData.defineId(EntityFluxRift.class, EntityDataSerializers.FLOAT);
     private static final EntityDataAccessor<Boolean> DATA_COLLAPSING = SynchedEntityData.defineId(EntityFluxRift.class, EntityDataSerializers.BOOLEAN);
 
+    private static final int DEFAULT_RIFT_SIZE = 5;
     private static final int UNSEEDED = 0;
     private static final int MIN_BODY_POINTS = 3;
     private static final float STABILIZER_NUDGE = 0.125F;
     private static final int DECAY_INTERVAL = 120;
     private static final float DECAY_AMOUNT = 0.2F;
     private static final int HUM_INTERVAL = 300;
-    private static final float HUM_VOLUME = 0.12F;
-    private static final float HUM_VOLUME_SPREAD = 0.06F;
-    private static final float HUM_PITCH = 0.55F;
-    private static final float HUM_PITCH_SPREAD = 0.1F;
-
-    private static final float UNREST_CHANCE_AT_FLOOR = 0.8F;
-    private static final int UNREST_COLOR = ARGB.color(255, 232, 230, 240);
-    private static final float UNREST_ALPHA = 0.3F;
-    private static final int COLLAPSE_COLOR = ARGB.color(255, 128, 52, 58);
-    private static final float COLLAPSE_ALPHA = 0.55F;
-    private static final float WISP_SCALE_BASE = 0.08F;
-    private static final float WISP_SCALE_PER_RADIUS = 2.5F;
-    private static final double WISP_DRIFT = 0.004;
+    private static final float HUM_VOLUME = 0.15F;
+    private static final float HUM_VOLUME_DEVIATION = 0.066F;
+    private static final float HUM_PITCH = 0.75F;
+    private static final float HUM_PITCH_DEVIATION = 0.1F;
 
     public final List<Vec3> outline;
     public final List<Float> outlineWidths;
@@ -138,7 +127,7 @@ public final class EntityFluxRift extends Entity {
 
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
-        builder.define(DATA_SIZE, MIN_RIFT_SIZE);
+        builder.define(DATA_SIZE, DEFAULT_RIFT_SIZE);
         builder.define(DATA_SEED, UNSEEDED);
         builder.define(DATA_STABILITY, 0.0F);
         builder.define(DATA_COLLAPSING, false);
@@ -169,8 +158,6 @@ public final class EntityFluxRift extends Entity {
     public void tick() {
         if (this.level() instanceof ServerLevel level) {
             serverTick(level);
-        } else {
-            clientTick();
         }
     }
 
@@ -200,32 +187,9 @@ public final class EntityFluxRift extends Entity {
     }
 
     private void hum(ServerLevel level) {
-        float volume = HUM_VOLUME + this.random.nextFloat() * HUM_VOLUME_SPREAD;
-        float pitch = HUM_PITCH + (this.random.nextFloat() - 0.5F) * HUM_PITCH_SPREAD;
+        float volume = Math.max(0.0F, HUM_VOLUME + (float) this.random.nextGaussian() * HUM_VOLUME_DEVIATION);
+        float pitch = HUM_PITCH + (float) this.random.nextGaussian() * HUM_PITCH_DEVIATION;
         level.playSound(null, this.getX(), this.getY(), this.getZ(), TTSounds.EVILPORTAL.get(), SoundSource.AMBIENT, volume, pitch);
-    }
-
-    private void clientTick() {
-        int count = Math.min(this.outline.size(), this.outlineWidths.size());
-        if (count < MIN_BODY_POINTS) {
-            return;
-        }
-        if (isCollapsing()) {
-            releaseWisp(this.random.nextInt(count), COLLAPSE_COLOR, COLLAPSE_ALPHA);
-            return;
-        }
-        float stability = stabilityValue();
-        if (stability < 0.0F && this.random.nextFloat() < stability / MIN_STABILITY * UNREST_CHANCE_AT_FLOOR) {
-            releaseWisp(1 + this.random.nextInt(count - 2), UNREST_COLOR, UNREST_ALPHA);
-        }
-    }
-
-    private void releaseWisp(int index, int color, float alpha) {
-        Vec3 point = this.outline.get(index);
-        float scale = WISP_SCALE_BASE + this.outlineWidths.get(index) * WISP_SCALE_PER_RADIUS;
-        CurlyWispParticleOptions options = new CurlyWispParticleOptions(color, alpha, scale, 0, 0);
-        this.level().addParticle(options, this.getX() + point.x, this.getY() + point.y, this.getZ() + point.z, this.random.nextGaussian() * WISP_DRIFT, this.random.nextGaussian() * WISP_DRIFT,
-                this.random.nextGaussian() * WISP_DRIFT);
     }
 
     @Override
@@ -288,10 +252,12 @@ public final class EntityFluxRift extends Entity {
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         reseed(input.getIntOr(SEED_KEY, UNSEEDED));
-        resize(input.getIntOr(SIZE_KEY, MIN_RIFT_SIZE));
+        resize(input.getIntOr(SIZE_KEY, DEFAULT_RIFT_SIZE));
         setStability(input.getFloatOr(STABILITY_KEY, 0.0F));
-        this.collapseSize = input.getIntOr(COLLAPSE_SIZE_KEY, currentSize());
-        this.entityData.set(DATA_COLLAPSING, input.getBooleanOr(COLLAPSING_KEY, input.getBooleanOr(OLD_COLLAPSING_KEY, false)));
+        boolean collapsing = input.getBooleanOr(COLLAPSING_KEY, false);
+        int savedCollapseSize = input.getIntOr(COLLAPSE_SIZE_KEY, 0);
+        this.collapseSize = collapsing && savedCollapseSize <= 0 ? currentSize() : savedCollapseSize;
+        this.entityData.set(DATA_COLLAPSING, collapsing);
     }
 
     public enum Stability {

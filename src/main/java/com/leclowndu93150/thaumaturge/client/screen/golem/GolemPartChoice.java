@@ -1,15 +1,14 @@
 package com.leclowndu93150.thaumaturge.client.screen.golem;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import org.jspecify.annotations.Nullable;
 
@@ -27,14 +26,16 @@ final class GolemPartChoice<T> {
         this.slot = slot;
         this.registry = registry;
         if (player != null) {
-            IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+            PlayerResearch knowledge = PlayerResearchAccess.of(player);
             for (T value : registry) {
-                if (research.apply(value).stream().allMatch(knowledge::isResearchComplete)) {
+                if (research.apply(value).stream().allMatch(knowledge::hasCompleted)) {
                     candidates.add(value);
                 }
             }
         }
-        LAST_INDEX[slot] = candidates.isEmpty() ? 0 : Mth.clamp(LAST_INDEX[slot], 0, candidates.size() - 1);
+        if (LAST_INDEX[slot] >= candidates.size()) {
+            LAST_INDEX[slot] = 0;
+        }
     }
 
     static <V> Identifier idOf(Registry<V> registry, V value) {

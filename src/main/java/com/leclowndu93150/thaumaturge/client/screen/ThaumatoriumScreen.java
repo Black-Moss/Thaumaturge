@@ -19,6 +19,7 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import org.jspecify.annotations.Nullable;
 
 public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThaumatorium> {
     private static final Identifier SHEET = TTIds.rl("textures/gui/gui_thaumatorium.png");
@@ -65,6 +66,8 @@ public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThau
     private static final int PANEL_CHIP_X = 96;
     private static final int PANEL_CHIP_Y = 24;
 
+    private static final long FEATURE_SECONDS = 1L;
+
     private int scrollIndex;
 
     public ThaumatoriumScreen(MenuThaumatorium menu, Inventory inventory, Component title) {
@@ -73,31 +76,6 @@ public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThau
 
     @Override
     protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {}
-
-    @Override
-    protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        List<Entry> recipes = menu.clientRecipes;
-        clampScroll(recipes.size());
-        if (showsScrollArrows(recipes.size())) {
-            if (canScrollUp()) {
-                ARROW_UP.extractFull(graphics, leftPos + ARROW_X, topPos + ARROW_UP_Y);
-            }
-            if (canScrollDown(recipes.size())) {
-                ARROW_DOWN.extractFull(graphics, leftPos + ARROW_X, topPos + ARROW_DOWN_Y);
-            }
-        }
-        for (int cell = 0; cell < GRID_VISIBLE; cell++) {
-            int position = scrollIndex * GRID_COLUMNS + cell;
-            if (position < recipes.size()) {
-                extractCell(graphics, recipes.get(position), cellX(cell), cellY(cell), mouseX, mouseY);
-            }
-        }
-        BlockEntityThaumatorium machine = menu.blockEntity();
-        if (machine != null) {
-            extractQueueCounter(graphics, machine);
-            extractAspectPanel(graphics, machine, recipes);
-        }
-    }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
@@ -126,6 +104,92 @@ public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThau
         return super.mouseClicked(event, doubleClick);
     }
 
+    @Override
+    protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        List<Entry> recipes = menu.clientRecipes;
+        clampScroll(recipes.size());
+        BlockEntityThaumatorium machine = menu.blockEntity();
+        for (int cell = 0; cell < GRID_VISIBLE; cell++) {
+            int position = scrollIndex * GRID_COLUMNS + cell;
+            if (position >= recipes.size()) {
+                break;
+            }
+            Entry recipe = recipes.get(position);
+            extractCell(graphics, recipe, cellX(cell), cellY(cell), mouseX, mouseY);
+        }
+        if (showsScrollArrows(recipes.size())) {
+            if (canScrollUp()) {
+                ARROW_UP.extractFull(graphics, leftPos + ARROW_X, topPos + ARROW_UP_Y);
+            }
+            if (canScrollDown(recipes.size())) {
+                ARROW_DOWN.extractFull(graphics, leftPos + ARROW_X, topPos + ARROW_DOWN_Y);
+            }
+        }
+        if (machine != null) {
+            extractQueueCounter(graphics, machine);
+            extractAspectPanel(graphics, machine, recipes);
+        }
+    }
+
+    private void extractAspectPanel(GuiGraphicsExtractor graphics, BlockEntityThaumatorium machine, List<Entry> recipes) {
+        Identifier featured = featuredRecipe(machine);
+        if (featured == null) {
+            return;
+        }
+        for (Entry recipe : recipes) {
+            if (recipe.id().equals(featured)) {
+                extractRequirements(graphics, machine, recipe.aspects().sortedByTag());
+                return;
+            }
+        }
+    }
+
+    private void extractRequirements(GuiGraphicsExtractor graphics, BlockEntityThaumatorium machine, List<AspectInstance> required) {
+        int shown = Math.min(required.size(), PANEL_MAX_ASPECTS);
+        for (int index = 0; index < shown; index++) {
+            AspectInstance need = required.get(index);
+            if (!need.aspect().isBound()) {
+                continue;
+            }
+            int offsetX = PANEL_BAR_PITCH_X * (index % PANEL_COLUMNS);
+            int offsetY = PANEL_BAR_PITCH_Y * (index / PANEL_COLUMNS);
+            AspectTagRenderer.render(graphics, font, leftPos + PANEL_CHIP_X + offsetX, topPos + PANEL_CHIP_Y + offsetY, need.aspect(), need.amount());
+            int barX = leftPos + PANEL_BAR_X + offsetX;
+            int barY = topPos + PANEL_BAR_Y + offsetY;
+            blit(graphics, barX, barY, PANEL_BAR_BACK_U, PANEL_BAR_BACK_V, PANEL_BAR_WIDTH, PANEL_BAR_HEIGHT, NO_TINT);
+            int stored = machine.essentia().amountOf(need.aspect());
+            int filled = need.amount() <= 0 ? PANEL_BAR_WIDTH : Mth.clamp(stored * PANEL_BAR_WIDTH / need.amount(), 0, PANEL_BAR_WIDTH);
+            if (filled > 0) {
+                blit(graphics, barX, barY, PANEL_BAR_FILL_U, PANEL_BAR_FILL_V, filled, PANEL_BAR_HEIGHT, ARGB.opaque(need.aspect().value().color()));
+            }
+        }
+    }
+
+    private static @Nullable Identifier featuredRecipe(BlockEntityThaumatorium machine) {
+        List<Identifier> queue = machine.queue();
+        if (queue.isEmpty()) {
+            return null;
+        }
+        long step = Instant.now().getEpochSecond() / FEATURE_SECONDS;
+        return queue.get((int) Math.floorMod(step, (long) queue.size()));
+    }
+
+    private void clampScroll(int recipeCount) {
+        scrollIndex = Mth.clamp(scrollIndex, 0, hiddenRows(recipeCount));
+    }
+
+    private boolean canScrollDown(int recipeCount) {
+        return scrollIndex < hiddenRows(recipeCount);
+    }
+
+    private static boolean showsScrollArrows(int recipeCount) {
+        return recipeCount > GRID_VISIBLE;
+    }
+
+    private static int hiddenRows(int recipeCount) {
+        return Math.max(0, Math.ceilDiv(recipeCount, GRID_COLUMNS) - GRID_ROWS);
+    }
+
     private void extractCell(GuiGraphicsExtractor graphics, Entry recipe, int x, int y, int mouseX, int mouseY) {
         if (recipe.queued()) {
             HIGHLIGHT.extractFull(graphics, x, y);
@@ -149,55 +213,8 @@ public final class ThaumatoriumScreen extends AbstractTTContainerScreen<MenuThau
         graphics.pose().popMatrix();
     }
 
-    private void extractAspectPanel(GuiGraphicsExtractor graphics, BlockEntityThaumatorium machine, List<Entry> recipes) {
-        List<Identifier> queue = machine.queue();
-        if (queue.isEmpty()) {
-            return;
-        }
-        Identifier shown = queue.get((int) Math.floorMod(Instant.now().getEpochSecond(), (long) queue.size()));
-        Entry displayed = null;
-        for (Entry recipe : recipes) {
-            if (recipe.id().equals(shown)) {
-                displayed = recipe;
-                break;
-            }
-        }
-        if (displayed == null) {
-            return;
-        }
-        List<AspectInstance> aspects = displayed.aspects().sortedByTag();
-        int count = Math.min(aspects.size(), PANEL_MAX_ASPECTS);
-        for (int n = 0; n < count; n++) {
-            AspectInstance entry = aspects.get(n);
-            int x = leftPos + PANEL_BAR_X + PANEL_BAR_PITCH_X * (n % PANEL_COLUMNS);
-            int y = topPos + PANEL_BAR_Y + PANEL_BAR_PITCH_Y * (n / PANEL_COLUMNS);
-            blit(graphics, x, y, PANEL_BAR_BACK_U, PANEL_BAR_BACK_V, PANEL_BAR_WIDTH, PANEL_BAR_HEIGHT, NO_TINT);
-            int width = Math.min(PANEL_BAR_WIDTH, (int) ((float) machine.essentia().amountOf(entry.aspect()) / entry.amount() * PANEL_BAR_WIDTH));
-            if (width > 0) {
-                blit(graphics, x, y, PANEL_BAR_FILL_U, PANEL_BAR_FILL_V, width, PANEL_BAR_HEIGHT, ARGB.opaque(entry.aspect().value().color()));
-            }
-        }
-        for (int n = 0; n < count; n++) {
-            AspectInstance entry = aspects.get(n);
-            AspectTagRenderer.render(graphics, font, leftPos + PANEL_CHIP_X + PANEL_BAR_PITCH_X * (n % PANEL_COLUMNS), topPos + PANEL_CHIP_Y + PANEL_BAR_PITCH_Y * (n / PANEL_COLUMNS), entry.aspect(),
-                    entry.amount());
-        }
-    }
-
-    private void clampScroll(int recipeCount) {
-        scrollIndex = recipeCount <= GRID_VISIBLE ? 0 : Mth.clamp(scrollIndex, 0, recipeCount / GRID_COLUMNS);
-    }
-
-    private static boolean showsScrollArrows(int recipeCount) {
-        return recipeCount > GRID_VISIBLE;
-    }
-
     private boolean canScrollUp() {
         return scrollIndex > 0;
-    }
-
-    private boolean canScrollDown(int recipeCount) {
-        return scrollIndex < (float) recipeCount / GRID_COLUMNS - GRID_ROWS;
     }
 
     private int cellX(int cell) {

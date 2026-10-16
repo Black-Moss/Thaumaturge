@@ -44,7 +44,6 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
     private static final int LARGE_SLIME_SIZE = 2;
     private static final float SLIME_SOUND_VOLUME = 1.0F;
     private static final float SLIME_SOUND_PITCH = 1.0F;
-    private static final float FULL_TURN_DEGREES = 360.0F;
     private static final double CELL_CENTRE = 0.5;
     private static final int FESTER_ONE_IN = 50;
     private static final int FESTER_MIN_AMOUNT = 7;
@@ -60,6 +59,7 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
     private static final int LEVELS_PER_AMPLIFIER = 3;
     private static final int FLOWING_DEFAULT_LEVEL = 7;
 
+    private static final int NOTHING_LEFT = 0;
     private static final int MIN_SPLIT_AMOUNT = 2;
     private static final int MIN_DIFFERENCE = 2;
     private static final int GOO_DENSITY = 8;
@@ -117,7 +117,7 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
             return false;
         }
         slime.setSize(amount >= LARGE_SLIME_MIN_AMOUNT ? LARGE_SLIME_SIZE : SMALL_SLIME_SIZE, true);
-        slime.snapTo(pos.getX() + CELL_CENTRE, pos.getY(), pos.getZ() + CELL_CENTRE, random.nextFloat() * FULL_TURN_DEGREES, 0.0F);
+        slime.snapTo(pos.getX() + CELL_CENTRE, pos.getY(), pos.getZ() + CELL_CENTRE, 0.0F, 0.0F);
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         level.addFreshEntity(slime);
         level.playSound(null, pos, TTSounds.GORE.get(), SoundSource.BLOCKS, SLIME_SOUND_VOLUME, SLIME_SOUND_PITCH);
@@ -149,17 +149,13 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
         setAmount(level, pos, amount - 1);
         pollutePastTheFloor(level, pos);
         BlockPos above = pos.above();
-        BlockState aboveState = level.getBlockState(above);
-        if ((aboveState.isAir() || aboveState.is(TTBlocks.FLUX_GAS)) && random.nextBoolean()) {
+        if (level.getBlockState(above).isAir() && random.nextBoolean()) {
             PhysicalFlux.placeGas(level, above, GAS_AMOUNT);
         }
     }
 
     @Override
     protected void entityInside(Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier) {
-        if (!pos.equals(entity.blockPosition())) {
-            return;
-        }
         int amount = level.getFluidState(pos).getAmount();
         if (amount <= 0) {
             return;
@@ -170,9 +166,11 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
             }
             return;
         }
-        Vec3 motion = entity.getDeltaMovement();
-        double keep = 1.0 - DRAG_AT_FULL * amount / PhysicalFlux.MAX_QUANTA;
-        entity.setDeltaMovement(motion.x * keep, motion.y, motion.z * keep);
+        if (pos.equals(entity.blockPosition())) {
+            Vec3 motion = entity.getDeltaMovement();
+            double keep = 1.0 - DRAG_AT_FULL * amount / PhysicalFlux.MAX_QUANTA;
+            entity.setDeltaMovement(motion.x * keep, motion.y, motion.z * keep);
+        }
         if (!level.isClientSide() && entity instanceof LivingEntity living) {
             living.addEffect(new MobEffectInstance(TTMobEffects.VIS_EXHAUST, VIS_EXHAUST_DURATION, (amount - 1) / LEVELS_PER_AMPLIFIER, true, true, false));
         }
@@ -207,46 +205,44 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
             level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
             return;
         }
-        if (level.hasChunkAt(below) && flowDown(level, pos, amount, below)) {
-            return;
-        }
-        if (amount >= MIN_SPLIT_AMOUNT) {
-            levelSideways(level, pos, amount);
+        int sideways = level.hasChunkAt(below) ? flowDown(level, pos, amount, below) : amount;
+        if (sideways >= MIN_SPLIT_AMOUNT) {
+            levelSideways(level, pos, sideways);
         }
     }
 
-    private static boolean flowDown(ServerLevel level, BlockPos pos, int amount, BlockPos below) {
+    private static int flowDown(ServerLevel level, BlockPos pos, int amount, BlockPos below) {
         BlockState target = level.getBlockState(below);
-        switch (classify(level, below, target)) {
+        switch (classify(target)) {
             case GOO -> {
                 int existing = amountOf(target);
                 int moved = Math.min(PhysicalFlux.MAX_QUANTA - existing, amount);
                 if (moved <= 0) {
-                    return false;
+                    return amount;
                 }
                 setAmount(level, below, existing + moved);
                 setAmount(level, pos, amount - moved);
-                return true;
+                return amount - moved;
             }
             case EMPTY -> {
                 setAmount(level, below, amount);
                 setAmount(level, pos, 0);
-                return true;
+                return NOTHING_LEFT;
             }
             case DISPLACEABLE_BLOCK -> {
                 Block.dropResources(target, level, below);
                 setAmount(level, below, amount);
                 setAmount(level, pos, 0);
-                return true;
+                return NOTHING_LEFT;
             }
             case DISPLACEABLE_FLUID -> {
                 setAmount(level, below, amount);
                 level.setBlock(pos, target, Block.UPDATE_ALL);
                 scheduleFluidTick(level, pos);
-                return true;
+                return NOTHING_LEFT;
             }
             default -> {
-                return false;
+                return amount;
             }
         }
     }
@@ -261,8 +257,17 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
                 continue;
             }
             BlockState state = level.getBlockState(neighbour);
-            Cell cell = classify(level, neighbour, state);
-            int held = cell == Cell.GOO ? amountOf(state) : cell == Cell.EMPTY ? 0 : amount;
+            Cell cell = classify(state);
+            if (cell == Cell.DISPLACEABLE_BLOCK) {
+                Block.dropResources(state, level, neighbour);
+            }
+            if (cell == Cell.DISPLACEABLE_BLOCK || cell == Cell.DISPLACEABLE_FLUID) {
+                level.setBlock(neighbour, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+            }
+            if (cell == Cell.BLOCKED) {
+                continue;
+            }
+            int held = cell == Cell.GOO ? amountOf(state) : 0;
             if (amount - held >= MIN_DIFFERENCE) {
                 parties.add(neighbour);
                 total += held;
@@ -283,7 +288,7 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
         }
     }
 
-    private static Cell classify(ServerLevel level, BlockPos pos, BlockState state) {
+    private static Cell classify(BlockState state) {
         if (state.is(TTBlocks.FLUX_GOO)) {
             return Cell.GOO;
         }
@@ -293,7 +298,7 @@ public abstract class FluxGooFluid extends BaseFlowingFluid {
         if (state.getBlock() instanceof LiquidBlock) {
             return isLighterFluid(state.getFluidState()) ? Cell.DISPLACEABLE_FLUID : Cell.BLOCKED;
         }
-        boolean looseBlock = state.canBeReplaced() && state.getFluidState().isEmpty() && state.getCollisionShape(level, pos).isEmpty();
+        boolean looseBlock = state.canBeReplaced() && state.getFluidState().isEmpty() && !state.blocksMotion();
         return state.is(TTBlocks.TAINT_FIBRE) || looseBlock ? Cell.DISPLACEABLE_BLOCK : Cell.BLOCKED;
     }
 

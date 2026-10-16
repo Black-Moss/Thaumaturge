@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.ISealDisplayer;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.SealPos;
@@ -9,8 +9,6 @@ import com.leclowndu93150.thaumaturge.content.golem.logistics.LogisticsTarget;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealAccess;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
-import java.util.Arrays;
-import java.util.Objects;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -27,12 +25,13 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class ItemGolemBell extends Item implements ISealDisplayer {
-    private static final double AIM_LENGTH = 5.0D;
-    private static final double AIM_STEP = 0.1D;
-    private static final int AIM_SAMPLES = (int) Math.round(AIM_LENGTH / AIM_STEP);
+    private static final double AIM_LENGTH = 25.0D;
+    private static final double AIM_STEP = 0.5D;
     private static final float CHIME_VOLUME = 0.6F;
     private static final float CHIME_PITCH_SPREAD = 0.1F;
     private static final float ZAP_VOLUME = 0.5F;
+    private static final Direction.Axis[] AXIS_ORDER = {Direction.Axis.X, Direction.Axis.Y, Direction.Axis.Z};
+    private static final int AIM_SAMPLES = (int) Math.round(AIM_LENGTH / AIM_STEP);
 
     public ItemGolemBell(Item.Properties properties) {
         super(properties);
@@ -71,7 +70,7 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Direction face = context.getClickedFace();
-        ISealEntity seal = GolemHelper.getSealEntity(level, new SealPos(pos, face));
+        ISealEntity seal = GolemDispatch.sealAt(level, new SealPos(pos, face)).orElse(null);
         if (seal == null && !LogisticsGuiOpener.canOpen(player)) {
             return InteractionResult.PASS;
         }
@@ -111,13 +110,26 @@ public final class ItemGolemBell extends Item implements ISealDisplayer {
     }
 
     private static @Nullable ISealEntity sealOnEnteredFace(Level level, BlockPos from, BlockPos cell) {
-        return Arrays.stream(Direction.values()).filter(face -> crossedOnAxis(from, cell, face)).map(face -> GolemHelper.getSealEntity(level, new SealPos(cell, face))).filter(Objects::nonNull)
-                .findFirst().orElse(null);
+        for (Direction.Axis axis : AXIS_ORDER) {
+            Direction face = enteredFace(from, cell, axis);
+            if (face == null) {
+                continue;
+            }
+            ISealEntity seal = GolemDispatch.sealAt(level, new SealPos(cell, face)).orElse(null);
+            if (seal != null) {
+                return seal;
+            }
+        }
+        return null;
     }
 
-    private static boolean crossedOnAxis(BlockPos from, BlockPos cell, Direction face) {
-        int delta = cell.get(face.getAxis()) - from.get(face.getAxis());
-        return delta != 0 && Integer.signum(delta) == -face.getAxisDirection().getStep();
+    private static @Nullable Direction enteredFace(BlockPos from, BlockPos cell, Direction.Axis axis) {
+        int delta = cell.get(axis) - from.get(axis);
+        if (delta == 0) {
+            return null;
+        }
+        Direction.AxisDirection facing = delta > 0 ? Direction.AxisDirection.NEGATIVE : Direction.AxisDirection.POSITIVE;
+        return Direction.fromAxisAndDirection(axis, facing);
     }
 
     private static void act(ServerLevel level, Player player, ISealEntity seal) {

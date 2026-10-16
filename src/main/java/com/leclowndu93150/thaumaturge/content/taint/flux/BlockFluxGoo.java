@@ -25,14 +25,15 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
     private static final float AURA_FLOOR_PER_QUANTUM = 0.5F;
     private static final float TAINT_WEIGHT_PER_QUANTUM = 1.0F;
     private static final int OUTBREAK_COST = 0;
-    private static final int BUBBLE_ROLL_RANGE = 48;
-    private static final int BUBBLE_COLOR = ARGB.color(0xD8, 0x3C, 0xE6);
-    private static final float BUBBLE_ALPHA = 0.45F;
-    private static final float BUBBLE_MIN_SCALE = 0.25F;
+    private static final int BUBBLE_ROLL_RANGE = 44;
+    private static final int BUBBLE_COLOR = ARGB.color(0xFF, 0x00, 0x7F);
+    private static final float BUBBLE_ALPHA = 0.25F;
+    private static final float BUBBLE_MIN_SCALE = 0.2F;
     private static final float BUBBLE_SCALE_SPREAD = 0.3F;
-    private static final int BUBBLE_MIN_AGE = 18;
-    private static final int BUBBLE_AGE_SPREAD = 14;
-    private static final float BUBBLE_BUOYANCY = -0.008F;
+    private static final int BUBBLE_MIN_AGE = 2;
+    private static final int BUBBLE_AGE_SPREAD = 3;
+    private static final float BUBBLE_BUOYANCY = -0.01F;
+    private static final double BUBBLE_HEIGHT_PER_META = 0.125;
 
     public BlockFluxGoo(FlowingFluid fluid, BlockBehaviour.Properties properties) {
         super(fluid, properties);
@@ -92,14 +93,17 @@ public final class BlockFluxGoo extends LiquidBlock implements PhysicalFluxBlock
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
         super.animateTick(state, level, pos, random);
-        FluidState fluid = state.getFluidState();
-        if (fluid.isEmpty() || random.nextInt(BUBBLE_ROLL_RANGE) >= fluxAmount(state)) {
+        if (state.getFluidState().isEmpty()) {
+            return;
+        }
+        int meta = fluxAmount(state) - 1;
+        if (random.nextInt(BUBBLE_ROLL_RANGE) > meta) {
             return;
         }
         float scale = BUBBLE_MIN_SCALE + random.nextFloat() * BUBBLE_SCALE_SPREAD;
         int age = BUBBLE_MIN_AGE + random.nextInt(BUBBLE_AGE_SPREAD);
         BubbleParticleOptions bubble = new BubbleParticleOptions(BUBBLE_COLOR, BUBBLE_ALPHA, scale, age, BUBBLE_BUOYANCY, false);
-        level.addParticle(bubble, pos.getX() + random.nextDouble(), pos.getY() + fluid.getOwnHeight(), pos.getZ() + random.nextDouble(), 0.0, 0.0, 0.0);
+        level.addParticle(bubble, pos.getX() + random.nextFloat(), pos.getY() + BUBBLE_HEIGHT_PER_META * meta, pos.getZ() + random.nextFloat(), 0.0, 0.0, 0.0);
     }
 
     @Override

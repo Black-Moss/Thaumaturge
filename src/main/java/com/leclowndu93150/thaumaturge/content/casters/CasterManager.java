@@ -1,14 +1,14 @@
 package com.leclowndu93150.thaumaturge.content.casters;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
-import com.leclowndu93150.thaumaturge.api.items.IArchitect;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
+import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
-import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat.CurioPouchRef;
+import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
 import com.leclowndu93150.thaumaturge.registry.TTAttributes;
@@ -24,9 +24,7 @@ import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.function.ToIntFunction;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.sounds.SoundSource;
@@ -100,15 +98,15 @@ public final class CasterManager {
 
     public static boolean drawVisFromPack(Player player, float cost) {
         Inventory inventory = player.getInventory();
-        return IntStream.range(0, Inventory.INVENTORY_SIZE).anyMatch(slot -> canPay(inventory.getItem(slot), player, cost));
+        return IntStream.rangeClosed(1, Inventory.INVENTORY_SIZE).map(offset -> Inventory.INVENTORY_SIZE - offset).anyMatch(slot -> canPay(inventory.getItem(slot), player, cost));
     }
 
     private static boolean canPay(ItemStack stack, Player player, float cost) {
-        return stack.getItem() instanceof ICaster caster && caster.consumeVis(stack, player, cost, true, false);
+        return stack.getItem() instanceof FocusCaster caster && caster.drawVis(stack, player, cost, true, false);
     }
 
     public static void applyFocusChoice(ItemStack casterStack, Level level, Player player, @Nullable String focusKey) {
-        if (level.isClientSide() || !(casterStack.getItem() instanceof ICaster caster)) {
+        if (level.isClientSide() || !(casterStack.getItem() instanceof FocusCaster caster)) {
             return;
         }
         TreeMap<String, FocusLocation> carried = carriedFoci(player);
@@ -116,34 +114,33 @@ public final class CasterManager {
             removeFocus(casterStack, caster, level, player);
             return;
         }
-        selectFocus(casterStack, caster, level, player, choose(carried, focusKey, caster.getFocusStack(casterStack)));
+        selectFocus(casterStack, caster, level, player, choose(carried, focusKey));
     }
 
-    private static FocusLocation choose(TreeMap<String, FocusLocation> carried, @Nullable String focusKey, ItemStack equipped) {
+    private static FocusLocation choose(TreeMap<String, FocusLocation> carried, @Nullable String focusKey) {
         FocusLocation exact = focusKey == null ? null : carried.get(focusKey);
         if (exact != null) {
             return exact;
         }
-        String base = focusKey != null ? focusKey : equipped.isEmpty() ? null : FocusItems.sortKey(equipped);
-        Map.Entry<String, FocusLocation> next = base == null ? null : carried.higherEntry(base);
+        Map.Entry<String, FocusLocation> next = focusKey == null ? null : carried.higherEntry(focusKey);
         return (next != null ? next : carried.firstEntry()).getValue();
     }
 
-    private static void removeFocus(ItemStack casterStack, ICaster caster, Level level, Player player) {
-        ItemStack equipped = caster.getFocusStack(casterStack);
+    private static void removeFocus(ItemStack casterStack, FocusCaster caster, Level level, Player player) {
+        ItemStack equipped = caster.socketedFocus(casterStack);
         if (equipped.isEmpty() || !storeAway(player, equipped.copy())) {
             return;
         }
-        caster.setFocus(casterStack, ItemStack.EMPTY);
+        caster.socketFocus(casterStack, ItemStack.EMPTY);
         playSwapSound(level, player, REMOVAL_PITCH);
     }
 
-    private static void selectFocus(ItemStack casterStack, ICaster caster, Level level, Player player, FocusLocation chosen) {
+    private static void selectFocus(ItemStack casterStack, FocusCaster caster, Level level, Player player, FocusLocation chosen) {
         ItemStack picked = chosen.get();
         if (!FocusItems.isFocus(picked)) {
             return;
         }
-        ItemStack previous = caster.getFocusStack(casterStack).copy();
+        ItemStack previous = caster.socketedFocus(casterStack).copy();
         chosen.set(ItemStack.EMPTY);
         if (previous.isEmpty() || storeAway(player, previous)) {
             equip(casterStack, caster, level, player, picked);
@@ -152,8 +149,8 @@ public final class CasterManager {
         chosen.set(picked);
     }
 
-    private static void equip(ItemStack casterStack, ICaster caster, Level level, Player player, ItemStack focus) {
-        caster.setFocus(casterStack, focus);
+    private static void equip(ItemStack casterStack, FocusCaster caster, Level level, Player player, ItemStack focus) {
+        caster.socketFocus(casterStack, focus);
         playSwapSound(level, player, SWAP_PITCH);
     }
 
@@ -163,8 +160,20 @@ public final class CasterManager {
 
     private static TreeMap<String, FocusLocation> carriedFoci(Player player) {
         TreeMap<String, FocusLocation> carried = new TreeMap<>();
-        Stream.concat(Stream.of(new InventoryStore(player.getInventory())), pouchStores(player).stream()).forEach(store -> store.slots().forEach(slot -> register(carried, store, slot)));
+        Inventory inventory = player.getInventory();
+        InventoryStore loose = new InventoryStore(inventory);
+        wornPouchStores(player).forEach(store -> registerAll(carried, store));
+        for (int slot = 0; slot < Inventory.INVENTORY_SIZE; slot++) {
+            register(carried, loose, slot);
+            if (isPouch(inventory.getItem(slot))) {
+                registerAll(carried, pouchInInventory(inventory, slot));
+            }
+        }
         return carried;
+    }
+
+    private static void registerAll(TreeMap<String, FocusLocation> carried, FocusStore store) {
+        store.slots().forEach(slot -> register(carried, store, slot));
     }
 
     private static void register(TreeMap<String, FocusLocation> carried, FocusStore store, int slot) {
@@ -174,14 +183,19 @@ public final class CasterManager {
         }
         String key = FocusItems.sortKey(stack);
         if (key != null) {
-            carried.putIfAbsent(key, new FocusLocation(store, slot));
+            carried.put(key, new FocusLocation(store, slot));
         }
     }
 
     private static List<FocusStore> pouchStores(Player player) {
+        List<FocusStore> stores = wornPouchStores(player);
         Inventory inventory = player.getInventory();
-        List<FocusStore> stores = IntStream.range(0, Inventory.INVENTORY_SIZE).filter(slot -> isPouch(inventory.getItem(slot))).<FocusStore>mapToObj(slot -> pouchInInventory(inventory, slot))
-                .collect(Collectors.toCollection(ArrayList::new));
+        IntStream.range(0, Inventory.INVENTORY_SIZE).filter(slot -> isPouch(inventory.getItem(slot))).forEach(slot -> stores.add(pouchInInventory(inventory, slot)));
+        return stores;
+    }
+
+    private static List<FocusStore> wornPouchStores(Player player) {
+        List<FocusStore> stores = new ArrayList<>();
         if (ModList.get().isLoaded(TTIds.CURIOS)) {
             ThaumaturgeCuriosCompat.equippedPouches(player, CasterManager::isPouch).forEach(ref -> stores.add(pouchWorn(ref)));
         }
@@ -233,7 +247,7 @@ public final class CasterManager {
     }
 
     public static void adjustArchitectArea(ItemStack stack, Level level, Player player, int mod) {
-        if (level.isClientSide() || !(stack.getItem() instanceof ICaster caster) || !hasArchitect(caster.getFocusStack(stack), level.registryAccess())) {
+        if (level.isClientSide() || !(stack.getItem() instanceof FocusCaster caster) || !hasArchitect(caster.socketedFocus(stack), level.registryAccess())) {
             return;
         }
         CasterArea area = storedArea(stack);
@@ -257,7 +271,7 @@ public final class CasterManager {
     }
 
     private static boolean isArchitectPart(HolderLookup.Provider registries, SpellNode node) {
-        return Spells.part(registries, node.part()).map(SpellPart::behavior).filter(IArchitect.class::isInstance).isPresent();
+        return Spells.part(registries, node.part()).map(SpellPart::behavior).filter(AreaPreviewer.class::isInstance).isPresent();
     }
 
     private static CasterArea growExtents(CasterArea area) {
@@ -284,7 +298,7 @@ public final class CasterManager {
     }
 
     private static int cappedExtent(ItemStack stack, int stored) {
-        int ceiling = stack.getItem() instanceof ICaster ? MAX_AREA : 0;
+        int ceiling = stack.getItem() instanceof FocusCaster ? MAX_AREA : 0;
         return Mth.clamp(stored, 0, ceiling);
     }
 

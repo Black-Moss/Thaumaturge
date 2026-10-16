@@ -2,7 +2,9 @@ package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
+import com.leclowndu93150.thaumaturge.client.golem.GolemMeshes;
 import com.leclowndu93150.thaumaturge.client.model.entity.ResearchTableModel;
+import com.leclowndu93150.thaumaturge.client.model.mesh.TTMeshPart;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.table.BlockEntityResearchTable;
 import com.leclowndu93150.thaumaturge.content.research.table.BlockResearchTable;
@@ -27,7 +29,8 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEntityResearchTable, ResearchTableRenderState> {
-    private static final Identifier TABLE_TEXTURE = TTIds.rl("textures/entity/restable.png");
+    private static final Identifier INKWELL_MESH = TTIds.rl("models/mesh/research_inkwell.ttmesh");
+    private static final Identifier INKWELL_TEXTURE = TTIds.rl("textures/entity/research_inkwell.png");
     private static final Identifier SCROLL_TEXTURE = TTIds.rl("textures/entity/restable2.png");
     private static final Identifier QUILL_TEXTURE = TTIds.rl("textures/entity/tablequill.png");
     private static final Identifier PARCHMENT_TEXTURE = TTIds.rl("textures/misc/parchment.png");
@@ -37,24 +40,24 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
     private static final float CENTER = 0.5F;
     private static final float FRAME_HEIGHT = 1.0F;
     private static final float HALF_TURN = 180.0F;
-    private static final float YAW_NORTH = 270.0F;
-    private static final float YAW_SOUTH = 90.0F;
-    private static final float YAW_WEST = 180.0F;
+    private static final float EXTENSION_SIDE_YAW = 90.0F;
     private static final float BOUNDS_MARGIN = 0.5F;
-    private static final float QUILL_X = -0.23F;
+    private static final float INKWELL_X = -0.28125F;
+    private static final float INKWELL_Z = 0.28125F;
+    private static final float QUILL_X = -0.226F;
     private static final float QUILL_Y = -0.095F;
-    private static final float QUILL_Z = 0.15F;
+    private static final float QUILL_Z = 0.076F;
     private static final float QUILL_YAW = -105.0F;
     private static final float QUILL_SCALE = 0.5F;
     private static final float QUILL_THICKNESS = 0.025F;
     private static final int QUILL_TEXELS = 16;
-    private static final float SHEET_X = 0.1F;
-    private static final float SHEET_Z = 0.35F;
-    private static final float SHEET_WIDTH = 0.5F;
-    private static final float SHEET_LENGTH = 0.6F;
-    private static final float SHEET_BASE_HEIGHT = 1.010F;
-    private static final float SHEET_STEP = 0.015F;
-    private static final float[] SHEET_TILTS = {15.0F, 17.0F, 19.0F, 15.0F, 17.0F, 19.0F};
+    private static final float SHEET_X = 0.12F;
+    private static final float SHEET_Z = 0.32F;
+    private static final float SHEET_WIDTH = 0.48F;
+    private static final float SHEET_LENGTH = 0.56F;
+    private static final float SHEET_BASE_HEIGHT = 1.008F;
+    private static final float SHEET_STEP = 0.013F;
+    private static final float[] SHEET_TILTS = {-6.0F, 8.0F, 14.0F, -3.0F, 11.0F};
     private static final float LAY_FLAT = -90.0F;
     private static final float RIBBON_SCALE = 1.2F;
 
@@ -97,10 +100,11 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
         int light = state.lightCoords;
         poseStack.pushPose();
         poseStack.translate(CENTER, FRAME_HEIGHT, CENTER);
-        poseStack.mulPose(Axis.YP.rotationDegrees(yaw(state.facing)));
+        BlockFacingPose.northBased(poseStack, state.facing);
+        poseStack.mulPose(Axis.YP.rotationDegrees(EXTENSION_SIDE_YAW));
         poseStack.mulPose(Axis.XP.rotationDegrees(HALF_TURN));
         if (state.hasTools) {
-            collector.submitModelPart(model.inkwell, poseStack, RenderTypes.entityCutout(TABLE_TEXTURE), light, OverlayTexture.NO_OVERLAY, null);
+            submitInkwell(poseStack, collector, light);
             submitQuill(poseStack, collector, light);
         }
         for (int sheet = 0; sheet < SHEET_TILTS.length; sheet++) {
@@ -112,6 +116,16 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
             poseStack.scale(RIBBON_SCALE, RIBBON_SCALE, RIBBON_SCALE);
             collector.submitModelPart(model.scrollRibbon, poseStack, RenderTypes.entityCutout(SCROLL_TEXTURE), light, OverlayTexture.NO_OVERLAY, null, OPAQUE | state.noteColor, null);
             poseStack.popPose();
+        }
+        poseStack.popPose();
+    }
+
+    private static void submitInkwell(PoseStack poseStack, SubmitNodeCollector collector, int light) {
+        poseStack.pushPose();
+        poseStack.translate(INKWELL_X, 0.0F, INKWELL_Z);
+        poseStack.mulPose(Axis.XP.rotationDegrees(HALF_TURN));
+        for (TTMeshPart part : GolemMeshes.get(INKWELL_MESH).parts()) {
+            collector.submitCustomGeometry(poseStack, RenderTypes.entityCutout(INKWELL_TEXTURE), (pose, buffer) -> GolemMeshes.renderPart(part, pose, buffer, light, WHITE));
         }
         poseStack.popPose();
     }
@@ -193,14 +207,5 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
 
     private static Direction facingOf(BlockState state) {
         return state.hasProperty(BlockResearchTable.FACING) ? state.getValue(BlockResearchTable.FACING) : Direction.NORTH;
-    }
-
-    private static float yaw(Direction facing) {
-        return switch (facing) {
-            case NORTH -> YAW_NORTH;
-            case SOUTH -> YAW_SOUTH;
-            case WEST -> YAW_WEST;
-            default -> 0.0F;
-        };
     }
 }

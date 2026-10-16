@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
@@ -34,6 +34,12 @@ abstract class CellWorkBehavior implements ISealBehavior {
         claims.forget(task);
     }
 
+    protected boolean retire(Task task) {
+        release(task);
+        task.end();
+        return true;
+    }
+
     protected static void keepAlive(Task task) {
         if (task.life() < STEP_GRACE) {
             task.setLife(STEP_GRACE);
@@ -57,7 +63,7 @@ abstract class CellWorkBehavior implements ISealBehavior {
         Task task = Task.atBlock(seal.pos(), cell);
         task.setPriority(seal.priority());
         prepare(level, cell, task);
-        GolemHelper.addGolemTask(level, task);
+        GolemDispatch.postTask(level, task);
         claims.record(task, cell.immutable());
     }
 

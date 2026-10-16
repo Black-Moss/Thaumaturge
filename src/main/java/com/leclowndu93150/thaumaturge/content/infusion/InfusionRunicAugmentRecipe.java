@@ -36,8 +36,8 @@ public final class InfusionRunicAugmentRecipe implements InfusionJobRecipe {
     private static final int MAX_CHARGE = 120;
     private static final int DISPLAY_CHARGES = 5;
     private static final int INSTABILITY_CHARGE_DIVISOR = 2;
-    private static final float COST_BASE = 1.0F;
-    private static final float COST_DIVISOR = 2.0F;
+    private static final double COST_BASE = 1.0;
+    private static final double COST_DIVISOR = 2.0;
     private static final double COST_GROWTH = 2.0;
 
     public static final MapCodec<InfusionRunicAugmentRecipe> MAP_CODEC = RecordCodecBuilder
@@ -110,7 +110,7 @@ public final class InfusionRunicAugmentRecipe implements InfusionJobRecipe {
     }
 
     public AspectList scaledAspects(ItemStack catalyst) {
-        float factor = (COST_BASE + (float) Math.pow(COST_GROWTH, charge(catalyst))) / COST_DIVISOR;
+        double factor = (COST_BASE + Math.pow(COST_GROWTH, charge(catalyst))) / COST_DIVISOR;
         AspectList scaled = AspectList.EMPTY;
         for (AspectInstance entry : aspects.entries()) {
             int amount = (int) (entry.amount() * factor);

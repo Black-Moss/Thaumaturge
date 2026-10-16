@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.screen.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
@@ -51,25 +51,26 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private static final int MARGIN = 16;
     private static final int VIEW_TRIM = 2 * MARGIN;
     private static final int CELL = 24;
-    private static final int BOUND_NEAR_PAD = 48;
-    private static final int BOUND_FAR_PAD = 24;
     private static final float ZOOM_MIN = 1.0F;
     private static final float ZOOM_MAX = 2.0F;
     private static final float ZOOM_STEP = 0.25F;
-    private static final double INERTIA_SNAP_SQUARED = 4.0;
-    private static final double INERTIA_FACTOR = 0.85;
     private static final int BACKGROUND_GROW = 2;
     private static final int BACKGROUND_OFFSET = MARGIN - BACKGROUND_GROW;
     private static final int BACKGROUND_EXTRA = 2 * BACKGROUND_GROW;
-    private static final double PARALLAX_BASE = 2.0;
-    private static final double PARALLAX_OVERLAY = 1.5;
     private static final int HOVER_BOX_NEAR = -2;
     private static final int HOVER_BOX_FAR = 18;
+    private static final double INERTIA_SNAP_SQUARED = 4.0;
+    private static final double INERTIA_FACTOR = 0.85;
+    private static final double PARALLAX_BASE_DIVISOR = 2.0;
+    private static final double PARALLAX_OVERLAY_DIVISOR = 1.5;
+    private static final int BOUND_NEAR_PAD = 24;
+    private static final int BOUND_FAR_PAD = 48;
 
     private static final int COLOR_PARENT_DONE = 0xFF999999;
     private static final int COLOR_PARENT_OPEN = 0xFF333333;
     private static final int COLOR_SIBLING_DONE = 0xFF4C4C66;
     private static final int COLOR_SIBLING_OPEN = 0xFF2F2F3F;
+
     private static final float LAYER_PARENT_DONE = 3.0F;
     private static final float LAYER_PARENT_OPEN = 2.0F;
     private static final float LAYER_SIBLING_DONE = 1.0F;
@@ -91,8 +92,10 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private static final int TAB_PITCH = 24;
     private static final int TAB_PAGE_MARGIN = 28;
     private static final int TAB_FRAME_PAD = 3;
-    private static final int TAB_FRAME_ACTIVE_TINT = 0xFF99FFFF;
+    private static final int TAB_FIRST_Y = TAB_Y_BASE + TAB_PITCH;
+    private static final int TAB_CENTRING_DIVISOR = 2;
     private static final int TINT_WHITE = 0xFFFFFFFF;
+    private static final int TAB_FRAME_ACTIVE_TINT = 0xFF99FFFF;
     private static final int TAB_ICON_DIM_TINT = 0xCCA8A8A8;
     private static final int BADGE_SIZE = 32;
     private static final float BADGE_SCALE = 0.25F;
@@ -156,6 +159,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     private @Nullable EditBox searchBox;
     private @Nullable EntryNode hovered;
     private final DragTracker drag = new DragTracker();
+    private final ConnectorRenderer connectors = new ConnectorRenderer();
     private final MapAxis axisX = new MapAxis(rememberedX);
     private final MapAxis axisY = new MapAxis(rememberedY);
     private int boundLeft;
@@ -223,13 +227,6 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        tickCounter++;
-        MapAxis.follow(axisX, axisY, INERTIA_SNAP_SQUARED, INERTIA_FACTOR);
-    }
-
-    @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         if (searching || scrollY == 0.0) {
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
@@ -290,6 +287,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         }
         for (Tab tab : layoutTabs()) {
             if (tab.category() != active && inRect(mx, my, tab.x(), tab.y() + tab.shift(), TAB_ICON_SIZE, TAB_ICON_SIZE)) {
+                playSound(TTSounds.CLACK, CLACK_VOLUME);
                 selectCategory(tab.category());
                 return true;
             }
@@ -331,6 +329,90 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             }
         }
         drawChrome(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        tickCounter++;
+        MapAxis.follow(axisX, axisY, INERTIA_SNAP_SQUARED, INERTIA_FACTOR);
+    }
+
+    private void drawMap(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        CategoryRef category = Objects.requireNonNull(active);
+        int drawnX = drawnPosition(axisX.previous(), axisX.current(), partialTick, boundLeft, boundRight);
+        int drawnY = drawnPosition(axisY.previous(), axisY.current(), partialTick, boundTop, boundBottom);
+        float shrink = 1.0F / zoom;
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(shrink, shrink);
+        drawParallax(graphics, category.data().background(), drawnX, drawnY, PARALLAX_BASE_DIVISOR);
+        Optional<Identifier> overlay = category.data().overlayBackground();
+        if (overlay.isPresent()) {
+            drawParallax(graphics, overlay.get(), drawnX, drawnY, PARALLAX_OVERLAY_DIVISOR);
+        }
+        graphics.pose().popMatrix();
+        graphics.enableScissor(MARGIN, MARGIN, MARGIN + viewWidth(), MARGIN + viewHeight());
+        List<EntryNode> nodes = model().entriesOf(category.id());
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(shrink, shrink);
+        drawConnectors(graphics, nodes, MARGIN - drawnX, MARGIN - drawnY);
+        connectors.flush(graphics);
+        drawNodes(graphics, nodes, drawnX, drawnY, mouseX, mouseY);
+        graphics.pose().popMatrix();
+        graphics.disableScissor();
+    }
+
+    private void drawParallax(GuiGraphicsExtractor graphics, Identifier texture, int locX, int locY, double divisor) {
+        int left = (int) (BACKGROUND_OFFSET * zoom);
+        int top = (int) (BACKGROUND_OFFSET * zoom);
+        int w = (int) ((viewWidth() + BACKGROUND_EXTRA) * zoom);
+        int h = (int) ((viewHeight() + BACKGROUND_EXTRA) * zoom);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, left, top, (float) (locX / divisor), (float) (locY / divisor), w, h, TEX, TEX);
+    }
+
+    private List<Tab> layoutTabs() {
+        List<Tab> tabs = new ArrayList<>();
+        List<CategoryRef> builtIn = model().shownBuiltIn();
+        for (int slot = 0; slot < builtIn.size(); slot++) {
+            tabs.add(new Tab(builtIn.get(slot), TAB_BUILT_IN_X, TAB_FIRST_Y + TAB_PITCH * slot, 0, false));
+        }
+        List<CategoryRef> addOn = model().shownAddOn();
+        int perPage = tabsPerPage();
+        int shift = scrollButtonsVisible() ? (viewHeight() - TAB_PAGE_MARGIN - perPage * TAB_PITCH) / TAB_CENTRING_DIVISOR : 0;
+        int first = Math.min(scroll, Math.max(0, addOn.size() - 1));
+        for (int index = first; index < addOn.size() && index - first < perPage; index++) {
+            tabs.add(new Tab(addOn.get(index), width - TAB_ADD_ON_X_OFFSET, TAB_FIRST_Y + TAB_PITCH * (index - first), shift, true));
+        }
+        return tabs;
+    }
+
+    private void computeBounds() {
+        int minCol = Integer.MAX_VALUE;
+        int minRow = Integer.MAX_VALUE;
+        int maxCol = Integer.MIN_VALUE;
+        int maxRow = Integer.MIN_VALUE;
+        if (active != null) {
+            for (EntryNode node : model().entriesOf(active.id())) {
+                if (model().visible(node)) {
+                    IResearchEntry entry = node.value();
+                    minCol = Math.min(minCol, entry.column());
+                    minRow = Math.min(minRow, entry.row());
+                    maxCol = Math.max(maxCol, entry.column());
+                    maxRow = Math.max(maxRow, entry.row());
+                }
+            }
+        }
+        if (minCol > maxCol) {
+            boundLeft = 0;
+            boundRight = 0;
+            boundTop = 0;
+            boundBottom = 0;
+            return;
+        }
+        boundLeft = CELL * minCol - viewWidth() + BOUND_FAR_PAD;
+        boundTop = CELL * minRow - viewHeight() + BOUND_FAR_PAD;
+        boundRight = CELL * maxCol - BOUND_NEAR_PAD;
+        boundBottom = CELL * maxRow - BOUND_NEAR_PAD;
     }
 
     private static float steppedZoom(float from, double wheel) {
@@ -443,27 +525,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         }
     }
 
-    private List<Tab> layoutTabs() {
-        List<Tab> tabs = new ArrayList<>();
-        int n = 0;
-        for (CategoryRef category : model().shownBuiltIn()) {
-            n++;
-            tabs.add(new Tab(category, TAB_BUILT_IN_X, TAB_Y_BASE + TAB_PITCH * n, 0, false));
-        }
-        List<CategoryRef> shownAddOn = model().shownAddOn();
-        int perPage = tabsPerPage();
-        int count = shownAddOn.size();
-        int shift = count > perPage || count < scroll ? (viewHeight() - TAB_PAGE_MARGIN) % TAB_PITCH / 2 : 0;
-        for (int k = 1; k <= count; k++) {
-            if (k > scroll && k <= scroll + perPage) {
-                tabs.add(new Tab(shownAddOn.get(k - 1), width - TAB_ADD_ON_X_OFFSET, TAB_Y_BASE + TAB_PITCH * (k - scroll), shift, true));
-            }
-        }
-        return tabs;
-    }
-
     private void selectCategory(CategoryRef category) {
-        playSound(TTSounds.CLACK, CLACK_VOLUME);
         setSearchMode(false);
         active = category;
         computeBounds();
@@ -488,36 +550,13 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         search().rebuild(query);
     }
 
-    private void computeBounds() {
-        model().clearVisibilityCache();
-        boundLeft = 0;
-        boundRight = 0;
-        boundTop = 0;
-        boundBottom = 0;
-        if (active == null) {
-            return;
-        }
-        boolean first = true;
-        for (EntryNode node : model().entriesOf(active.id())) {
-            if (!model().visible(node)) {
-                continue;
-            }
-            int left = CELL * node.value().column() - viewWidth() + BOUND_NEAR_PAD;
-            int right = CELL * node.value().column() - BOUND_FAR_PAD;
-            int top = CELL * node.value().row() - viewHeight() + BOUND_NEAR_PAD;
-            int bottom = CELL * node.value().row() - BOUND_FAR_PAD;
-            boundLeft = first ? left : Math.min(boundLeft, left);
-            boundRight = first ? right : Math.max(boundRight, right);
-            boundTop = first ? top : Math.min(boundTop, top);
-            boundBottom = first ? bottom : Math.max(boundBottom, bottom);
-            first = false;
-        }
-    }
-
     private void updateDrag(int mouseX, int mouseY) {
         boolean down = GLFW.glfwGetMouseButton(minecraft.getWindow().handle(), GLFW.GLFW_MOUSE_BUTTON_LEFT) == GLFW.GLFW_PRESS;
-        if (!down || !inViewport(mouseX, mouseY)) {
+        if (!down) {
             drag.release();
+            return;
+        }
+        if (!inViewport(mouseX, mouseY)) {
             return;
         }
         if (drag.isHeld()) {
@@ -543,36 +582,9 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         return lowLimit > highLimit ? value : Mth.clamp(value, lowLimit, highLimit);
     }
 
-    private void drawMap(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        int drawnX = drawnPosition(axisX.previous(), axisX.current(), partialTick, boundLeft, boundRight);
-        int drawnY = drawnPosition(axisY.previous(), axisY.current(), partialTick, boundTop, boundBottom);
-        float inverse = 1.0F / zoom;
-        IResearchCategory category = active.data();
-        graphics.pose().pushMatrix();
-        graphics.pose().scale(inverse, inverse);
-        drawParallax(graphics, category.background(), drawnX / PARALLAX_BASE, drawnY / PARALLAX_BASE);
-        category.overlayBackground().ifPresent(overlay -> drawParallax(graphics, overlay, drawnX / PARALLAX_OVERLAY, drawnY / PARALLAX_OVERLAY));
-        graphics.pose().popMatrix();
-        graphics.enableScissor(MARGIN, MARGIN, MARGIN + viewWidth(), MARGIN + viewHeight());
-        graphics.pose().pushMatrix();
-        graphics.pose().scale(inverse, inverse);
-        List<EntryNode> nodes = model().entriesOf(active.id());
-        drawConnectors(graphics, nodes, MARGIN - drawnX, MARGIN - drawnY);
-        ConnectorRenderer.flush(graphics);
-        drawNodes(graphics, nodes, drawnX, drawnY, mouseX, mouseY);
-        graphics.pose().popMatrix();
-        graphics.disableScissor();
-    }
-
-    private void drawParallax(GuiGraphicsExtractor graphics, Identifier texture, double offsetX, double offsetY) {
-        int w = (int) ((viewWidth() + BACKGROUND_EXTRA) * zoom);
-        int h = (int) ((viewHeight() + BACKGROUND_EXTRA) * zoom);
-        graphics.blit(RenderPipelines.GUI_TEXTURED, texture, (int) (BACKGROUND_OFFSET * zoom), (int) (BACKGROUND_OFFSET * zoom), (float) offsetX, (float) offsetY, w, h, w, h, TEX, TEX);
-    }
-
     private void drawConnectors(GuiGraphicsExtractor graphics, List<EntryNode> nodes, int originX, int originY) {
         BrowserModel data = model();
-        IPlayerKnowledge knowledge = data.knowledge();
+        PlayerResearch knowledge = data.knowledge();
         for (EntryNode node : nodes) {
             if (!data.visible(node)) {
                 continue;
@@ -584,7 +596,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
                 if (parent.inherit() || other == null || !other.categoryId().equals(node.categoryId()) || other.value().siblings().contains(node.id())) {
                     continue;
                 }
-                if (knowledge.isResearchComplete(other.id())) {
+                if (knowledge.hasCompleted(other.id())) {
                     link(graphics, node, other, originX, originY, COLOR_PARENT_DONE, LAYER_PARENT_DONE, true, reverse);
                 } else if (data.visible(other)) {
                     link(graphics, node, other, originX, originY, COLOR_PARENT_OPEN, LAYER_PARENT_OPEN, true, reverse);
@@ -595,7 +607,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
                 if (other == null || !other.categoryId().equals(node.categoryId())) {
                     continue;
                 }
-                if (knowledge.isResearchComplete(other.id())) {
+                if (knowledge.hasCompleted(other.id())) {
                     link(graphics, other, node, originX, originY, COLOR_SIBLING_DONE, LAYER_SIBLING_DONE, false, reverse);
                 } else if (data.visible(other)) {
                     link(graphics, other, node, originX, originY, COLOR_SIBLING_OPEN, LAYER_SIBLING_OPEN, false, reverse);
@@ -604,13 +616,13 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         }
     }
 
-    private static void link(GuiGraphicsExtractor graphics, EntryNode from, EntryNode to, int originX, int originY, int color, float layer, boolean arrow, boolean flipped) {
-        ConnectorRenderer.draw(graphics, from.value().column(), from.value().row(), to.value().column(), to.value().row(), originX, originY, color, layer, arrow, flipped);
+    private void link(GuiGraphicsExtractor graphics, EntryNode from, EntryNode to, int originX, int originY, int color, float layer, boolean arrow, boolean flipped) {
+        connectors.draw(graphics, from.value().column(), from.value().row(), to.value().column(), to.value().row(), originX, originY, color, layer, arrow, flipped);
     }
 
     private void drawNodes(GuiGraphicsExtractor graphics, List<EntryNode> nodes, int drawnX, int drawnY, int mouseX, int mouseY) {
         BrowserModel data = model();
-        IPlayerKnowledge knowledge = data.knowledge();
+        PlayerResearch knowledge = data.knowledge();
         boolean pointerInside = inViewport(mouseX, mouseY);
         for (EntryNode node : nodes) {
             if (!data.visible(node)) {
@@ -625,15 +637,14 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             int originX = MARGIN + relX;
             int originY = MARGIN + relY;
             EntryIconRenderer.Status status = EntryIconRenderer.Status.UNKNOWN;
-            if (knowledge.isResearchComplete(node.id())) {
+            if (knowledge.hasCompleted(node.id())) {
                 status = EntryIconRenderer.Status.COMPLETE;
             } else if (data.canUnlock(node)) {
                 status = EntryIconRenderer.Status.IN_PROGRESS;
             }
             boolean warp = entry.stages().stream().anyMatch(stage -> stage.warp() > 0);
             Object icon = EntryIconRenderer.resolveIcon(entry, tickCounter);
-            EntryIconRenderer.render(graphics, originX, originY, entry, status, icon, warp, knowledge.hasResearchFlag(node.id(), ResearchFlag.RESEARCH),
-                    knowledge.hasResearchFlag(node.id(), ResearchFlag.PAGE));
+            EntryIconRenderer.render(graphics, originX, originY, entry, status, icon, warp, knowledge.hasFlag(node.id(), ResearchFlag.RESEARCH), knowledge.hasFlag(node.id(), ResearchFlag.PAGE));
             if (pointerInside && mouseX >= (originX + HOVER_BOX_NEAR) / zoom && mouseX <= (originX + HOVER_BOX_FAR) / zoom && mouseY >= (originY + HOVER_BOX_NEAR) / zoom
                     && mouseY <= (originY + HOVER_BOX_FAR) / zoom) {
                 hovered = node;
@@ -665,20 +676,20 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     }
 
     private TabStats statsOf(CategoryRef category) {
-        IPlayerKnowledge knowledge = model().knowledge();
+        PlayerResearch knowledge = model().knowledge();
         boolean newResearch = false;
         boolean newPage = false;
         int known = 0;
         int counted = 0;
         for (EntryNode node : model().entriesOf(category.id())) {
-            boolean isKnown = knowledge.isResearchKnown(node.id());
+            boolean isKnown = knowledge.knows(node.id());
             if (!node.value().hasMeta(ResearchEntryMeta.AUTOUNLOCK)) {
                 counted++;
                 known += isKnown ? 1 : 0;
             }
             if (isKnown) {
-                newResearch |= knowledge.hasResearchFlag(node.id(), ResearchFlag.RESEARCH);
-                newPage |= knowledge.hasResearchFlag(node.id(), ResearchFlag.PAGE);
+                newResearch |= knowledge.hasFlag(node.id(), ResearchFlag.RESEARCH);
+                newPage |= knowledge.hasFlag(node.id(), ResearchFlag.PAGE);
             }
         }
         return new TabStats(newResearch, newPage, counted == 0 ? 0 : (int) ((double) known / counted * PERCENT_SCALE));
@@ -779,13 +790,13 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
     }
 
     private boolean clickEntry(EntryNode node) {
-        IPlayerKnowledge knowledge = model().knowledge();
+        PlayerResearch knowledge = model().knowledge();
         Identifier id = node.id();
-        if (knowledge.isResearchKnown(id)) {
-            knowledge.clearResearchFlag(id, ResearchFlag.RESEARCH);
-            knowledge.clearResearchFlag(id, ResearchFlag.PAGE);
+        if (knowledge.knows(id)) {
+            knowledge.removeFlag(id, ResearchFlag.RESEARCH);
+            knowledge.removeFlag(id, ResearchFlag.PAGE);
             ClientPacketDistributor.sendToServer(new ServerboundClearResearchFlagsPayload(id, List.of(ResearchFlag.RESEARCH, ResearchFlag.PAGE)));
-            int stage = knowledge.researchStage(id);
+            int stage = knowledge.stageOf(id);
             if (stage > 0 && stage >= node.value().stages().size() - 1) {
                 ClientPacketDistributor.sendToServer(new ServerboundUnlockResearchPayload(id));
             }
@@ -803,14 +814,14 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
 
     private List<TooltipLine> tooltipLines(EntryNode node) {
         BrowserModel data = model();
-        IPlayerKnowledge knowledge = data.knowledge();
+        PlayerResearch knowledge = data.knowledge();
         IResearchEntry entry = node.value();
         Identifier id = node.id();
         List<TooltipLine> lines = new ArrayList<>();
         lines.add(new TooltipLine(TTTooltips.entryNameGold(Component.translatable(entry.nameKey())), TooltipLineScale.NORMAL));
         if (data.canUnlock(node)) {
-            int stage = knowledge.researchStage(id);
-            boolean inProgress = !knowledge.isResearchComplete(id) && !entry.stages().isEmpty();
+            int stage = knowledge.stageOf(id);
+            boolean inProgress = !knowledge.hasCompleted(id) && !entry.stages().isEmpty();
             if (inProgress && stage < 0) {
                 lines.add(new TooltipLine(TTTooltips.beginResearch(), TooltipLineScale.HALF));
             } else if (inProgress) {
@@ -832,7 +843,7 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
             }
         }
         for (ResearchFlag flag : FLAG_NOTE_ORDER) {
-            if (knowledge.hasResearchFlag(id, flag)) {
+            if (knowledge.hasFlag(id, flag)) {
                 Component note = flag == ResearchFlag.RESEARCH ? TTTooltips.researchNew() : TTTooltips.pageNew();
                 lines.add(new TooltipLine(note, TooltipLineScale.HALF));
             }

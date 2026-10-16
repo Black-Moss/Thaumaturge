@@ -17,35 +17,30 @@ public final class AdvancedFurnaceNozzle extends PassiveEssentiaSource {
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction face) {
+    public int heldAmount(@Nullable Direction face) {
         return furnace.aspects().totalAmount();
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction face) {
         return furnace.randomEssentia();
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        return takeEssentia(aspect, amount, face, false);
-    }
-
-    @Override
-    public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+    public int extract(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
         if (simulate) {
             return previewTake(aspect, amount, face);
         }
-        return canOutputTo(face) ? furnace.takeEssentia(aspect, amount) : NOTHING_MOVED;
+        return releasesOn(face) ? furnace.takeEssentia(aspect, amount) : NOTHING_MOVED;
     }
 
     private int previewTake(Holder<IAspect> aspect, int amount, Direction face) {
-        boolean blocked = amount <= 0 || !canOutputTo(face);
+        boolean blocked = amount <= 0 || !releasesOn(face);
         return blocked ? NOTHING_MOVED : Math.min(furnace.aspects().amountOf(aspect), amount);
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         if (!furnace.isAssembled()) {
             return false;
         }
@@ -53,7 +48,7 @@ public final class AdvancedFurnaceNozzle extends PassiveEssentiaSource {
     }
 
     @Override
-    public boolean isConnectable(Direction face) {
-        return canOutputTo(face);
+    public boolean connectsOn(Direction face) {
+        return releasesOn(face);
     }
 }

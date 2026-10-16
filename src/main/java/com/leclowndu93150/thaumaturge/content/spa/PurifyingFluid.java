@@ -31,16 +31,15 @@ public abstract class PurifyingFluid extends BaseFlowingFluid {
 
     @Override
     protected void entityInside(Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier) {
-        if (!entity.blockPosition().equals(pos)) {
-            return;
-        }
         FluidState state = level.getFluidState(pos);
         if (!isSame(state.getType())) {
             return;
         }
-        double damp = 1.0 - (double) state.getAmount() / SOURCE_AMOUNT * SLOWDOWN_FACTOR;
-        Vec3 motion = entity.getDeltaMovement();
-        entity.setDeltaMovement(motion.x * damp, motion.y, motion.z * damp);
+        if (entity.blockPosition().equals(pos)) {
+            double damp = 1.0 - (double) state.getAmount() / SOURCE_AMOUNT * SLOWDOWN_FACTOR;
+            Vec3 motion = entity.getDeltaMovement();
+            entity.setDeltaMovement(motion.x * damp, motion.y, motion.z * damp);
+        }
         if (!level.isClientSide() && state.isSource() && entity instanceof ServerPlayer player && !player.hasEffect(TTMobEffects.WARP_WARD)) {
             grantWard(level, pos, player);
         }

@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.client.render.TTFlatRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer.BlendMode;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Axis;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.client.Minecraft;
@@ -19,9 +20,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.jspecify.annotations.Nullable;
 
 public final class AspectTagWorldRenderer {
@@ -30,27 +30,30 @@ public final class AspectTagWorldRenderer {
 
     private static final float HALF = 0.5F;
     private static final int ROW_SIZE = 5;
-    private static final float SPACING_FACTOR = 4.0F;
-    private static final float ROW_HEIGHT_FACTOR = 1.05F;
-    private static final float FACE_REACH_FACTOR = 2.0F;
-    private static final float UNKNOWN_ALPHA = 0.75F;
-    private static final float TEXT_PIXEL = 0.04F;
-    private static final float AMOUNT_RIGHT = 0.52F;
-    private static final float AMOUNT_TOP = 0.24F;
-    private static final float DARK_LIFT = 0.004F;
-    private static final float WHITE_LIFT = 0.008F;
     private static final int AMOUNT_COLOR = 0xFFFFFFFF;
-    private static final int AMOUNT_SHADOW_COLOR = 0xFF111111;
     private static final int NO_BACKGROUND = 0;
-    private static final boolean[] SHADOW_THEN_FACE = {true, false};
     private static final float NORMAL_Z = -1.0F;
     private static final Predicate<Holder<IAspect>> ALL_DISCOVERED = aspect -> true;
+    private static final float TAG_SIZE_FACTOR = 0.6F;
+    private static final float SPACING_FACTOR = 1.2F;
+    private static final float ROW_HEIGHT_FACTOR = 1.05F;
+    private static final float FACE_REACH_FACTOR = 2.0F;
+    private static final float TEXT_PIXEL = 0.04F;
+    private static final float AMOUNT_RIGHT = HALF;
+    private static final float AMOUNT_BOTTOM = -HALF;
+    private static final float AMOUNT_PEN_OVERHANG = 0.5F;
+    private static final float AMOUNT_TEXT_TOP = -6.5F;
+    private static final int SHADOW_STEP = 1;
+    private static final float DARK_LIFT = 0.002F;
+    private static final float WHITE_LIFT = 0.004F;
+    private static final int AMOUNT_SHADOW_COLOR = 0xFF111111;
+    private static final float UNKNOWN_ALPHA = 0.75F;
     private static final float[][] QUAD_CORNERS = {{-HALF, -HALF, 0.0F, 1.0F}, {HALF, -HALF, 1.0F, 1.0F}, {HALF, HALF, 1.0F, 0.0F}, {-HALF, HALF, 0.0F, 0.0F}};
 
     private AspectTagWorldRenderer() {}
 
     public static void renderTagCloud(PoseStack poseStack, Minecraft minecraft, double x, double y, double z, AspectList aspects, @Nullable Direction face, float scale, float alpha) {
-        renderTagCloud(poseStack, minecraft, x, y, z, aspects, face, scale, alpha, ALL_DISCOVERED, true);
+        renderTagCloud(poseStack, minecraft, x, y, z, aspects, face, scale, alpha, ALL_DISCOVERED);
     }
 
     public static void renderTagCloud(PoseStack poseStack, Minecraft minecraft, double x, double y, double z, AspectList aspects, @Nullable Direction face, float scale, float alpha, Predicate<Holder<IAspect>> discovered) {
@@ -58,30 +61,75 @@ public final class AspectTagWorldRenderer {
     }
 
     public static void renderTagCloud(PoseStack poseStack, Minecraft minecraft, double x, double y, double z, AspectList aspects, @Nullable Direction face, float scale, float alpha, Predicate<Holder<IAspect>> discovered, boolean showAmounts) {
-        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-        Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
-        double baseX = face == null ? x - HALF : x;
-        double baseZ = face == null ? z - HALF : z;
-        Vec3 anchor = cloudAnchor(baseX, y, baseZ, face, scale);
-        double bearing = Math.atan2(camera.x - (baseX + HALF), camera.z - (baseZ + HALF));
-        Quaternionf facing = new Quaternionf().rotationY((float) bearing);
-        Vec3 right = new Vec3(Math.cos(bearing), 0.0, -Math.sin(bearing));
-        List<AspectInstance> tags = aspects.sortedByTag();
-        for (int index = 0; index < tags.size(); index++) {
-            int row = index / ROW_SIZE;
-            double slide = rowSlide(index % ROW_SIZE, Math.min(ROW_SIZE, tags.size() - row * ROW_SIZE), scale);
-            Vec3 at = anchor.add(right.scale(slide)).add(0.0, row * ROW_HEIGHT_FACTOR * scale, 0.0);
-            poseStack.pushPose();
-            poseStack.translate(at.x - camera.x, at.y - camera.y, at.z - camera.z);
-            poseStack.mulPose(facing);
-            drawTag(poseStack, buffers, minecraft.font, tags.get(index), scale, alpha, discovered, showAmounts);
-            poseStack.popPose();
+        if (aspects.isEmpty() || scale <= 0.0F) {
+            return;
         }
+        float tagSize = scale * TAG_SIZE_FACTOR;
+        Vec3 camera = minecraft.gameRenderer.getMainCamera().position();
+        Vec3 anchor = cloudAnchor(x, y, z, face, tagSize);
+        float yaw = (float) Mth.atan2(camera.x - anchor.x, camera.z - anchor.z);
+        MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
+        List<AspectInstance> entries = aspects.sortedByTag();
+        poseStack.pushPose();
+        poseStack.translate(anchor.x - camera.x, anchor.y - camera.y, anchor.z - camera.z);
+        poseStack.mulPose(Axis.YP.rotation(yaw));
+        for (int i = 0; i < entries.size(); i++) {
+            AspectInstance entry = entries.get(i);
+            int row = i / ROW_SIZE;
+            int inRow = Math.min(ROW_SIZE, entries.size() - row * ROW_SIZE);
+            float tagX = rowSlide(i % ROW_SIZE, inRow) * tagSize * SPACING_FACTOR;
+            float tagY = row * tagSize * ROW_HEIGHT_FACTOR;
+            Holder<IAspect> aspect = entry.aspect();
+            if (!aspect.isBound()) {
+                continue;
+            }
+            drawTag(poseStack, buffers, aspect, discovered.test(aspect), tagX, tagY, tagSize, alpha);
+            if (showAmounts) {
+                drawAmount(poseStack, buffers, minecraft.font, entry.amount(), tagX, tagY, tagSize);
+            }
+        }
+        poseStack.popPose();
         buffers.endBatch();
     }
 
-    private static double rowSlide(int column, int rowCount, float scale) {
-        return (column - rowCount / 2.0 + HALF) * SPACING_FACTOR * scale * scale;
+    private static float rowSlide(int column, int inRow) {
+        return column - (inRow - 1) * HALF;
+    }
+
+    private static Vec3 cloudAnchor(double x, double y, double z, @Nullable Direction face, float tagSize) {
+        Vec3 centre = new Vec3(x + HALF, y + HALF, z + HALF);
+        if (face == null) {
+            return centre;
+        }
+        double reach = tagSize * FACE_REACH_FACTOR;
+        return centre.add(face.getStepX() * reach, face.getStepY() * reach, face.getStepZ() * reach);
+    }
+
+    private static void drawTag(PoseStack poseStack, MultiBufferSource buffers, Holder<IAspect> aspect, boolean known, float tagX, float tagY, float tagSize, float alpha) {
+        Identifier texture = known ? aspect.value().texture() : UNKNOWN_TEXTURE;
+        int color = known ? AspectTagRenderer.colorOf(aspect.value(), alpha, false) : AspectTagRenderer.colorOf(aspect.value(), UNKNOWN_ALPHA, false);
+        poseStack.pushPose();
+        poseStack.translate(tagX, tagY, 0.0F);
+        poseStack.scale(tagSize, tagSize, tagSize);
+        renderQuad(poseStack.last(), buffers.getBuffer(billboardType(texture, BlendMode.ALPHA)), color, LightCoordsUtil.FULL_BRIGHT);
+        poseStack.popPose();
+    }
+
+    private static void drawAmount(PoseStack poseStack, MultiBufferSource buffers, Font font, int amount, float tagX, float tagY, float tagSize) {
+        String digits = Integer.toString(amount);
+        float textX = AMOUNT_PEN_OVERHANG - font.width(digits);
+        float textY = AMOUNT_TEXT_TOP;
+        drawDigits(poseStack, buffers, font, digits, tagX + AMOUNT_RIGHT * tagSize, tagY + AMOUNT_BOTTOM * tagSize, tagSize, DARK_LIFT, textX + SHADOW_STEP, textY + SHADOW_STEP, AMOUNT_SHADOW_COLOR);
+        drawDigits(poseStack, buffers, font, digits, tagX + AMOUNT_RIGHT * tagSize, tagY + AMOUNT_BOTTOM * tagSize, tagSize, WHITE_LIFT, textX, textY, AMOUNT_COLOR);
+    }
+
+    private static void drawDigits(PoseStack poseStack, MultiBufferSource buffers, Font font, String digits, float cornerX, float cornerY, float tagSize, float lift, float textX, float textY, int color) {
+        float pixel = tagSize * TEXT_PIXEL;
+        poseStack.pushPose();
+        poseStack.translate(cornerX, cornerY, lift);
+        poseStack.scale(pixel, -pixel, -pixel);
+        font.drawInBatch(digits, textX, textY, color, false, poseStack.last().pose(), buffers, Font.DisplayMode.NORMAL, NO_BACKGROUND, LightCoordsUtil.FULL_BRIGHT);
+        poseStack.popPose();
     }
 
     private static RenderType billboardType(Identifier texture, BlendMode blend) {
@@ -89,15 +137,6 @@ public final class AspectTagWorldRenderer {
             case ADDITIVE -> TTFlatRenderTypes.entityAdditiveFlat(texture);
             case ALPHA -> TTFlatRenderTypes.entityTranslucentFlat(texture);
         };
-    }
-
-    private static Vec3 cloudAnchor(double baseX, double baseY, double baseZ, @Nullable Direction face, float scale) {
-        Vec3 center = new Vec3(baseX + HALF, baseY + HALF, baseZ + HALF);
-        if (face == null) {
-            return center;
-        }
-        double reach = FACE_REACH_FACTOR * scale;
-        return center.add(face.getStepX() * reach, face.getStepY() * reach, face.getStepZ() * reach);
     }
 
     public static void renderBillboard(PoseStack poseStack, MultiBufferSource buffers, Holder<IAspect> aspect, float scale, float alpha, boolean monochrome, int packedLight) {
@@ -141,33 +180,6 @@ public final class AspectTagWorldRenderer {
         poseStack.scale(scale, scale, scale);
         renderQuad(poseStack.last(), buffer, color, packedLight);
         poseStack.popPose();
-    }
-
-    private static void drawTag(PoseStack poseStack, MultiBufferSource.BufferSource buffers, Font font, AspectInstance entry, float scale, float alpha, Predicate<Holder<IAspect>> discovered, boolean showAmounts) {
-        Holder<IAspect> aspect = entry.aspect();
-        boolean known = discovered.test(aspect);
-        Identifier texture = known ? aspect.value().texture() : UNKNOWN_TEXTURE;
-        int color = AspectTagRenderer.colorOf(aspect.value(), known ? alpha : UNKNOWN_ALPHA, false);
-        drawScaledQuad(poseStack, buffers.getBuffer(TTFlatRenderTypes.entityTranslucentFlat(texture)), scale, color, LightCoordsUtil.FULL_BRIGHT);
-        if (showAmounts) {
-            drawAmount(poseStack, buffers, font, Integer.toString(entry.amount()), scale);
-        }
-    }
-
-    private static void drawAmount(PoseStack poseStack, MultiBufferSource.BufferSource buffers, Font font, String text, float scale) {
-        float pixel = TEXT_PIXEL * scale;
-        float width = font.width(text);
-        for (boolean shadow : SHADOW_THEN_FACE) {
-            float nudgeX = shadow ? pixel : 0.0F;
-            float nudgeY = shadow ? -pixel : 0.0F;
-            float lift = (shadow ? DARK_LIFT : WHITE_LIFT) * scale;
-            drawDigits(poseStack, buffers, font, text, width, AMOUNT_RIGHT * scale + nudgeX, -AMOUNT_TOP * scale + nudgeY, lift, pixel, shadow ? AMOUNT_SHADOW_COLOR : AMOUNT_COLOR);
-        }
-    }
-
-    private static void drawDigits(PoseStack poseStack, MultiBufferSource.BufferSource buffers, Font font, String text, float width, float right, float top, float lift, float pixel, int color) {
-        Matrix4f matrix = new Matrix4f(poseStack.last().pose()).translate(right, top, lift).scale(pixel, -pixel, pixel);
-        font.drawInBatch(text, -width, 0.0F, color, false, matrix, buffers, Font.DisplayMode.NORMAL, NO_BACKGROUND, LightCoordsUtil.FULL_BRIGHT);
     }
 
     private static void quadVertex(PoseStack.Pose pose, VertexConsumer buffer, float[] corner, int color, int light) {

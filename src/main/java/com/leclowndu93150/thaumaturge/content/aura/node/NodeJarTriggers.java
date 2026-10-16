@@ -1,13 +1,11 @@
 package com.leclowndu93150.thaumaturge.content.aura.node;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.casters.CasterTriggerRegistry;
-import com.leclowndu93150.thaumaturge.api.casters.ICasterTriggerManager;
+import com.leclowndu93150.thaumaturge.api.casters.CasterBlockAction;
+import com.leclowndu93150.thaumaturge.api.casters.CasterBlockActions;
+import com.leclowndu93150.thaumaturge.api.casters.CasterBlockUse;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -16,26 +14,24 @@ import net.neoforged.neoforge.common.Tags;
 import org.jspecify.annotations.Nullable;
 
 @EventBusSubscriber(modid = TTIds.MODID)
-public final class NodeJarTriggers implements ICasterTriggerManager {
-    private static final int EVENT_JAR_NODE = 0;
-
+public final class NodeJarTriggers implements CasterBlockAction {
     private NodeJarTriggers() {}
 
     @SubscribeEvent
     public static void onCommonSetup(FMLCommonSetupEvent event) {
-        CasterTriggerRegistry.registerCasterBlockTagTrigger(new NodeJarTriggers(), EVENT_JAR_NODE, Tags.Blocks.GLASS_BLOCKS);
+        CasterBlockActions.onTag(Tags.Blocks.GLASS_BLOCKS, new NodeJarTriggers());
     }
 
     @Override
-    public boolean performTrigger(Level level, ItemStack casterStack, Player player, BlockPos pos, Direction side, int event) {
-        BlockPos nodePos = findEnclosedNode(level, pos);
+    public boolean handle(CasterBlockUse use) {
+        BlockPos nodePos = findEnclosedNode(use.level(), use.pos());
         if (nodePos == null) {
             return false;
         }
-        if (!(level instanceof ServerLevel serverLevel)) {
+        if (!(use.level() instanceof ServerLevel serverLevel)) {
             return true;
         }
-        return NodeJarRitual.tryJarNode(serverLevel, nodePos, player);
+        return NodeJarRitual.tryJarNode(serverLevel, nodePos, use.player());
     }
 
     private static @Nullable BlockPos findEnclosedNode(Level level, BlockPos clicked) {

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import org.jspecify.annotations.Nullable;
 
@@ -34,8 +35,9 @@ final class InfusionRecipePanel implements RecipePanel {
     private static final int RING_CENTER_Y = -8;
     private static final int RING_RADIUS = 40;
     private static final int RING_ITEM_HALF = 8;
-    private static final double RING_START_DEGREES = -90.0;
-    private static final double FULL_TURN_DEGREES = 360.0;
+    private static final float RING_START_DEGREES = -90.0F;
+    private static final float FULL_TURN_DEGREES = 360.0F;
+    private static final float HALF_TURN_DEGREES = 180.0F;
     private static final int INSTABILITY_OFFSET_Y = 94;
     private static final int INSTABILITY_PER_LEVEL = 2;
     private static final int MAX_INSTABILITY_LEVEL = 5;
@@ -77,9 +79,10 @@ final class InfusionRecipePanel implements RecipePanel {
         context.collect(hits, context.pick(catalyst, 0), CATALYST_X, CATALYST_Y);
         int count = components.size();
         for (int i = 0; i < count; i++) {
-            double angle = Math.toRadians(RING_START_DEGREES + FULL_TURN_DEGREES / count * i);
-            int offsetX = (int) (Math.cos(angle) * RING_RADIUS) - RING_ITEM_HALF;
-            int offsetY = RING_CENTER_Y + (int) (Math.sin(angle) * RING_RADIUS) - RING_ITEM_HALF;
+            float degrees = RING_START_DEGREES + FULL_TURN_DEGREES / count * i;
+            float angle = degrees / HALF_TURN_DEGREES * Mth.PI;
+            int offsetX = (int) (Mth.cos(angle) * RING_RADIUS) - RING_ITEM_HALF;
+            int offsetY = RING_CENTER_Y + (int) (Mth.sin(angle) * RING_RADIUS) - RING_ITEM_HALF;
             context.collect(hits, context.pick(components.get(i), i + 1), offsetX, offsetY);
         }
         return hits;

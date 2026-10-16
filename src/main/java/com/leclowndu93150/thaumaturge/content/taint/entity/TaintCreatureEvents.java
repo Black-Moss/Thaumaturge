@@ -22,6 +22,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerExplosion;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.common.Tags;
@@ -54,9 +55,10 @@ public final class TaintCreatureEvents {
         }
         event.setCanceled(true);
         level.explode(creeper, creeper.getX(), creeper.getY(BODY_MIDDLE), creeper.getZ(), REPLACEMENT_RADIUS, false, Level.ExplosionInteraction.NONE);
-        AABB reach = creeper.getBoundingBox().inflate(BLAST_RANGE);
+        Vec3 feet = creeper.position();
+        AABB reach = new AABB(feet, feet).inflate(BLAST_RANGE);
         for (LivingEntity victim : level.getEntitiesOfClass(LivingEntity.class, reach)) {
-            if (isBlastVictim(creeper, victim)) {
+            if (isBlastVictim(victim)) {
                 FluxTaintExposure.expose(victim, BLAST_DURATION, false, true);
             }
         }
@@ -128,8 +130,8 @@ public final class TaintCreatureEvents {
         return MobTraits.has(creeper, TTMobTraits.TAINT_BLAST.getKey()) ? creeper : null;
     }
 
-    private static boolean isBlastVictim(Creeper creeper, LivingEntity victim) {
-        return victim.distanceTo(creeper) <= BLAST_RANGE && !MobTraits.isTainted(victim) && !victim.is(EntityTypeTags.UNDEAD);
+    private static boolean isBlastVictim(LivingEntity victim) {
+        return !MobTraits.isTainted(victim) && !victim.is(EntityTypeTags.UNDEAD);
     }
 
     private static boolean isBrood(LivingEntity living) {

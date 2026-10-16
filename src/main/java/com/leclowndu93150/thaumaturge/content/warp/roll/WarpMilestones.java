@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.warp.roll;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.warp.WarpNotices;
 import java.util.List;
@@ -24,13 +24,13 @@ public final class WarpMilestones {
     private WarpMilestones() {}
 
     public static void review(ServerPlayer player, int actualWarp) {
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
-        if (actualWarp > HEADACHE_THRESHOLD && !knowledge.isResearchKnown(BATH_SALTS) && !knowledge.isResearchKnown(BATH_SALTS_HINT)) {
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
+        if (actualWarp > HEADACHE_THRESHOLD && !knowledge.knows(BATH_SALTS) && !knowledge.knows(BATH_SALTS_HINT)) {
             WarpNotices.send(player, HEADACHE_NOTICE);
             ResearchManager.complete(player, BATH_SALTS_HINT);
         }
         for (Threshold threshold : ELDRITCH_THRESHOLDS) {
-            if (actualWarp > threshold.above() && !knowledge.isResearchKnown(threshold.research())) {
+            if (actualWarp > threshold.above() && !knowledge.knows(threshold.research())) {
                 ResearchManager.complete(player, threshold.research());
             }
         }

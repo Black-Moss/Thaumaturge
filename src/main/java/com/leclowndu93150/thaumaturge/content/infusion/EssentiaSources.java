@@ -3,8 +3,9 @@ package com.leclowndu93150.thaumaturge.content.infusion;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectSource;
-import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.effect.EffectDispatch;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -138,8 +139,12 @@ public final class EssentiaSources {
     }
 
     private static int suction(ServerLevel level, BlockPos pos, Holder<IAspect> aspect) {
-        IEssentiaTransport transport = level.getCapability(EssentiaCapabilities.TRANSPORT, pos, null);
-        return transport != null && aspect.equals(transport.getSuctionType(null)) ? transport.getSuctionAmount(null) : 0;
+        IEssentiaConduit conduit = EssentiaAccess.conduit(level, pos, null);
+        if (conduit == null) {
+            return 0;
+        }
+        EssentiaPull pull = conduit.pull(null);
+        return aspect.equals(pull.aspect()) ? pull.strength() : 0;
     }
 
     private List<BlockPos> scan(ServerLevel level) {
@@ -149,34 +154,55 @@ public final class EssentiaSources {
         int maxY = owner.getY() + range;
         int minZ = owner.getZ() - range;
         int maxZ = owner.getZ() + range;
-        if (facing != null) {
-            int step = facing.getAxisDirection().getStep();
-            int near = 0;
-            int far = step * (range - 1);
-            int low = owner.get(facing.getAxis()) + Math.min(near, far);
-            int high = owner.get(facing.getAxis()) + Math.max(near, far);
-            switch (facing.getAxis()) {
-                case X -> {
-                    minX = low;
-                    maxX = high;
-                }
-                case Y -> {
-                    minY = low;
-                    maxY = high;
-                }
-                case Z -> {
-                    minZ = low;
-                    maxZ = high;
+        List<BlockPos> found = new ArrayList<>();
+        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
+        if (facing == null) {
+            for (int x = minX; x <= maxX; x++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        consider(level, cursor.set(x, y, z), found);
+                    }
                 }
             }
+            return found;
         }
-        List<BlockPos> found = new ArrayList<>();
-        for (BlockPos pos : BlockPos.betweenClosed(minX, minY, minZ, maxX, maxY, maxZ)) {
-            if (!pos.equals(owner) && level.hasChunkAt(pos) && level.getCapability(AspectCapabilities.CONTAINER, pos, null) instanceof IAspectSource && !rejected(level, pos)) {
-                found.add(pos.immutable());
+        int step = facing.getAxisDirection().getStep();
+        switch (facing.getAxis()) {
+            case Y -> {
+                for (int x = minX; x <= maxX; x++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        for (int layer = 0; layer < range; layer++) {
+                            consider(level, cursor.set(x, owner.getY() + step * layer, z), found);
+                        }
+                    }
+                }
+            }
+            case Z -> {
+                for (int x = minX; x <= maxX; x++) {
+                    for (int y = minY; y <= maxY; y++) {
+                        for (int layer = 0; layer < range; layer++) {
+                            consider(level, cursor.set(x, y, owner.getZ() + step * layer), found);
+                        }
+                    }
+                }
+            }
+            case X -> {
+                for (int y = minY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        for (int layer = 0; layer < range; layer++) {
+                            consider(level, cursor.set(owner.getX() + step * layer, y, z), found);
+                        }
+                    }
+                }
             }
         }
         return found;
+    }
+
+    private void consider(ServerLevel level, BlockPos pos, List<BlockPos> found) {
+        if (!pos.equals(owner) && level.hasChunkAt(pos) && level.getCapability(AspectCapabilities.CONTAINER, pos, null) instanceof IAspectSource && !rejected(level, pos)) {
+            found.add(pos.immutable());
+        }
     }
 
     private boolean rejected(ServerLevel level, BlockPos pos) {

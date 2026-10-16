@@ -9,9 +9,11 @@ import net.minecraft.util.RandomSource;
 public final class TaintFumeParticle extends TTParticle {
     private static final int FRAME_COUNT = 3;
     private static final float SIZE_UNIT = 0.1F;
+    private static final int FIXED_LIFETIME_BASE = 10;
+    private static final int FIXED_LIFETIME_RANGE = 10;
+    private static final float FIXED_FRICTION = 0.9F;
+    private static final float FIXED_GRAVITY = 0.0F;
     private static final float END_SIZE_FACTOR = 0.25F;
-    private static final float ALPHA_SCALE = 0.75F;
-    private static final float SPIN_SPEED = 1.0F;
     private static final float RANDOM_RED_BASE = 0.4F;
     private static final float RANDOM_RED_RANGE = 0.2F;
     private static final float RANDOM_GREEN_BASE = 0.1F;
@@ -22,10 +24,8 @@ public final class TaintFumeParticle extends TTParticle {
     private static final int RANDOM_LIFETIME_RANGE = 20;
     private static final float RANDOM_FRICTION = 0.975F;
     private static final float RANDOM_GRAVITY = 0.2F;
-    private static final int FIXED_LIFETIME_BASE = 10;
-    private static final int FIXED_LIFETIME_RANGE = 10;
-    private static final float FIXED_FRICTION = 0.9F;
-    private static final float FIXED_GRAVITY = 0.0F;
+    private static final float ALPHA_SCALE = 0.75F;
+    private static final float SPIN_SPEED = 1.0F;
 
     private final float startSize;
     private final float endSize;

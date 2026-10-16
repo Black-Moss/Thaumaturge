@@ -35,6 +35,7 @@ public final class TravellerBootsItem extends Item {
     private static final Identifier STEP_MODIFIER_ID = TTIds.rl("traveller_step");
     private static final Identifier JUMP_MODIFIER_ID = TTIds.rl("traveller_jump");
     private static final Vec3 FORWARD = new Vec3(0.0, 0.0, 1.0);
+    private static final int EMPTY_ENERGY = 0;
 
     public TravellerBootsItem(Properties properties) {
         super(properties.component(TTDataComponents.RECHARGEABLE.get(), new ChargeProfile(CHARGE_CAPACITY, ChargeDisplay.ON_CHANGE)));
@@ -54,39 +55,50 @@ public final class TravellerBootsItem extends Item {
         if (player.tickCount % TICKS_PER_SECOND == 0) {
             upkeepEnergy(stack, player);
         }
-        boolean active = RechargeAccess.getCharge(stack) > 0 && !player.getAbilities().flying && !player.isShiftKeyDown();
-        if (active) {
-            addModifier(player, Attributes.STEP_HEIGHT, STEP_MODIFIER_ID, STEP_BONUS);
+        refreshMovementBoosts(stack, player);
+    }
+
+    private static void upkeepEnergy(ItemStack stack, ServerPlayer player) {
+        int energy = stack.getOrDefault(TTDataComponents.ENERGY.get(), EMPTY_ENERGY);
+        if (energy > EMPTY_ENERGY) {
+            stack.set(TTDataComponents.ENERGY.get(), energy - 1);
+        } else if (RechargeAccess.spendVis(stack, CHARGE_PER_REFILL)) {
+            stack.set(TTDataComponents.ENERGY.get(), ENERGY_SECONDS_PER_CHARGE);
+        }
+    }
+
+    private static boolean isCharged(ItemStack boots) {
+        return RechargeAccess.storedVis(boots) >= CHARGE_PER_REFILL;
+    }
+
+    private static boolean isActive(Player player, ItemStack boots) {
+        return isCharged(boots) && !player.getAbilities().flying && !player.isShiftKeyDown();
+    }
+
+    private static void refreshMovementBoosts(ItemStack boots, ServerPlayer player) {
+        if (isActive(player, boots)) {
             addModifier(player, Attributes.JUMP_STRENGTH, JUMP_MODIFIER_ID, JUMP_BONUS);
+            addModifier(player, Attributes.STEP_HEIGHT, STEP_MODIFIER_ID, STEP_BONUS);
         } else {
             clearMovementBoosts(player);
+        }
+    }
+
+    public static void clientMovementTick(Player player, ItemStack boots) {
+        if (!isCharged(boots) || player.getAbilities().flying || player.isPassenger() || player.zza <= 0.0F) {
+            return;
+        }
+        if (player.onGround()) {
+            float push = player.isInWater() ? GROUND_ACCELERATION / WATER_ACCELERATION_DIVISOR : GROUND_ACCELERATION;
+            player.moveRelative(push, FORWARD);
+        } else if (player.isInWater()) {
+            player.moveRelative(WATER_AIR_ACCELERATION, FORWARD);
         }
     }
 
     static void clearMovementBoosts(ServerPlayer player) {
         removeModifier(player, Attributes.STEP_HEIGHT, STEP_MODIFIER_ID);
         removeModifier(player, Attributes.JUMP_STRENGTH, JUMP_MODIFIER_ID);
-    }
-
-    public static void clientMovementTick(Player player, ItemStack boots) {
-        if (RechargeAccess.getCharge(boots) <= 0 || player.getAbilities().flying || player.zza <= 0.0F) {
-            return;
-        }
-        boolean inWater = player.isInWater();
-        if (player.onGround()) {
-            player.moveRelative(inWater ? GROUND_ACCELERATION / WATER_ACCELERATION_DIVISOR : GROUND_ACCELERATION, FORWARD);
-        } else if (inWater) {
-            player.moveRelative(WATER_AIR_ACCELERATION, FORWARD);
-        }
-    }
-
-    private static void upkeepEnergy(ItemStack stack, ServerPlayer player) {
-        int energy = stack.getOrDefault(TTDataComponents.ENERGY.get(), 0);
-        if (energy > 0) {
-            stack.set(TTDataComponents.ENERGY.get(), energy - 1);
-        } else if (RechargeAccess.consumeCharge(stack, player, CHARGE_PER_REFILL)) {
-            stack.set(TTDataComponents.ENERGY.get(), ENERGY_SECONDS_PER_CHARGE);
-        }
     }
 
     private static void addModifier(ServerPlayer player, Holder<Attribute> attribute, Identifier id, double amount) {

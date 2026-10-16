@@ -105,7 +105,7 @@ public class CrucibleRecipe implements Recipe<CrucibleRecipeInput>, ResearchGate
 
     @Override
     public List<RecipeDisplay> display() {
-        return List.of(new CrucibleRecipeDisplay(catalyst.display(), aspects, new SlotDisplay.ItemSlotDisplay(result.item())));
+        return List.of(new CrucibleRecipeDisplay(catalyst.display(), aspects, new SlotDisplay.ItemStackSlotDisplay(result)));
     }
 
     @Override

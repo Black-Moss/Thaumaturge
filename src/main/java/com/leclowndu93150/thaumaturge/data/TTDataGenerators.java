@@ -55,6 +55,7 @@ import com.leclowndu93150.thaumaturge.data.tag.TTBlockTagsProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TTDamageTypeTagsProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TTEntityTypeTagsProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TTItemTagsProvider;
+import com.leclowndu93150.thaumaturge.data.tag.TTFluidTagsProvider;
 import com.leclowndu93150.thaumaturge.data.tag.TTMobEffectTagsProvider;
 import com.leclowndu93150.thaumaturge.data.worldgen.aspect.AspectBootstrap;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TTBiomeModifiers;
@@ -122,6 +123,7 @@ public final class TTDataGenerators {
         event.createProvider(TTDamageTypeTagsProvider::new);
         event.createProvider(TTBiomeTagsProvider::new);
         event.createProvider(TTMobEffectTagsProvider::new);
+        event.createProvider(TTFluidTagsProvider::new);
         event.createProvider(TTEntityTypeTagsProvider::new);
         event.createProvider(TTLabyrinthRoomTagsProvider::new);
 

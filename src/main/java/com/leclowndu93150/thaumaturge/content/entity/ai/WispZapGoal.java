@@ -14,20 +14,18 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 public final class WispZapGoal extends Goal {
-    private static final double APPROACH_DISTANCE_SQR = 128.0;
-    private static final double APPROACH_EYE_FRACTION = 2.0 / 3.0;
-    private static final double APPROACH_SPEED = 1.0;
-    private static final double CHARGE_RANGE = 16.0;
-    private static final double CHARGE_RANGE_SQR = CHARGE_RANGE * CHARGE_RANGE;
-    private static final int CHARGE_TICKS = 20;
-    private static final int RECHARGE_MIN_TICKS = 1;
-    private static final int RECHARGE_SPREAD_TICKS = 20;
-    private static final float ZAP_VOLUME = 1.0F;
-    private static final float ZAP_PITCH = 1.1F;
-    private static final double STILL_SPEED = 0.1;
+    private static final double ZAP_RANGE_SQR = 16.0 * 16.0;
+    private static final double HOVER_RANGE_SQR = 16.0 * 16.0 / 2.0;
+    private static final double AIM_HEIGHT_FRACTION = 0.66;
+    private static final double CHASE_SPEED = 1.0;
+    private static final int CHARGE_TO_FIRE = 20;
+    private static final int RECHARGE_SPREAD = 20;
+    private static final double STILL_THRESHOLD = 0.1;
     private static final float STILL_HIT_CHANCE = 0.66F;
     private static final float MOVING_HIT_CHANCE = 0.4F;
     private static final float STILL_DAMAGE_BONUS = 1.0F;
+    private static final float ZAP_VOLUME = 1.0F;
+    private static final float ZAP_PITCH = 1.1F;
 
     private final WispEntity wisp;
     private int charge;
@@ -39,7 +37,8 @@ public final class WispZapGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        return wisp.getTarget() != null;
+        LivingEntity target = wisp.getTarget();
+        return target != null && target.isAlive();
     }
 
     @Override
@@ -48,68 +47,50 @@ public final class WispZapGoal extends Goal {
     }
 
     @Override
-    public void tick() {
-        LivingEntity target = livingTarget();
-        if (target != null) {
-            engage(target);
-        }
-    }
-
-    @Override
     public boolean requiresUpdateEveryTick() {
         return true;
     }
 
-    private LivingEntity livingTarget() {
+    @Override
+    public void tick() {
         LivingEntity target = wisp.getTarget();
-        return target != null && target.isAlive() ? target : null;
-    }
-
-    private void engage(LivingEntity target) {
-        boolean visible = wisp.hasLineOfSight(target);
-        double distanceSqr = wisp.distanceToSqr(target);
-        if (visible && distanceSqr > APPROACH_DISTANCE_SQR) {
-            moveTowards(target);
-        }
-        if (visible && distanceSqr < CHARGE_RANGE_SQR) {
-            chargeUp(target);
-        } else {
-            discharge();
-        }
-    }
-
-    private void moveTowards(LivingEntity target) {
-        double aimY = target.getY() + target.getEyeHeight() * APPROACH_EYE_FRACTION;
-        wisp.getMoveControl().setWantedPosition(target.getX(), aimY, target.getZ(), APPROACH_SPEED);
-    }
-
-    private void chargeUp(LivingEntity target) {
-        charge++;
-        if (charge != CHARGE_TICKS || !(wisp.level() instanceof ServerLevel level)) {
+        if (target == null) {
             return;
         }
-        zap(level, target);
-        charge = -RECHARGE_MIN_TICKS - wisp.getRandom().nextInt(RECHARGE_SPREAD_TICKS);
+        boolean visible = wisp.getSensing().hasLineOfSight(target);
+        double distanceSqr = wisp.distanceToSqr(target);
+        if (visible) {
+            steer(target, distanceSqr);
+        }
+        if (distanceSqr > ZAP_RANGE_SQR || !visible) {
+            charge = charge > 0 ? charge - 1 : charge;
+            return;
+        }
+        if (++charge == CHARGE_TO_FIRE && wisp.level() instanceof ServerLevel level) {
+            zap(level, target);
+        }
     }
 
-    private void discharge() {
-        if (charge > 0) {
-            charge--;
+    private void steer(LivingEntity target, double distanceSqr) {
+        if (distanceSqr > HOVER_RANGE_SQR) {
+            wisp.getMoveControl().setWantedPosition(target.getX(), target.getY() + target.getEyeHeight() * AIM_HEIGHT_FRACTION, target.getZ(), CHASE_SPEED);
         }
     }
 
     private void zap(ServerLevel level, LivingEntity target) {
-        level.playSound(null, wisp.getX(), wisp.getY(), wisp.getZ(), TTSounds.ZAP.get(), SoundSource.HOSTILE, ZAP_VOLUME, ZAP_PITCH);
-        PacketDistributor.sendToPlayersTrackingEntity(wisp, new ClientboundWispZapPayload(wisp.getId(), target.getId()));
         RandomSource random = wisp.getRandom();
-        boolean still = isStill(target.getDeltaMovement());
-        float damage = (float) wisp.getAttributeValue(Attributes.ATTACK_DAMAGE);
-        if (random.nextFloat() < (still ? STILL_HIT_CHANCE : MOVING_HIT_CHANCE)) {
-            target.hurtServer(level, wisp.damageSources().mobAttack(wisp), still ? damage + STILL_DAMAGE_BONUS : damage);
+        level.playSound(null, wisp.getX(), wisp.getY(), wisp.getZ(), TTSounds.ZAP.get(), SoundSource.HOSTILE, ZAP_VOLUME, ZAP_PITCH);
+        PacketDistributor.sendToPlayersTrackingEntityAndSelf(wisp, new ClientboundWispZapPayload(wisp.getId(), target.getId()));
+        boolean still = isStill(target.getKnownMovement());
+        float chance = still ? STILL_HIT_CHANCE : MOVING_HIT_CHANCE;
+        if (random.nextFloat() < chance) {
+            float damage = (float) wisp.getAttributeValue(Attributes.ATTACK_DAMAGE) + (still ? STILL_DAMAGE_BONUS : 0.0F);
+            target.hurtServer(level, wisp.damageSources().mobAttack(wisp), damage);
         }
+        charge = -1 - random.nextInt(RECHARGE_SPREAD);
     }
 
     private static boolean isStill(Vec3 motion) {
-        return Math.abs(motion.x) <= STILL_SPEED && Math.abs(motion.y) <= STILL_SPEED && Math.abs(motion.z) <= STILL_SPEED;
+        return Math.abs(motion.x) <= STILL_THRESHOLD && Math.abs(motion.y) <= STILL_THRESHOLD && Math.abs(motion.z) <= STILL_THRESHOLD;
     }
 }

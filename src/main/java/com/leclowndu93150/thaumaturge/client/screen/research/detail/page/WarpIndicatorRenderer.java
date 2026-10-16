@@ -14,6 +14,7 @@ import net.minecraft.world.entity.player.Player;
 public final class WarpIndicatorRenderer {
     private static final Identifier NODE_TEXTURE = TTIds.rl("textures/misc/auranodes.png");
     private static final int MAX_WARP_LEVEL = 5;
+    private static final int ANCHOR_OFFSET_Y = 18;
     private static final int NODE_OFFSET_X = -57;
     private static final int NODE_OFFSET_Y = -40;
     private static final int LABEL_OFFSET_X = -56;
@@ -41,7 +42,7 @@ public final class WarpIndicatorRenderer {
             return;
         }
         int anchorX = frame.left();
-        int anchorY = PageTextLayout.titleBottom(frame);
+        int anchorY = frame.top() + ANCHOR_OFFSET_Y;
         drawNode(graphics, frame, anchorX + NODE_OFFSET_X, anchorY + NODE_OFFSET_Y);
         Component level = Component.translatable("gui.thaumaturge.thaumonomicon.warp_level." + warp);
         graphics.text(frame.font(), level, anchorX + LABEL_OFFSET_X - frame.font().width(level) / 2, anchorY + LABEL_OFFSET_Y, LABEL_COLOR, false);

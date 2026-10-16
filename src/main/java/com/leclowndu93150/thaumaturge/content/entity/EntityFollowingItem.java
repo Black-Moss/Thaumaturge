@@ -42,6 +42,7 @@ public final class EntityFollowingItem extends ItemEntity implements IEntityWith
         this(TTEntities.FOLLOWING_ITEM.get(), level);
         this.setPos(x, y, z);
         this.setItem(stack);
+        this.lifespan = stack.getEntityLifespan(level);
         this.setYRot(this.random.nextFloat() * FULL_TURN_DEGREES);
         engage(collector);
     }

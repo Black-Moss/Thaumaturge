@@ -5,23 +5,23 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
-import java.util.stream.Stream;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
 public final class HexGrid {
-    public static final int[][] NEIGHBOURS = {{1, 0}, {1, -1}, {0, -1}, {-1, 0}, {-1, 1}, {0, 1}};
 
-    private static final int DIRECTIONS = 6;
+    public static final int DIRECTIONS = 6;
+    private static final int[] STEP_Q = {1, 0, -1, -1, 0, 1};
+    private static final int[] STEP_R = {0, 1, 1, 0, -1, -1};
+    private static final int RING_START_DIRECTION = 4;
     private static final float COLUMN_SPACING = 1.5F;
     private static final double SQRT3 = Math.sqrt(3.0);
     private static final double HALF = 0.5;
     private static final int AXIS_Q = 0;
     private static final int AXIS_R = 1;
     private static final int AXIS_S = 2;
+    private static final Hex ORIGIN = new Hex(0, 0);
 
     private HexGrid() {}
 
@@ -30,8 +30,12 @@ public final class HexGrid {
                 .create(instance -> instance.group(Codec.INT.fieldOf("q").forGetter(Hex::q), Codec.INT.fieldOf("r").forGetter(Hex::r)).apply(instance, Hex::new));
 
         public Hex neighbour(int direction) {
-            int[] offset = NEIGHBOURS[Math.floorMod(direction, DIRECTIONS)];
-            return new Hex(q + offset[0], r + offset[1]);
+            return offset(direction, 1);
+        }
+
+        public Hex offset(int direction, int steps) {
+            int side = Math.floorMod(direction, DIRECTIONS);
+            return new Hex(q + STEP_Q[side] * steps, r + STEP_R[side] * steps);
         }
 
         public float pixelX(float size) {
@@ -50,53 +54,62 @@ public final class HexGrid {
     }
 
     public static List<Hex> ring(int radius) {
-        return IntStream.range(0, DIRECTIONS * radius).mapToObj(index -> ringCell(radius, index / radius, index % radius)).collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    private static Hex ringCell(int radius, int side, int offset) {
-        int q = -radius;
-        int r = radius;
-        for (int past = 0; past < side; past++) {
-            q += NEIGHBOURS[past][0] * radius;
-            r += NEIGHBOURS[past][1] * radius;
+        if (radius <= 0) {
+            return List.of(ORIGIN);
         }
-        return new Hex(q + NEIGHBOURS[side][0] * offset, r + NEIGHBOURS[side][1] * offset);
+        List<Hex> cells = new ArrayList<>(DIRECTIONS * radius);
+        Hex cursor = ORIGIN.offset(RING_START_DIRECTION, radius);
+        for (int side = 0; side < DIRECTIONS; side++) {
+            for (int step = 0; step < radius; step++) {
+                cells.add(cursor);
+                cursor = cursor.neighbour(side);
+            }
+        }
+        return cells;
     }
 
     public static List<Hex> disk(int radius) {
-        Stream<Hex> rings = IntStream.rangeClosed(1, radius).boxed().flatMap(layer -> ring(layer).stream());
-        return Stream.concat(Stream.of(new Hex(0, 0)), rings).collect(Collectors.toCollection(ArrayList::new));
+        List<Hex> cells = new ArrayList<>();
+        for (int band = 0; band <= Math.max(0, radius); band++) {
+            cells.addAll(ring(band));
+        }
+        return cells;
     }
 
     public static List<Hex> distributeRing(int radius, int count, RandomSource random) {
-        List<Hex> border = ring(radius);
-        int length = border.size();
-        if (length == 0 || count <= 0) {
-            return new ArrayList<>();
+        List<Hex> outline = ring(radius);
+        int picks = Math.min(count, outline.size());
+        if (picks <= 0) {
+            return List.of();
         }
-        long shift = random.nextInt(length);
-        return IntStream.range(0, count).mapToObj(slot -> border.get(spreadIndex(shift, slot, count, length))).collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    private static int spreadIndex(long shift, int slot, int count, int length) {
-        long doubled = 2L * (shift * count + (long) slot * length) + count;
-        return (int) Math.floorMod(Math.floorDiv(doubled, 2L * count), (long) length);
+        int first = random.nextInt(outline.size());
+        double spacing = (double) outline.size() / picks;
+        return IntStream.range(0, picks).mapToObj(slot -> outline.get(Math.floorMod(first + (int) Math.round(slot * spacing), outline.size()))).toList();
     }
 
     public static Hex pixelToHex(float x, float y, float size) {
-        double[] exact = {x / (COLUMN_SPACING * size), 0.0, 0.0};
-        exact[AXIS_R] = y / (size * SQRT3) - exact[AXIS_Q] * HALF;
-        exact[AXIS_S] = -exact[AXIS_Q] - exact[AXIS_R];
+        double q = x / (COLUMN_SPACING * size);
+        return nearest(q, y / (size * SQRT3) - q * HALF);
+    }
+
+    public static Hex clampToDisk(Hex hex, int radius) {
+        int reach = distance(hex, ORIGIN);
+        if (reach <= radius) {
+            return hex;
+        }
+        double shrink = (double) Math.max(0, radius) / reach;
+        Hex pulled = nearest(hex.q() * shrink, hex.r() * shrink);
+        while (distance(pulled, ORIGIN) > radius) {
+            pulled = nearest(pulled.q() * shrink, pulled.r() * shrink);
+        }
+        return pulled;
+    }
+
+    private static Hex nearest(double q, double r) {
+        double[] exact = {q, r, -q - r};
         long[] snapped = Arrays.stream(exact).mapToLong(Math::round).toArray();
         int worst = IntStream.of(AXIS_S, AXIS_R, AXIS_Q).reduce((best, axis) -> Math.abs(snapped[axis] - exact[axis]) > Math.abs(snapped[best] - exact[best]) ? axis : best).getAsInt();
         snapped[worst] = -(LongStream.of(snapped).sum() - snapped[worst]);
         return new Hex((int) snapped[AXIS_Q], (int) snapped[AXIS_R]);
-    }
-
-    public static Hex clampToDisk(Hex hex, int radius) {
-        if (distance(hex, new Hex(0, 0)) <= radius) {
-            return hex;
-        }
-        return new Hex(Mth.clamp(hex.q(), -radius, radius), Mth.clamp(hex.r(), -radius, radius));
     }
 }

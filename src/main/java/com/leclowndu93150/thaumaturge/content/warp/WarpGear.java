@@ -6,6 +6,7 @@ import com.leclowndu93150.thaumaturge.api.warp.ItemWarp;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTDataMaps;
+import java.util.Arrays;
 import java.util.List;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.ModList;
 
 public final class WarpGear {
-    private static final List<EquipmentSlot> WORN_SLOTS = List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET, EquipmentSlot.BODY);
+    private static final List<EquipmentSlot> WORN_SLOTS = Arrays.stream(EquipmentSlot.values()).filter(EquipmentSlot::isArmor).toList();
     private static final int NO_STACK_WARP = 0;
 
     private WarpGear() {}
@@ -22,11 +23,11 @@ public final class WarpGear {
         if (stack.isEmpty()) {
             return 0;
         }
-        int warp = stack.getOrDefault(TTDataComponents.STACK_WARP, NO_STACK_WARP);
+        int warp = stack.getOrDefault(TTDataComponents.STACK_WARP, NO_STACK_WARP) + craftingWarp(stack);
         if (stack.getItem() instanceof IWarpingGear gear) {
             warp += gear.warp(stack, wearer);
         }
-        return warp + craftingWarp(stack);
+        return warp;
     }
 
     public static int craftingWarp(ItemStack stack) {

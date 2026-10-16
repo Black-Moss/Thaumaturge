@@ -13,8 +13,8 @@ final class RiftOutline {
     private static final int MAX_SEGMENTS = Mth.positiveCeilDiv(EntityFluxRift.MAX_RIFT_SIZE, SIZE_PER_SEGMENT);
     private static final double SEGMENT_LENGTH = 0.2;
     private static final double TIP_LENGTH = SEGMENT_LENGTH / 2.0;
-    private static final double TURN_JITTER = 0.22;
-    private static final float RADIUS_PER_SIZE = 0.0012F;
+    private static final float TURN_STANDARD_DEVIATION = 0.33F;
+    private static final double SIZE_PER_RADIUS = 300.0;
     private static final double MIN_HALF_EXTENT = 0.05;
 
     private final List<Vec3> points = new ArrayList<>();
@@ -26,6 +26,7 @@ final class RiftOutline {
     private final Vec3[] outwardTips = new Vec3[MAX_SEGMENTS + 1];
     private final Vec3[] inwardTips = new Vec3[MAX_SEGMENTS + 1];
 
+    private Vec3 startHeading = Vec3.ZERO;
     private boolean grown;
     private int grownSeed;
     private AABB bounds = new AABB(Vec3.ZERO, Vec3.ZERO).inflate(MIN_HALF_EXTENT);
@@ -55,9 +56,17 @@ final class RiftOutline {
 
     private void growArms(int seed) {
         RandomSource random = RandomSource.create(seed);
-        Vec3 heading = randomDirection(random);
-        walk(random, heading, this.outward, this.outwardTips);
-        walk(random, heading.reverse(), this.inward, this.inwardTips);
+        this.startHeading = randomDirection(random);
+        Vec3 rightHeading = this.startHeading;
+        Vec3 leftHeading = this.startHeading.reverse();
+        this.outward[0] = Vec3.ZERO;
+        this.inward[0] = Vec3.ZERO;
+        for (int step = 1; step <= MAX_SEGMENTS; step++) {
+            rightHeading = turn(random, rightHeading);
+            place(this.outward, this.outwardTips, step, rightHeading);
+            leftHeading = turn(random, leftHeading);
+            place(this.inward, this.inwardTips, step, leftHeading);
+        }
         this.grown = true;
         this.grownSeed = seed;
     }
@@ -69,51 +78,46 @@ final class RiftOutline {
         return new Vec3(Math.cos(angle) * ring, y, Math.sin(angle) * ring);
     }
 
-    private static void walk(RandomSource random, Vec3 start, Vec3[] joints, Vec3[] tips) {
-        Vec3 heading = start;
-        joints[0] = Vec3.ZERO;
-        tips[0] = Vec3.ZERO;
-        for (int step = 1; step <= MAX_SEGMENTS; step++) {
-            joints[step] = joints[step - 1].add(heading.scale(SEGMENT_LENGTH));
-            heading = turn(random, heading);
-            tips[step] = joints[step].add(heading.scale(TIP_LENGTH));
-        }
+    private static void place(Vec3[] joints, Vec3[] tips, int step, Vec3 heading) {
+        joints[step] = joints[step - 1].add(heading.scale(SEGMENT_LENGTH));
+        tips[step] = joints[step].add(heading.scale(TIP_LENGTH));
     }
 
     private static Vec3 turn(RandomSource random, Vec3 heading) {
-        Vec3 nudged = heading.add(random.nextGaussian() * TURN_JITTER, random.nextGaussian() * TURN_JITTER, random.nextGaussian() * TURN_JITTER);
-        return nudged.lengthSqr() < Mth.EPSILON ? heading : nudged.normalize();
+        float aboutX = (float) random.nextGaussian() * TURN_STANDARD_DEVIATION;
+        float aboutY = (float) random.nextGaussian() * TURN_STANDARD_DEVIATION;
+        return heading.xRot(aboutX).yRot(aboutY);
     }
 
     private void assemble(int size) {
         this.points.clear();
         this.widths.clear();
         int segments = segmentsFor(size);
-        float centreRadius = size * RADIUS_PER_SIZE;
         if (segments == 0) {
-            this.points.add(Vec3.ZERO);
-            this.widths.add(centreRadius);
-            this.bounds = new AABB(Vec3.ZERO, Vec3.ZERO).inflate(MIN_HALF_EXTENT);
+            this.points.add(this.startHeading.reverse().scale(TIP_LENGTH));
+            this.widths.add(0.0F);
+            this.points.add(this.startHeading.scale(TIP_LENGTH));
+            this.widths.add(0.0F);
+            this.bounds = enclose();
             return;
         }
-        double armLength = segments * SEGMENT_LENGTH + TIP_LENGTH;
+        double radiusScale = size / SIZE_PER_RADIUS;
         this.points.add(this.inwardTips[segments]);
         this.widths.add(0.0F);
-        for (int step = segments; step >= 1; step--) {
-            addJoint(this.inward[step], step, armLength, centreRadius);
+        for (int ring = segments; ring >= 1; ring--) {
+            addJoint(this.inward[ring], ring, segments, radiusScale);
         }
-        addJoint(Vec3.ZERO, 0, armLength, centreRadius);
-        for (int step = 1; step <= segments; step++) {
-            addJoint(this.outward[step], step, armLength, centreRadius);
+        for (int ring = 1; ring <= segments; ring++) {
+            addJoint(this.outward[ring], ring, segments, radiusScale);
         }
         this.points.add(this.outwardTips[segments]);
         this.widths.add(0.0F);
         this.bounds = enclose();
     }
 
-    private void addJoint(Vec3 joint, int step, double armLength, float centreRadius) {
+    private void addJoint(Vec3 joint, int ring, int segments, double radiusScale) {
         this.points.add(joint);
-        this.widths.add((float) (centreRadius * (1.0 - step * SEGMENT_LENGTH / armLength)));
+        this.widths.add((float) Math.max(0.0, radiusScale * (1.0 - (double) ring / segments)));
     }
 
     private AABB enclose() {

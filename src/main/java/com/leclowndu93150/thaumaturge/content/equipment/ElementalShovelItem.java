@@ -1,11 +1,12 @@
 package com.leclowndu93150.thaumaturge.content.equipment;
 
-import com.leclowndu93150.thaumaturge.api.items.IArchitect;
+import com.leclowndu93150.thaumaturge.api.items.AreaPreviewer;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -30,7 +31,7 @@ import net.neoforged.neoforge.common.util.BlockSnapshot;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jspecify.annotations.Nullable;
 
-public final class ElementalShovelItem extends Item implements IArchitect {
+public final class ElementalShovelItem extends Item implements AreaPreviewer {
     private static final int ORIENTATION_COUNT = 3;
     private static final int ORIENTATION_PARALLEL = 0;
     private static final int ORIENTATION_VERTICAL = 1;
@@ -48,6 +49,7 @@ public final class ElementalShovelItem extends Item implements IArchitect {
     private static final float PUFF_RED = 128.0F / CHANNEL_MAX;
     private static final float PUFF_GREEN = 51.0F / CHANNEL_MAX;
     private static final float PUFF_BLUE = 0.0F;
+    private static final Map<Direction.Axis, PlaneAxes> PARALLEL_AXES = parallelAxesByNormal();
 
     public ElementalShovelItem(Properties properties) {
         super(properties);
@@ -91,24 +93,24 @@ public final class ElementalShovelItem extends Item implements IArchitect {
     }
 
     @Override
-    public List<BlockPos> previewBlocks(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
+    public List<BlockPos> previewArea(ItemStack stack, Level level, BlockPos pos, Direction side, Player player) {
         List<BlockPos> targets = cells(pos, side, player.getDirection(), getOrientation(stack));
         return fitting(level, targets, level.getBlockState(pos));
     }
 
     @Override
-    public @Nullable HitResult aim(ItemStack stack, Level level, LivingEntity caster) {
+    public @Nullable HitResult traceAnchor(ItemStack stack, Level level, LivingEntity caster) {
         double reach = caster instanceof Player player ? player.blockInteractionRange() : NON_PLAYER_REACH;
         return caster.pick(reach, FULL_PARTIAL_TICK, false);
     }
 
     @Override
-    public boolean replacesBlockHighlight(ItemStack stack) {
+    public boolean hidesBlockOutline(ItemStack stack) {
         return true;
     }
 
     @Override
-    public boolean showsAxis(ItemStack stack, Level level, Player player, Direction side, Direction.Axis axis) {
+    public boolean showsAxisArrows(ItemStack stack, Level level, Player player, Direction side, Direction.Axis axis) {
         return false;
     }
 
@@ -208,8 +210,15 @@ public final class ElementalShovelItem extends Item implements IArchitect {
     }
 
     private static PlaneAxes parallelAxes(Direction.Axis normal) {
-        Direction.Axis[] others = Arrays.stream(Direction.Axis.values()).filter(axis -> axis != normal).toArray(Direction.Axis[]::new);
-        return new PlaneAxes(others[0], others[1]);
+        return PARALLEL_AXES.get(normal);
+    }
+
+    private static Map<Direction.Axis, PlaneAxes> parallelAxesByNormal() {
+        Map<Direction.Axis, PlaneAxes> axes = new EnumMap<>(Direction.Axis.class);
+        axes.put(Direction.Axis.X, new PlaneAxes(Direction.Axis.Z, Direction.Axis.Y));
+        axes.put(Direction.Axis.Y, new PlaneAxes(Direction.Axis.X, Direction.Axis.Z));
+        axes.put(Direction.Axis.Z, new PlaneAxes(Direction.Axis.X, Direction.Axis.Y));
+        return axes;
     }
 
     private record PlaneAxes(Direction.Axis first, Direction.Axis second) {

@@ -13,7 +13,8 @@ public final class StandAndShootGoal extends Goal {
     private static final float POWER_FLOOR = 0.1F;
     private static final float POWER_CEILING = 1.0F;
     private static final float FULL_RANGE = 1.0F;
-    private static final float HEAD_TURN_SPEED = 30.0F;
+    private static final float HEAD_YAW_SPEED = 10.0F;
+    private static final float HEAD_PITCH_SPEED = 30.0F;
     private static final int UNSCHEDULED = -1;
 
     private final Mob shooter;
@@ -47,8 +48,7 @@ public final class StandAndShootGoal extends Goal {
     @Override
     public void start() {
         sightTicks = 0;
-        LivingEntity target = liveTarget();
-        shotCountdown = target == null ? UNSCHEDULED : cadence.interval(rangeFraction(target));
+        shotCountdown = UNSCHEDULED;
     }
 
     @Override
@@ -72,11 +72,11 @@ public final class StandAndShootGoal extends Goal {
         } else {
             shooter.getNavigation().moveTo(target, WALK_SPEED);
         }
-        shooter.getLookControl().setLookAt(target, HEAD_TURN_SPEED, HEAD_TURN_SPEED);
-        advanceCountdown(target, fraction, inRange && visible);
+        shooter.getLookControl().setLookAt(target, HEAD_YAW_SPEED, HEAD_PITCH_SPEED);
+        advanceCountdown(target, fraction);
     }
 
-    private void advanceCountdown(LivingEntity target, float fraction, boolean clearShot) {
+    private void advanceCountdown(LivingEntity target, float fraction) {
         if (shotCountdown == UNSCHEDULED) {
             shotCountdown = cadence.interval(fraction);
             return;
@@ -84,12 +84,16 @@ public final class StandAndShootGoal extends Goal {
         if (--shotCountdown > 0) {
             return;
         }
-        if (!clearShot) {
+        if (!canShootAt(target)) {
             shotCountdown = UNSCHEDULED;
             return;
         }
         trigger.performRangedAttack(target, Mth.clamp(fraction, POWER_FLOOR, POWER_CEILING));
         shotCountdown = cadence.interval(fraction);
+    }
+
+    private boolean canShootAt(LivingEntity target) {
+        return rangeFraction(target) <= FULL_RANGE && shooter.getSensing().hasLineOfSight(target);
     }
 
     private float rangeFraction(LivingEntity target) {

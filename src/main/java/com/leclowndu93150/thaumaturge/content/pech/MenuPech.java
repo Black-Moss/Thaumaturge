@@ -193,7 +193,7 @@ public final class MenuPech extends AbstractContainerMenu {
         if (leftover.isEmpty()) {
             return;
         }
-        Optional.ofNullable(player.drop(leftover, true, false)).ifPresent(MenuPech::tagDropped);
+        Optional.ofNullable(player.drop(leftover, false)).ifPresent(MenuPech::tagDropped);
     }
 
     private static void tagDropped(ItemEntity dropped) {

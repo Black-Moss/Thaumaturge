@@ -22,14 +22,14 @@ public final class PechRenderer extends MobRenderer<EntityPech, PechRenderState,
     private static final float SHADOW_RADIUS = 0.5F;
     private static final float MODEL_FLIP = -1.0F;
     private static final float MODEL_LIFT = -1.501F;
-    private static final float RIGHT_HAND_X = 0.0625F;
-    private static final float LEFT_HAND_X = -0.0625F;
-    private static final float HAND_Y = 0.025F;
-    private static final float HAND_Z = -0.5625F;
-    private static final float BOW_OFFSET_X = -0.075F;
-    private static final float BOW_OFFSET_Y = -0.1F;
-    private static final float ITEM_PITCH_DEGREES = -90.0F;
-    private static final float ITEM_YAW_DEGREES = 180.0F;
+    private static final float PIXEL = 1.0F / 16.0F;
+    private static final float FIST_CENTRE_X = 1.0F * PIXEL;
+    private static final float HELD_ITEM_HEIGHT = 0.525F;
+    private static final float FIST_FORWARD = 1.0F * PIXEL;
+    private static final float GRIP_PITCH_DEGREES = -90.0F;
+    private static final float GRIP_TURN_DEGREES = 180.0F;
+    private static final float BOW_SHIFT_X = -0.075F;
+    private static final float BOW_SHIFT_Y = -0.1F;
 
     public PechRenderer(EntityRendererProvider.Context context) {
         super(context, new PechModel(context.bakeLayer(TTModelLayers.PECH)), SHADOW_RADIUS);
@@ -66,21 +66,19 @@ public final class PechRenderer extends MobRenderer<EntityPech, PechRenderState,
         poseStack.popPose();
     }
 
-    private static void submitHand(PechRenderState state, ItemStackRenderState item, HumanoidArm hand, ModelPart arm, PoseStack poseStack, SubmitNodeCollector collector) {
+    private static void submitHand(PechRenderState state, ItemStackRenderState item, HumanoidArm arm, ModelPart armPart, PoseStack poseStack, SubmitNodeCollector collector) {
         if (item.isEmpty()) {
             return;
         }
-        float x = hand == HumanoidArm.RIGHT ? RIGHT_HAND_X : LEFT_HAND_X;
-        float y = HAND_Y;
-        if (state.holdingBow && state.mainArm == hand) {
-            x += BOW_OFFSET_X;
-            y += BOW_OFFSET_Y;
-        }
+        float outward = arm == HumanoidArm.LEFT ? 1.0F : -1.0F;
         poseStack.pushPose();
-        arm.translateAndRotate(poseStack);
-        poseStack.translate(x, y, HAND_Z);
-        poseStack.mulPose(Axis.XP.rotationDegrees(ITEM_PITCH_DEGREES));
-        poseStack.mulPose(Axis.YP.rotationDegrees(ITEM_YAW_DEGREES));
+        armPart.translateAndRotate(poseStack);
+        poseStack.translate(outward * FIST_CENTRE_X, HELD_ITEM_HEIGHT, -FIST_FORWARD);
+        if (state.holdingBow && arm == state.mainArm) {
+            poseStack.translate(BOW_SHIFT_X, BOW_SHIFT_Y, 0.0F);
+        }
+        poseStack.mulPose(Axis.XP.rotationDegrees(GRIP_PITCH_DEGREES));
+        poseStack.mulPose(Axis.YP.rotationDegrees(GRIP_TURN_DEGREES));
         item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
         poseStack.popPose();
     }

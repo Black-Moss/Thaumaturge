@@ -12,7 +12,6 @@ import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.Vec3;
@@ -22,10 +21,11 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
     private static final Identifier MESH = TTIds.rl("models/mesh/flux_scrubber.ttmesh");
     private static final Identifier TEXTURE = TTIds.rl("textures/block/flux_scrubber.png");
     private static final String TIP_PART = "Tip";
-    private static final float BOB_PERIOD = 8.0F;
-    private static final float BOB_AMPLITUDE = 0.075F;
     private static final long PHASE_RANGE = 1000L;
     private static final int WHITE = 0xFFFFFFFF;
+    private static final double BOB_MIDPOINT = 0.075;
+    private static final double BOB_AMPLITUDE = 0.075;
+    private static final double BOB_TIME_DIVISOR = 8.0;
 
     public FluxScrubberRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -39,8 +39,10 @@ public final class FluxScrubberRenderer implements BlockEntityRenderer<BlockEnti
         BlockEntityRenderer.super.extractRenderState(scrubber, state, partialTicks, cameraPosition, breakProgress);
         state.facing = scrubber.getBlockState().getValue(BlockStateProperties.FACING);
         Level level = scrubber.getLevel();
-        float time = (level == null ? 0L : level.getGameTime()) + partialTicks + Math.floorMod(scrubber.getBlockPos().asLong(), PHASE_RANGE);
-        state.bob = BOB_AMPLITUDE * Mth.sin(time / BOB_PERIOD) + BOB_AMPLITUDE;
+        long gameTime = level == null ? 0L : level.getGameTime();
+        long phase = Math.floorMod(scrubber.getBlockPos().asLong(), PHASE_RANGE);
+        double time = (double) gameTime + partialTicks + phase;
+        state.bob = (float) (BOB_MIDPOINT + BOB_AMPLITUDE * Math.sin(time / BOB_TIME_DIVISOR));
     }
 
     @Override

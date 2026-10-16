@@ -9,11 +9,12 @@ import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,19 +26,32 @@ public final class GrappleGunItem extends Item {
     private static final int CHARGE_CAPACITY = 100;
     private static final int CHARGE_COST = 1;
     private static final int NO_GRAPPLE = -1;
+    private static final float LAUNCH_SPEED = 1.5F;
+    private static final float LAUNCH_INACCURACY = 0.0F;
+    private static final float PITCH_OFFSET = -5.0F;
     private static final float FIRE_VOLUME = 3.0F;
     private static final float FIRE_PITCH_BASE = 0.8F;
     private static final float FIRE_PITCH_SPREAD = 0.1F;
-    private static final float PITCH_OFFSET = -5.0F;
-    private static final float LAUNCH_SPEED = 1.5F;
-    private static final float LAUNCH_INACCURACY = 0.0F;
-    private static final float YAW_TRIM_DEGREES = 0.5F;
-    private static final float RIGHT_YAW_OFFSET_DEGREES = 90.0F;
-    private static final Vec3 SIDE_SHIFT = new Vec3(0.2, 0.0, 0.3);
+    private static final double SIDE_HALF_AXIS_X = 0.2;
+    private static final double SIDE_HALF_AXIS_Z = 0.3;
+    private static final float SIDE_YAW_BIAS_DEGREES = 0.5F;
     private static final LaunchParameters LAUNCH = new LaunchParameters(PITCH_OFFSET, LAUNCH_SPEED, LAUNCH_INACCURACY);
 
     public GrappleGunItem(Properties properties) {
         super(properties.component(TTDataComponents.RECHARGEABLE.get(), new ChargeProfile(CHARGE_CAPACITY, ChargeDisplay.ALWAYS)));
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        float pitch = FIRE_PITCH_BASE + player.getRandom().nextFloat() * FIRE_PITCH_SPREAD;
+        player.playSound(TTSounds.ICE.get(), FIRE_VOLUME, pitch);
+        if (level instanceof ServerLevel server) {
+            ItemStack stack = player.getItemInHand(hand);
+            if (RechargeAccess.storedVis(stack) >= CHARGE_COST) {
+                fire(server, player, hand, stack);
+            }
+        }
+        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -46,16 +60,6 @@ public final class GrappleGunItem extends Item {
         if (LoadedState.isLoaded(stack) && !hasLiveGrapple(level, entity)) {
             LoadedState.clear(stack);
         }
-    }
-
-    @Override
-    public InteractionResult use(Level level, Player player, InteractionHand hand) {
-        level.playSound(player, player.getX(), player.getY(), player.getZ(), TTSounds.ICE.get(), SoundSource.PLAYERS, FIRE_VOLUME, FIRE_PITCH_BASE + level.getRandom().nextFloat() * FIRE_PITCH_SPREAD);
-        ItemStack stack = player.getItemInHand(hand);
-        if (!level.isClientSide() && RechargeAccess.getCharge(stack) > 0) {
-            fire(level, player, hand, stack);
-        }
-        return InteractionResult.SUCCESS;
     }
 
     private static boolean hasLiveGrapple(ServerLevel level, Entity owner) {
@@ -69,23 +73,27 @@ public final class GrappleGunItem extends Item {
         grapple.setPos(spawn.x, grapple.getY(), spawn.z);
         launch(grapple, player, LAUNCH);
         if (level.addFreshEntity(grapple)) {
-            onSpawned(stack, player);
+            onSpawned(stack);
         }
     }
 
     private static Vec3 spawnPoint(Player player, InteractionHand hand) {
-        double sign = hand == InteractionHand.MAIN_HAND ? 1.0 : -1.0;
-        Vec3 right = Vec3.directionFromRotation(0.0F, player.getYRot() - YAW_TRIM_DEGREES + RIGHT_YAW_OFFSET_DEGREES);
-        Vec3 handShift = right.multiply(SIDE_SHIFT).scale(sign);
-        return player.position().add(handShift).add(player.getLookAngle());
+        HumanoidArm arm = hand == InteractionHand.MAIN_HAND ? player.getMainArm() : player.getMainArm().getOpposite();
+        double handSign = arm == HumanoidArm.RIGHT ? 1.0 : -1.0;
+        float yawRadians = player.getYRot() * Mth.DEG_TO_RAD;
+        float sideRadians = (player.getYRot() - SIDE_YAW_BIAS_DEGREES) * Mth.DEG_TO_RAD;
+        float horizontalLook = Mth.cos(player.getXRot() * Mth.DEG_TO_RAD);
+        double x = -Mth.sin(yawRadians) * horizontalLook - handSign * SIDE_HALF_AXIS_X * Mth.cos(sideRadians);
+        double z = Mth.cos(yawRadians) * horizontalLook - handSign * SIDE_HALF_AXIS_Z * Mth.sin(sideRadians);
+        return player.position().add(x, 0.0, z);
     }
 
     private static void launch(EntityGrapple grapple, Player player, LaunchParameters parameters) {
         grapple.shootFromRotation(player, player.getXRot(), player.getYRot(), parameters.pitchOffset(), parameters.speed(), parameters.inaccuracy());
     }
 
-    private static void onSpawned(ItemStack stack, Player player) {
-        RechargeAccess.consumeCharge(stack, player, CHARGE_COST);
+    private static void onSpawned(ItemStack stack) {
+        RechargeAccess.spendVis(stack, CHARGE_COST);
         LoadedState.set(stack);
     }
 

@@ -11,34 +11,46 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public final class TubeEventClientHandler {
+    private static final float HISS_VOLUME = 0.1F;
+    private static final float HISS_PITCH_BASE = 1.0F;
+    private static final float HISS_PITCH_SPREAD = 0.1F;
+    private static final float CREAK_VOLUME = 1.0F;
+    private static final float CREAK_PITCH_BASE = 1.3F;
+    private static final float CREAK_PITCH_SPREAD = 0.2F;
+
     private TubeEventClientHandler() {}
 
     public static void handleVent(ClientboundTubeVentPayload payload, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            ClientLevel level = Minecraft.getInstance().level;
-            if (level == null)
-                return;
-            BlockPos pos = payload.pos();
-            BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof BlockEntityTube tube) {
-                tube.triggerVent(payload.color());
-            }
-            RandomSource random = level.getRandom();
-            playSound(level, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.1F, 1.0F + random.nextFloat() * 0.1F);
-        });
+        ctx.enqueueWork(() -> vent(payload));
     }
 
     public static void handleCreak(ClientboundTubeCreakPayload payload, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            ClientLevel level = Minecraft.getInstance().level;
-            if (level == null)
-                return;
-            playSound(level, payload.pos(), TTSounds.CREAK.get(), SoundSource.AMBIENT, 1.0F, 1.3F + level.getRandom().nextFloat() * 0.2F);
-        });
+        ctx.enqueueWork(() -> creak(payload));
+    }
+
+    private static void vent(ClientboundTubeVentPayload payload) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return;
+        }
+        BlockPos pos = payload.pos();
+        if (level.getBlockEntity(pos) instanceof BlockEntityTube tube) {
+            tube.triggerVent(payload.color());
+        }
+        RandomSource random = level.getRandom();
+        playSound(level, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, HISS_VOLUME, HISS_PITCH_BASE + random.nextFloat() * HISS_PITCH_SPREAD);
+    }
+
+    private static void creak(ClientboundTubeCreakPayload payload) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return;
+        }
+        RandomSource random = level.getRandom();
+        playSound(level, payload.pos(), TTSounds.CREAK.get(), SoundSource.AMBIENT, CREAK_VOLUME, CREAK_PITCH_BASE + random.nextFloat() * CREAK_PITCH_SPREAD);
     }
 
     private static void playSound(ClientLevel level, BlockPos pos, SoundEvent event, SoundSource source, float volume, float pitch) {

@@ -15,7 +15,6 @@ import java.util.function.Function;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.InsideBlockEffectApplier;
@@ -56,23 +55,19 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
     private static final BooleanProperty HANGING = GROWTH4;
     private static final BooleanProperty[] GROWTHS = {TUFT, STALK, BULB, HANGING};
 
-    private static final int GROWTH_ROLL_RANGE = 100;
-    private static final int TUFT_PERCENT = 8;
-    private static final int STALK_PERCENT = 4;
-    private static final int BULB_PERCENT = 2;
-    private static final int HANGING_PERCENT = 4;
-    private static final int TUFT_UNDER = TUFT_PERCENT;
-    private static final int STALK_UNDER = TUFT_UNDER + STALK_PERCENT;
-    private static final int BULB_UNDER = STALK_UNDER + BULB_PERCENT;
-    private static final int HANGING_UNDER = BULB_UNDER + HANGING_PERCENT;
+    private static final int GROWTH_ROLL_RANGE = 50;
+    private static final int TUFT_UNDER = 4;
+    private static final int STALK_UNDER = 6;
+    private static final int BULB_UNDER = 7;
+    private static final int HANGING_FROM = 48;
 
-    private static final double SHEET = 1.0;
+    private static final double SHEET = 0.8;
     private static final double FULL = 16.0;
-    private static final VoxelShape TUFT_SHAPE = Block.box(2.0, 0.0, 2.0, 14.0, 7.0, 14.0);
-    private static final VoxelShape STALK_SHAPE = Block.box(3.0, 0.0, 3.0, 13.0, 15.0, 13.0);
+    private static final VoxelShape TUFT_SHAPE = Block.box(1.6, 0.0, 1.6, 14.4, 6.4, 14.4);
+    private static final VoxelShape STALK_SHAPE = Block.box(3.2, 0.0, 3.2, 12.8, 16.0, 12.8);
     private static final VoxelShape BULB_SHAPE = Shapes.or(Block.box(4.0, 1.0, 5.0, 12.0, 4.0, 11.0), Block.box(5.0, 0.0, 5.0, 11.0, 5.0, 11.0), Block.box(5.0, 1.0, 4.0, 11.0, 4.0, 12.0),
             Block.box(6.0, 5.0, 7.0, 8.0, 6.0, 9.0));
-    private static final VoxelShape HANGING_SHAPE = Block.box(2.0, 3.0, 2.0, 14.0, 16.0, 14.0);
+    private static final VoxelShape HANGING_SHAPE = Block.box(1.6, 4.8, 1.6, 14.4, 16.0, 14.4);
     private static final Map<Direction, VoxelShape> SHEET_SHAPES = sheetShapes();
 
     private static final int CONTACT_ONE_IN = 750;
@@ -153,14 +148,14 @@ public final class BlockTaintFibre extends Block implements ITaintBlock {
     }
 
     private static @Nullable BooleanProperty growthAt(BlockPos pos, boolean floor, boolean ceiling) {
-        int roll = Math.floorMod(Mth.getSeed(pos), GROWTH_ROLL_RANGE);
+        int roll = RandomSource.create(pos.asLong()).nextInt(GROWTH_ROLL_RANGE);
         if (roll < BULB_UNDER) {
             if (!floor) {
                 return null;
             }
             return roll < TUFT_UNDER ? TUFT : roll < STALK_UNDER ? STALK : BULB;
         }
-        return roll < HANGING_UNDER && ceiling ? HANGING : null;
+        return roll >= HANGING_FROM && ceiling ? HANGING : null;
     }
 
     private static boolean hasSheet(BlockState state) {

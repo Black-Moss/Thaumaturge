@@ -4,7 +4,7 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.research.PlayerKnowledge;
 import com.leclowndu93150.thaumaturge.content.research.pool.AspectPools;
 import com.leclowndu93150.thaumaturge.gametest.base.TTTestRegistrar;
@@ -26,19 +26,19 @@ public final class ResearchTests {
     public static void register(TTTestRegistrar r) {
         r.add("research/knowledge_roundtrip", 40, helper -> {
             ServerPlayer player = testPlayer(helper, "tc_knowledge_test");
-            PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+            PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(player);
             Identifier key = TTIds.rl("gametest/knowledge_roundtrip");
-            if (knowledge.isResearchKnown(key)) {
+            if (knowledge.knows(key)) {
                 helper.fail("Fresh mock player already knows the test research");
                 return;
             }
-            knowledge.addResearch(key);
-            if (!knowledge.isResearchKnown(key)) {
+            knowledge.learn(key);
+            if (!knowledge.knows(key)) {
                 helper.fail("addResearch did not record the key");
                 return;
             }
             knowledge.markComplete(key);
-            if (!knowledge.isResearchComplete(key)) {
+            if (!knowledge.hasCompleted(key)) {
                 helper.fail("markComplete did not complete the key");
                 return;
             }

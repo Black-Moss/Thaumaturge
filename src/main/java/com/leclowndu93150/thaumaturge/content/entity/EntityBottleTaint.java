@@ -27,13 +27,11 @@ import net.minecraft.world.entity.projectile.ItemSupplier;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 
 public final class EntityBottleTaint extends ThrowableItemProjectile implements ItemSupplier {
     public static final ThrowProfile THROW = new ThrowProfile(0.66F, 1.0F, -5.0F, 0.5F);
@@ -56,7 +54,7 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
     private static final float BREAK_PITCH_BASE = 0.9F;
     private static final float BREAK_PITCH_SPREAD = 0.1F;
     private static final byte BURST_SIGNAL = 3;
-    private static final int SPRAY_COUNT = 48;
+    private static final int SPRAY_COUNT = 100;
 
     public EntityBottleTaint(EntityType<? extends EntityBottleTaint> type, Level level) {
         super(type, level);
@@ -77,16 +75,14 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
         if (!(this.level() instanceof ServerLevel server) || this.isRemoved()) {
             return;
         }
-        Vec3 impact = hit.getLocation();
-        BlockPos impactBlock = BlockPos.containing(impact);
-        afflictNearby(server, impact);
+        afflictNearby(server);
         if (!ThaumaturgeCommonConfig.WUSS_MODE.get()) {
-            sowFibres(server, impactBlock);
+            sowFibres(server);
         }
-        splashGoo(server, impactBlock);
+        splashGoo(server);
         server.broadcastEntityEvent(this, BURST_SIGNAL);
         float pitch = BREAK_PITCH_BASE + server.getRandom().nextFloat() * BREAK_PITCH_SPREAD;
-        server.playSound(null, impact.x, impact.y, impact.z, SoundEvents.SPLASH_POTION_BREAK, SoundSource.NEUTRAL, BREAK_VOLUME, pitch);
+        server.playSound(null, hit.getLocation().x, hit.getLocation().y, hit.getLocation().z, SoundEvents.SPLASH_POTION_BREAK, SoundSource.NEUTRAL, BREAK_VOLUME, pitch);
         this.discard();
     }
 
@@ -99,25 +95,25 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
         Level level = this.level();
         RandomSource random = this.random;
         for (int i = 0; i < SPRAY_COUNT; i++) {
-            level.addParticle(TTParticles.TAINT_SPLOSION.get(), this.getX(), this.getY(), this.getZ(), signed(random), signed(random), signed(random));
+            level.addParticle(TTParticles.TAINT_SPLOSION.get(), this.getX(), this.getY() + random.nextFloat() * this.getBbHeight(), this.getZ(), signed(random), signed(random), signed(random));
         }
-        ItemParticleOption shard = new ItemParticleOption(ParticleTypes.ITEM, Items.GLASS_BOTTLE);
+        ItemParticleOption shard = new ItemParticleOption(ParticleTypes.ITEM, TTItems.BOTTLE_TAINT.get());
         for (int i = 0; i < SHARD_COUNT; i++) {
-            level.addParticle(shard, this.getX(), this.getY(), this.getZ(), signed(random) * SHARD_SPREAD, SHARD_LIFT * random.nextDouble(), signed(random) * SHARD_SPREAD);
+            level.addParticle(shard, this.getX(), this.getY(), this.getZ(), random.nextGaussian() * SHARD_SPREAD, SHARD_LIFT * random.nextDouble(), random.nextGaussian() * SHARD_SPREAD);
         }
     }
 
-    private void afflictNearby(ServerLevel level, Vec3 impact) {
-        AABB reach = new AABB(impact, impact).inflate(EFFECT_REACH);
+    private void afflictNearby(ServerLevel level) {
+        AABB reach = new AABB(this.position(), this.position()).inflate(EFFECT_REACH);
         for (LivingEntity creature : level.getEntitiesOfClass(LivingEntity.class, reach, EntityBottleTaint::canAfflict)) {
             creature.addEffect(new MobEffectInstance(TTMobEffects.FLUX_TAINT, EFFECT_TICKS, 0));
         }
     }
 
-    private void sowFibres(ServerLevel level, BlockPos impactBlock) {
+    private void sowFibres(ServerLevel level) {
         RandomSource random = level.getRandom();
         for (int attempt = 0; attempt < PLANT_ATTEMPTS; attempt++) {
-            BlockPos column = impactBlock.offset(plantOffset(random), 0, plantOffset(random));
+            BlockPos column = this.blockPosition().offset(plantOffset(random), 0, plantOffset(random));
             if (random.nextFloat() >= PLANT_CHANCE || !level.hasChunkAt(column) || TaintBlooms.isProtected(level, column)) {
                 continue;
             }
@@ -127,10 +123,10 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
         }
     }
 
-    private void splashGoo(ServerLevel level, BlockPos impactBlock) {
+    private void splashGoo(ServerLevel level) {
         RandomSource random = level.getRandom();
         for (int attempt = 0; attempt < GOO_ATTEMPTS; attempt++) {
-            BlockPos column = impactBlock.offset(random.nextInt(GOO_REACH * 2 + 1) - GOO_REACH, 0, random.nextInt(GOO_REACH * 2 + 1) - GOO_REACH);
+            BlockPos column = this.blockPosition().offset(random.nextInt(GOO_REACH * 2 + 1) - GOO_REACH, 0, random.nextInt(GOO_REACH * 2 + 1) - GOO_REACH);
             int amount = 1 + random.nextInt(GOO_MAX_QUANTITY);
             if (level.hasChunkAt(column) && !depositGoo(level, column, amount)) {
                 depositGoo(level, column.below(), amount);
@@ -140,7 +136,9 @@ public final class EntityBottleTaint extends ThrowableItemProjectile implements 
 
     private static boolean depositGoo(ServerLevel level, BlockPos pos, int amount) {
         BlockPos floor = pos.below();
-        if (!level.getBlockState(pos).canBeReplaced() || !level.getBlockState(floor).isCollisionShapeFullBlock(level, floor)) {
+        BlockState state = level.getBlockState(pos);
+        boolean free = state.isAir() || state.canBeReplaced();
+        if (!free || !level.getBlockState(floor).isRedstoneConductor(level, floor)) {
             return false;
         }
         return PhysicalFlux.placeGoo(level, pos, amount);

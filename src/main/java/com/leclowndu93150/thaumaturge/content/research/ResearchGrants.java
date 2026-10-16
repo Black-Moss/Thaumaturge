@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeType;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
@@ -48,7 +48,7 @@ public final class ResearchGrants {
     }
 
     public static int grantAll(ServerPlayer player) {
-        PlayerKnowledge knowledge = (PlayerKnowledge) KnowledgeAccess.of(player);
+        PlayerKnowledge knowledge = (PlayerKnowledge) PlayerResearchAccess.of(player);
         List<Holder.Reference<IResearchEntry>> entries = player.registryAccess().lookupOrThrow(IResearchEntry.REGISTRY_KEY).listElements().toList();
 
         Set<Identifier> entryIds = new HashSet<>();
@@ -73,7 +73,7 @@ public final class ResearchGrants {
         int granted = 0;
         for (Holder.Reference<IResearchEntry> entry : entries) {
             Identifier id = entry.key().identifier();
-            if (knowledge.isResearchComplete(id)) {
+            if (knowledge.hasCompleted(id)) {
                 continue;
             }
             if (ResearchManager.complete(player, id)) {
@@ -99,10 +99,10 @@ public final class ResearchGrants {
 
     public static void forgetAspects(ServerPlayer player) {
         AspectPools.resetForCommand(player);
-        IPlayerKnowledge knowledge = KnowledgeAccess.of(player);
+        PlayerResearch knowledge = PlayerResearchAccess.of(player);
         for (Holder.Reference<IAspect> aspect : player.registryAccess().lookupOrThrow(IAspect.REGISTRY_KEY).listElements().toList()) {
-            knowledge.removeResearch(ScanKeys.aspect(aspect.key()));
+            knowledge.forget(ScanKeys.aspect(aspect.key()));
         }
-        knowledge.sync(player);
+        knowledge.queueSync(player);
     }
 }

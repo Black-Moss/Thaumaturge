@@ -34,7 +34,7 @@ public abstract class BlockEntityMirrorBase extends AbstractSyncedBlockEntity {
     public boolean paired;
     public @Nullable GlobalPos link;
     public int stress;
-    protected int count;
+    protected int count = BASE_INTERVAL;
     protected int inc = BASE_INTERVAL;
 
     protected BlockEntityMirrorBase(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -236,7 +236,7 @@ public abstract class BlockEntityMirrorBase extends AbstractSyncedBlockEntity {
         link = stored;
     }
 
-    private boolean partnerAvailable() {
+    protected boolean partnerAvailable() {
         GlobalPos destination = link;
         ServerLevel destinationLevel = targetLevel();
         return destination != null && destinationLevel != null && destinationLevel.hasChunkAt(destination.pos());

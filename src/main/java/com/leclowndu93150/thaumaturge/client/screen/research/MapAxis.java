@@ -53,7 +53,9 @@ final class MapAxis {
     }
 
     void drag(double amount) {
-        place(current - amount);
+        current -= amount;
+        goal -= amount;
+        previous -= amount;
     }
 
     boolean isOutside(double low, double high) {

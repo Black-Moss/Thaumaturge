@@ -15,20 +15,19 @@ public final class BlockGrassAmbient extends GrassBlock {
     private static final int CAVE_MOTE_ONE_IN = 5;
     private static final int DAYLIGHT_CUTOFF = 5;
     private static final int CHANCE_DENOMINATOR = 7;
-    private static final int CHANCE_AT_DARK = 6;
     private static final int SEARCH_RADIUS = 8;
-    private static final int SEARCH_START_HEIGHT = 5;
-    private static final int SEARCH_DEPTH = 10;
-    private static final int SEARCH_FLOOR_Y = 50;
-    private static final float HUE_BASE = 0.28F;
-    private static final float HUE_SPAN = 0.22F;
-    private static final float SATURATION_BASE = 0.25F;
-    private static final float SATURATION_SPAN = 0.30F;
+    private static final int PROBE_START_ABOVE = 5;
+    private static final int PROBE_STEPS = 10;
+    private static final int SURFACE_PROBE_FLOOR = 50;
     private static final float VALUE = 1.0F;
-    private static final int AGE_BASE = 320;
-    private static final int AGE_VARIATION = 100;
     private static final int OPAQUE_ALPHA = 255;
-    private static final float MOTE_GRAVITY = -0.008F;
+    private static final float GREEN_HUE = 0.28F;
+    private static final float AQUA_HUE = 0.50F;
+    private static final float MIN_TINT_SATURATION = 0.25F;
+    private static final float MAX_TINT_SATURATION = 0.55F;
+    private static final int MOTE_LIFE_TICKS = 320;
+    private static final int MOTE_LIFE_VARIATION = 100;
+    private static final float MOTE_BUOYANCY = -0.008F;
 
     public BlockGrassAmbient(Properties properties) {
         super(properties);
@@ -36,44 +35,53 @@ public final class BlockGrassAmbient extends GrassBlock {
 
     @Override
     public void animateTick(BlockState state, Level level, BlockPos pos, RandomSource random) {
-        BlockPos above = pos.above();
+        super.animateTick(state, level, pos, random);
         if (level.getBiome(pos).is(TTBiomes.MAGICAL_FOREST_CAVES)) {
-            if (random.nextInt(CAVE_MOTE_ONE_IN) == 0 && level.getBlockState(above).isAir()) {
-                emitMote(level, random, above, true);
-            }
+            releaseCaveMote(level, pos, random);
             return;
         }
-        int daylight = level.isDarkOutside() ? 0 : Math.max(0, level.getBrightness(LightLayer.SKY, above) - level.getSkyDarken());
-        if (daylight >= DAYLIGHT_CUTOFF || random.nextInt(CHANCE_DENOMINATOR) >= CHANCE_AT_DARK - daylight) {
+        int daylight = daylightAbove(level, pos);
+        if (daylight >= DAYLIGHT_CUTOFF || random.nextInt(CHANCE_DENOMINATOR) <= daylight) {
             return;
         }
-        BlockPos grass = findNearbyGrass(level, random, pos);
-        if (grass != null) {
-            emitMote(level, random, grass.above(), false);
+        releaseSurfaceMote(level, pos, random);
+    }
+
+    private static int daylightAbove(Level level, BlockPos pos) {
+        if (level.isDarkOutside()) {
+            return 0;
+        }
+        return Math.max(0, level.getBrightness(LightLayer.SKY, pos.above()) - level.getSkyDarken());
+    }
+
+    private static void releaseCaveMote(Level level, BlockPos origin, RandomSource random) {
+        if (random.nextInt(CAVE_MOTE_ONE_IN) != 0) {
+            return;
+        }
+        BlockPos above = origin.above();
+        if (level.isEmptyBlock(above)) {
+            level.addParticle(paleMote(random, true), above.getX() + random.nextDouble(), above.getY(), above.getZ() + random.nextDouble(), 0.0, 0.0, 0.0);
         }
     }
 
-    private static BlockPos findNearbyGrass(Level level, RandomSource random, BlockPos pos) {
-        int x = pos.getX() + random.nextInt(2 * SEARCH_RADIUS + 1) - SEARCH_RADIUS;
-        int z = pos.getZ() + random.nextInt(2 * SEARCH_RADIUS + 1) - SEARCH_RADIUS;
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        for (int step = 0; step < SEARCH_DEPTH; step++) {
-            int y = pos.getY() + SEARCH_START_HEIGHT - step;
-            if (y <= SEARCH_FLOOR_Y) {
-                return null;
+    private static void releaseSurfaceMote(Level level, BlockPos origin, RandomSource random) {
+        int x = origin.getX() + random.nextIntBetweenInclusive(-SEARCH_RADIUS, SEARCH_RADIUS);
+        int z = origin.getZ() + random.nextIntBetweenInclusive(-SEARCH_RADIUS, SEARCH_RADIUS);
+        BlockPos.MutableBlockPos probe = new BlockPos.MutableBlockPos(x, origin.getY() + PROBE_START_ABOVE, z);
+        for (int step = 0; step < PROBE_STEPS && probe.getY() > SURFACE_PROBE_FLOOR; step++) {
+            if (level.getBlockState(probe).is(Blocks.GRASS_BLOCK)) {
+                level.addParticle(paleMote(random, false), probe.getX() + random.nextDouble(), probe.getY() + 1, probe.getZ() + random.nextDouble(), 0.0, 0.0, 0.0);
+                return;
             }
-            cursor.set(x, y, z);
-            if (level.getBlockState(cursor).is(Blocks.GRASS_BLOCK)) {
-                return cursor.immutable();
-            }
+            probe.move(0, -1, 0);
         }
-        return null;
     }
 
-    private static void emitMote(Level level, RandomSource random, BlockPos cell, boolean emissive) {
-        int color = Mth.hsvToArgb(HUE_BASE + random.nextFloat() * HUE_SPAN, SATURATION_BASE + random.nextFloat() * SATURATION_SPAN, VALUE, OPAQUE_ALPHA);
-        int age = AGE_BASE + random.nextInt(AGE_VARIATION);
-        WispyMoteParticleOptions options = new WispyMoteParticleOptions(color, age, MOTE_GRAVITY, WispyMoteParticleOptions.NO_ENTITY, emissive);
-        level.addParticle(options, cell.getX() + random.nextDouble(), cell.getY(), cell.getZ() + random.nextDouble(), 0.0, 0.0, 0.0);
+    private static WispyMoteParticleOptions paleMote(RandomSource random, boolean emissive) {
+        float hue = Mth.lerp(random.nextFloat(), GREEN_HUE, AQUA_HUE);
+        float saturation = Mth.lerp(random.nextFloat(), MIN_TINT_SATURATION, MAX_TINT_SATURATION);
+        int color = Mth.hsvToArgb(hue, saturation, VALUE, OPAQUE_ALPHA);
+        int life = MOTE_LIFE_TICKS + random.nextInt(MOTE_LIFE_VARIATION);
+        return new WispyMoteParticleOptions(color, life, MOTE_BUOYANCY, WispyMoteParticleOptions.NO_ENTITY, emissive);
     }
 }

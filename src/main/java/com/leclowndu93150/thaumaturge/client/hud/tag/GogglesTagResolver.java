@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumaturge.client.hud.tag;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaCapabilities;
 import com.leclowndu93150.thaumaturge.api.essentia.IAspectQuery;
 import com.leclowndu93150.thaumaturge.api.items.GogglesAccess;
@@ -32,7 +32,7 @@ public final class GogglesTagResolver {
             return Optional.empty();
         }
         BlockPos pos = hit.getBlockPos();
-        if (level.getBlockEntity(pos) instanceof BlockEntityNode && !KnowledgeAccess.of(player).isResearchKnown(ScanNode.researchKey(level, pos))) {
+        if (level.getBlockEntity(pos) instanceof BlockEntityNode && !PlayerResearchAccess.of(player).knows(ScanNode.researchKey(level, pos))) {
             return Optional.empty();
         }
         boolean showAmounts = true;

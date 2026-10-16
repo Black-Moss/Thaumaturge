@@ -12,7 +12,7 @@ public final class MistFlatParticle extends TTParticle {
     private static final float START_SIZE = 0.2F;
     private static final float END_SIZE = 0.5F;
     private static final float SPIN_SPEED = 1.0F;
-    private static final double WIND_SCALE = 0.001;
+    private static final double WIND_SCALE = 1.0E-3;
 
     private MistFlatParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ColorParticleOption options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);

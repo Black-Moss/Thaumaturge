@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.warding;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.casters.FocusCaster;
 import com.leclowndu93150.thaumaturge.api.spell.Spell;
 import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.Spells;
@@ -38,20 +38,23 @@ public final class WardOverlayRenderer {
     private static final double SECTION_WIDTH = 16.0;
     private static final double SECTION_RANGE = RENDER_RANGE + SECTION_WIDTH;
 
-    private static final float OUTSET = 0.001F;
+    private static final float OUTSET = 0.003F;
     private static final float SPAN = 1.0F + OUTSET + OUTSET;
     private static final float HALF = 0.5F;
 
-    private static final float PULSE = 0.2F;
-    private static final float RED_BASE = 0.8F;
+    private static final float OWNED_RED_BASE = 0.8F;
     private static final float OWNED_GREEN_BASE = 0.7F;
     private static final float OWNED_BLUE_BASE = 0.28F;
-    private static final float FOREIGN_CHANNEL_BASE = 0.28F;
     private static final float OWNED_ALPHA = 0.5F;
+    private static final float FOREIGN_RED_BASE = 0.8F;
+    private static final float FOREIGN_GREEN_BASE = 0.28F;
+    private static final float FOREIGN_BLUE_BASE = 0.28F;
     private static final float FOREIGN_ALPHA = 0.25F;
-    private static final float RED_PERIOD = 2.0F;
-    private static final float GREEN_PERIOD = 3.0F;
-    private static final float BLUE_PERIOD = 4.0F;
+    private static final float PULSE = 0.2F;
+    private static final float RED_TIME_DIVISOR = 2.0F;
+    private static final float GREEN_TIME_DIVISOR = 3.0F;
+    private static final float BLUE_TIME_DIVISOR = 4.0F;
+    private static final Direction[] FACES = Direction.values();
 
     private static final int[][] FACE_BASE = {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {0, 1, 1}, {0, 1, 0}, {1, 1, 1}};
     private static final int[][] FACE_U = {{1, 0, 0}, {1, 0, 0}, {-1, 0, 0}, {1, 0, 0}, {0, 0, 1}, {0, 0, -1}};
@@ -98,28 +101,35 @@ public final class WardOverlayRenderer {
 
     private static void drawWard(VertexConsumer buffer, Matrix4f pose, TextureAtlasSprite[] sprites, BlockPos.MutableBlockPos neighbour, BlockPos.MutableBlockPos cursor, BlockPos pos, Vec3 cam, float time) {
         boolean owned = ClientWardHolder.isOwned(pos);
-        float red = Math.min(Mth.sin(time / RED_PERIOD + pos.getX()) * PULSE + RED_BASE, 1.0F);
-        float green = Math.min(Mth.sin(time / GREEN_PERIOD + pos.getY()) * PULSE + (owned ? OWNED_GREEN_BASE : FOREIGN_CHANNEL_BASE), 1.0F);
-        float blue = Math.min(Mth.sin(time / BLUE_PERIOD + pos.getZ()) * PULSE + (owned ? OWNED_BLUE_BASE : FOREIGN_CHANNEL_BASE), 1.0F);
+        Predicate<BlockPos> sameOwner = other -> ClientWardHolder.isWarded(other) && ClientWardHolder.isOwned(other) == owned;
+        float red = shimmer(owned ? OWNED_RED_BASE : FOREIGN_RED_BASE, time, RED_TIME_DIVISOR, pos.getX());
+        float green = shimmer(owned ? OWNED_GREEN_BASE : FOREIGN_GREEN_BASE, time, GREEN_TIME_DIVISOR, pos.getY());
+        float blue = shimmer(owned ? OWNED_BLUE_BASE : FOREIGN_BLUE_BASE, time, BLUE_TIME_DIVISOR, pos.getZ());
         float alpha = owned ? OWNED_ALPHA : FOREIGN_ALPHA;
-        Predicate<BlockPos> connected = probe -> ClientWardHolder.isWarded(probe) && ClientWardHolder.isOwned(probe) == owned;
-        for (Direction face : Direction.values()) {
+        for (Direction face : FACES) {
             neighbour.setWithOffset(pos, face);
             if (ClientWardHolder.isWarded(neighbour)) {
                 continue;
             }
-            int connections = WardConnectedTexture.connectionMask(pos, face, cursor, connected);
+            int mask = WardConnectedTexture.connectionMask(pos, face, cursor, sameOwner);
             for (int corner = 0; corner < FaceCorners.COUNT; corner++) {
-                int state = FaceCorners.state(connections, corner);
-                int slot = FaceCorners.slot(corner, state);
-                TextureAtlasSprite sprite = sprites[slot];
-                if (sprite == null) {
-                    sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(WardConnectedTexture.sprite(corner, state));
-                    sprites[slot] = sprite;
-                }
-                drawCorner(buffer, pose, pos, face, corner, sprite, cam, red, green, blue, alpha);
+                drawCorner(buffer, pose, pos, face, corner, sprite(sprites, corner, FaceCorners.state(mask, corner)), cam, red, green, blue, alpha);
             }
         }
+    }
+
+    private static float shimmer(float base, float time, float divisor, float phase) {
+        return Mth.clamp(base + PULSE * Mth.sin(time / divisor + phase), 0.0F, 1.0F);
+    }
+
+    private static TextureAtlasSprite sprite(TextureAtlasSprite[] cache, int corner, int state) {
+        int slot = FaceCorners.slot(corner, state);
+        TextureAtlasSprite sprite = cache[slot];
+        if (sprite == null) {
+            sprite = Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).getSprite(WardConnectedTexture.sprite(corner, state));
+            cache[slot] = sprite;
+        }
+        return sprite;
     }
 
     private static void drawCorner(VertexConsumer buffer, Matrix4f pose, BlockPos pos, Direction face, int corner, TextureAtlasSprite sprite, Vec3 cam, float red, float green, float blue, float alpha) {
@@ -156,10 +166,10 @@ public final class WardOverlayRenderer {
     }
 
     private static boolean hasWard(ItemStack stack, RegistryAccess registries) {
-        if (!(stack.getItem() instanceof ICaster caster)) {
+        if (!(stack.getItem() instanceof FocusCaster caster)) {
             return false;
         }
-        Spell spell = Spells.spellOf(caster.getFocusStack(stack));
+        Spell spell = Spells.spellOf(caster.socketedFocus(stack));
         if (spell == null) {
             return false;
         }

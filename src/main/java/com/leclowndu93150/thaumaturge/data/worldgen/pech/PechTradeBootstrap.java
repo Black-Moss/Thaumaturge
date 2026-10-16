@@ -48,8 +48,7 @@ public final class PechTradeBootstrap {
 
         TradeListBuilder forager = new TradeListBuilder(aspects, enchantments);
         forager.items(TIER_COMMON, TTItems.CLUSTER_IRON.get(), TTItems.CLUSTER_GOLD.get(), TTItems.CLUSTER_CINNABAR.get(), TTItems.CLUSTER_QUARTZ.get(), TTItems.CLUSTER_COPPER.get())
-                .items(TIER_UNCOMMON, Items.BLAZE_ROD, TTBlocks.SAPLING_GREATWOOD.get(), Items.DRAGON_BREATH, Items.COMPASS)
-                .items(TIER_FAIR, Items.EXPERIENCE_BOTTLE, Items.EXPERIENCE_BOTTLE, Items.GOLDEN_APPLE)
+                .items(TIER_UNCOMMON, Items.BLAZE_ROD, TTBlocks.SAPLING_GREATWOOD.get(), Items.DRAGON_BREATH, Items.COMPASS).items(TIER_FAIR, Items.EXPERIENCE_BOTTLE, Items.EXPERIENCE_BOTTLE, Items.GOLDEN_APPLE)
                 .items(TIER_RARE, TTItems.THAUMIUM_PICKAXE.get(), TTItems.THAUMIUM_AXE.get(), TTItems.THAUMIUM_HOE.get(), Items.SPECTRAL_ARROW)
                 .items(TIER_EPIC, Items.ENCHANTED_GOLDEN_APPLE, TTBlocks.SAPLING_SILVERWOOD.get(), Items.TOTEM_OF_UNDYING, TTItems.CURIO_KNOWLEDGE.get());
         forager.registerAs(ctx, "forager");

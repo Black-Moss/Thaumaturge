@@ -5,7 +5,7 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectComponents;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
 import com.leclowndu93150.thaumaturge.client.render.aspect.AspectTagRenderer;
 import com.leclowndu93150.thaumaturge.client.screen.AbstractTTContainerScreen;
@@ -327,7 +327,7 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
             return;
         }
         ResearchNoteData data = noteData();
-        if (data == null || !data.complete() || !KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+        if (data == null || !data.complete() || !PlayerResearchAccess.of(minecraft.player).hasCompleted(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
             return;
         }
         graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + DUPE_X, topPos + DUPE_Y, (float) DUPE_U, (float) DUPE_V, DUPE_SIZE, DUPE_SIZE, 256, 256);
@@ -348,7 +348,7 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
         BlockEntityResearchTable table = table();
         if (table != null && minecraft.player != null) {
             ResearchNoteData data = noteData();
-            if (data != null && data.complete() && KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+            if (data != null && data.complete() && PlayerResearchAccess.of(minecraft.player).hasCompleted(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
                 return;
             }
         }
@@ -547,7 +547,7 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
             BlockEntityResearchTable table = table();
             if (table != null && minecraft.player != null) {
                 ResearchNoteData data = noteData();
-                if (data == null || !data.complete() || !KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+                if (data == null || !data.complete() || !PlayerResearchAccess.of(minecraft.player).hasCompleted(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
                     if (inRect(mx, my, leftPos + HELPER_X, topPos + HELPER_Y, HELPER_SIZE, HELPER_SIZE)) {
                         helperOpen = !helperOpen;
                         playSound(TTSounds.KEY.get(), 0.3F, 1.0F);
@@ -564,7 +564,7 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
             Holder<IAspect> palette = paletteAspectAt(mx, my);
             if (palette != null) {
                 if (Minecraft.getInstance().hasShiftDown() && !palette.value().isPrimal() && minecraft.player != null
-                        && KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_MASTERY)) {
+                        && PlayerResearchAccess.of(minecraft.player).hasCompleted(BlockEntityResearchTable.RESEARCH_MASTERY)) {
                     List<Holder<IAspect>> components = palette.value().components();
                     if (components.size() == 2) {
                         select1 = components.get(0);
@@ -720,7 +720,7 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
             return false;
         }
         ResearchNoteData data = noteData();
-        if (data == null || !data.complete() || !KnowledgeAccess.of(minecraft.player).isResearchComplete(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
+        if (data == null || !data.complete() || !PlayerResearchAccess.of(minecraft.player).hasCompleted(BlockEntityResearchTable.RESEARCH_DUPLICATION)) {
             return false;
         }
         ClientPacketDistributor.sendToServer(new ServerboundTableDuplicatePayload(menu.pos()));

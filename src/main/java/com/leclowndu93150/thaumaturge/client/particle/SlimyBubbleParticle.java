@@ -4,23 +4,22 @@ import com.leclowndu93150.thaumaturge.content.particle.SlimyBubbleParticleOption
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.util.RandomSource;
 
 public final class SlimyBubbleParticle extends TTParticle {
-    private static final int[] GROW_FRAMES = {0, 0, 1, 1, 2, 2, 3};
-    private static final int RISE_START_AGE = GROW_FRAMES.length;
-    private static final int LIFT_AGE = 5;
-    private static final double LIFT_AMOUNT = 0.1;
-    private static final int POP_TICKS = 4;
-    private static final int POP_FIRST_FRAME = 5;
-    private static final int POP_SECOND_FRAME = 6;
-    private static final int POP_FRAME_STEP = 2;
-    private static final int WOBBLE_PERIOD = 4;
-    private static final int WOBBLE_SPLIT = 2;
-    private static final int WOBBLE_LOW_FRAME = 3;
-    private static final int WOBBLE_HIGH_FRAME = 4;
+    private static final int SWELL_END_AGE = 6;
+    private static final int SWELL_FRAME_DIVISOR = 2;
+    private static final int POP_UP_AGE = 5;
+    private static final double POP_UP_HEIGHT = 0.1;
+    private static final int FLOAT_FRAME_BASE = 3;
+    private static final int FLOAT_CYCLE_TICKS = 4;
+    private static final int FLOAT_FRAME_DIVISOR = 2;
     private static final double RISE_ACCELERATION = 0.005;
-    private static final double POP_DAMPING = 0.5;
+    private static final int POP_TICKS = 4;
+    private static final int POP_FRAME_LAST = 6;
+    private static final int POP_FRAME_DIVISOR = 2;
+    private static final double POP_SLOWDOWN = 0.5;
 
     private SlimyBubbleParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, SlimyBubbleParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
@@ -28,30 +27,40 @@ public final class SlimyBubbleParticle extends TTParticle {
         this.alpha = options.alpha();
         this.quadSize = options.scale();
         this.lifetime = options.age();
+        frame(0);
     }
 
     @Override
     protected void update() {
-        if (this.age == LIFT_AGE) {
-            setPos(this.x, this.y + LIFT_AMOUNT, this.z);
-        }
         int remaining = this.lifetime - this.age;
-        if (remaining < POP_TICKS) {
-            int step = POP_TICKS - 1 - remaining;
-            frame(step < POP_FRAME_STEP ? POP_FIRST_FRAME : POP_SECOND_FRAME);
-            this.yd *= POP_DAMPING;
-            return;
-        }
-        if (this.age < RISE_START_AGE) {
-            frame(GROW_FRAMES[this.age]);
+        if (this.age <= SWELL_END_AGE) {
+            swell();
+        } else if (remaining > POP_TICKS) {
+            floatUp();
         } else {
-            frame(this.age % WOBBLE_PERIOD < WOBBLE_SPLIT ? WOBBLE_LOW_FRAME : WOBBLE_HIGH_FRAME);
-            this.yd += RISE_ACCELERATION;
+            pop(remaining);
         }
     }
 
+    private void swell() {
+        frame(this.age / SWELL_FRAME_DIVISOR);
+        if (this.age == POP_UP_AGE) {
+            setPos(this.x, this.y + POP_UP_HEIGHT, this.z);
+        }
+    }
+
+    private void floatUp() {
+        this.yd += RISE_ACCELERATION;
+        frame(FLOAT_FRAME_BASE + this.age % FLOAT_CYCLE_TICKS / FLOAT_FRAME_DIVISOR);
+    }
+
+    private void pop(int remaining) {
+        this.yd *= POP_SLOWDOWN;
+        frame(POP_FRAME_LAST - remaining / POP_FRAME_DIVISOR);
+    }
+
     @Override
-    public Layer getLayer() {
+    public SingleQuadParticle.Layer getLayer() {
         return TTParticleLayers.translucent(this.sheet);
     }
 

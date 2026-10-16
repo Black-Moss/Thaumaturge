@@ -74,14 +74,14 @@ public class JarItem extends BlockItem {
         }
         int scoop = Math.min(alembic.amount(), IEssentiaJar.DEFAULT_CAPACITY - contents.totalAmount());
         if (level instanceof ServerLevel server) {
-            if (scoop <= 0 || alembic.takeEssentia(aspect, scoop, Direction.UP) <= 0) {
+            if (scoop <= 0 || alembic.extract(aspect, scoop, Direction.UP, false) <= 0) {
                 return super.useOn(context);
             }
             replaceHeld(player, context.getHand(), held, scooped(held, contents, aspect, scoop));
             server.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, SCOOP_VOLUME, SCOOP_PITCH);
             return InteractionResult.SUCCESS_SERVER;
         }
-        if (scoop <= 0 || !alembic.canOutputTo(Direction.UP)) {
+        if (scoop <= 0 || !alembic.releasesOn(Direction.UP)) {
             return super.useOn(context);
         }
         player.swing(context.getHand());
@@ -105,8 +105,8 @@ public class JarItem extends BlockItem {
             return;
         }
         held.shrink(1);
-        if (!player.getInventory().add(scooped) && player.level() instanceof ServerLevel server) {
-            player.spawnAtLocation(server, scooped);
+        if (!player.getInventory().add(scooped)) {
+            player.drop(scooped, false);
         }
     }
 }

@@ -10,7 +10,7 @@ import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Clearable;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -21,7 +21,7 @@ import org.jspecify.annotations.Nullable;
 
 public class BlockEntityPedestal extends AbstractSyncedBlockEntity implements Clearable {
     private static final String ITEM_KEY = "Item";
-    private static final int MITIGATOR_SEARCH_DEPTH = 32;
+    private static final int LINK_SEARCH_DEPTH = 32;
     private static final double DROP_CENTER_OFFSET = 0.5;
     private static final double DROP_HEIGHT = 1.0;
 
@@ -53,7 +53,7 @@ public class BlockEntityPedestal extends AbstractSyncedBlockEntity implements Cl
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         super.preRemoveSideEffects(pos, state);
         if (level != null && !level.isClientSide() && !item.isEmpty()) {
-            level.addFreshEntity(new ItemEntity(level, pos.getX() + DROP_CENTER_OFFSET, pos.getY() + DROP_HEIGHT, pos.getZ() + DROP_CENTER_OFFSET, item));
+            Containers.dropItemStack(level, pos.getX() + DROP_CENTER_OFFSET, pos.getY() + DROP_HEIGHT, pos.getZ() + DROP_CENTER_OFFSET, item);
         }
         item = ItemStack.EMPTY;
     }
@@ -72,7 +72,7 @@ public class BlockEntityPedestal extends AbstractSyncedBlockEntity implements Cl
         item = input.read(ITEM_KEY, ItemStack.CODEC).orElse(ItemStack.EMPTY);
     }
 
-    public @Nullable BlockPos findInstabilityMitigator() {
+    public @Nullable BlockPos linkedStabilizer() {
         Level world = level;
         BlockState state = getBlockState();
         int charge = state.hasProperty(BlockPedestal.CHARGE) ? state.getValue(BlockPedestal.CHARGE) : 0;
@@ -82,7 +82,7 @@ public class BlockEntityPedestal extends AbstractSyncedBlockEntity implements Cl
         Set<BlockPos> visited = new HashSet<>();
         visited.add(worldPosition);
         List<BlockPos> frontier = List.of(worldPosition);
-        for (int depth = 0; depth < MITIGATOR_SEARCH_DEPTH && !frontier.isEmpty(); depth++) {
+        for (int depth = 0; depth < LINK_SEARCH_DEPTH && !frontier.isEmpty(); depth++) {
             List<BlockPos> next = new ArrayList<>();
             for (BlockPos node : frontier) {
                 int nodeCharge = BlockInlay.chargeAt(world, node);

@@ -25,17 +25,19 @@ public abstract class StreamInstance implements IFXInstance {
     protected static final double MIN_RADIUS = 0.001;
 
     private static final float CHANNEL_SCALE = 255.0F;
-    private static final float RADIUS_SCATTER = 0.15F;
     private static final double ARRIVAL_EPSILON = 0.000001;
-    private static final double PULSE_FLOOR = 0.75;
-    private static final double PULSE_DEPTH = 0.25;
-    private static final double PULSE_DIVISOR = 2.0;
-    private static final double TICKS_PER_BLOCK = 21.0;
     private static final int SEED_TRAIL_POINTS = 2;
-    private static final double SHIMMER_DIVISOR = 2.0;
-    private static final double SHIMMER_DEPTH = 0.1;
     private static final float OPAQUE_ALPHA = 1.0F;
     private static final double DEFAULT_SHRINK_RANGE = 1.0;
+    private static final float RADIUS_SCATTER = 0.15F;
+    private static final double PULSE_CENTRE = 0.75;
+    private static final double PULSE_DEPTH = 0.25;
+    private static final double PULSE_DIVISOR = 2.0;
+    private static final double PULL_FULL_DISTANCE = 1.0;
+    private static final double PULL_DISTANCE_FLOOR = 0.05;
+    private static final double TICKS_PER_BLOCK = 21.0;
+    private static final double SHADE_DEPTH = 0.1;
+    private static final double SHADE_DIVISOR = 2.0;
 
     protected final double originX;
     protected final double originY;
@@ -53,6 +55,7 @@ public abstract class StreamInstance implements IFXInstance {
     private final TrailBuffer trailBuffer;
     private final HeadMotion head;
     private final StreamStep step = new StreamStep();
+    private final StreamSnapshotBuilder snapshots = new StreamSnapshotBuilder();
     private boolean targetMissing;
 
     protected StreamInstance(double x, double y, double z, int color, int count, float scale) {
@@ -90,11 +93,6 @@ public abstract class StreamInstance implements IFXInstance {
         return this.head.position();
     }
 
-    protected static int travelTicks(double x1, double y1, double z1, double x2, double y2, double z2) {
-        double distance = new Vec3(x1, y1, z1).distanceTo(new Vec3(x2, y2, z2));
-        return Math.max(1, (int) (distance * TICKS_PER_BLOCK));
-    }
-
     @Override
     public final boolean isExpired() {
         return this.targetMissing || this.age >= this.maxAge || this.length < 1;
@@ -127,25 +125,21 @@ public abstract class StreamInstance implements IFXInstance {
         double distance = this.step.distance();
         restrainMotion(distance);
         if (distance > ARRIVAL_EPSILON) {
-            double pull = pullStrength(distance) / Math.min(1.0, distance);
-            double jitterX = steerJitter(level);
-            double jitterY = steerJitter(level);
-            double jitterZ = steerJitter(level);
-            this.head.accelerate(this.step.directionX() * pull + jitterX, this.step.directionY() * pull + jitterY, this.step.directionZ() * pull + jitterZ);
+            double pull = pullStrength(distance) / Math.max(PULL_DISTANCE_FLOOR, Math.min(PULL_FULL_DISTANCE, distance));
+            this.head.accelerate(this.step.directionX() * pull, this.step.directionY() * pull, this.step.directionZ() * pull);
+            this.head.accelerate(steerJitter(level), steerJitter(level), steerJitter(level));
         }
     }
 
     private SizingResult size() {
+        float base = this.radiusBase;
         double distance = this.step.distance();
-        double pointRadius = this.radiusBase * (PULSE_FLOOR + PULSE_DEPTH * Math.sin((this.waveSeed + this.age) / PULSE_DIVISOR));
-        float baseRadius = this.radiusBase;
-        ShrinkRule shrink = shrinkRule();
-        if (shrink.applies(distance)) {
-            double narrowing = shrink.factor(distance);
-            pointRadius *= narrowing;
-            baseRadius = (float) (baseRadius * narrowing);
+        ShrinkRule rule = shrinkRule();
+        if (rule.applies(distance)) {
+            base *= (float) rule.factor(distance);
         }
-        return new SizingResult(pointRadius, baseRadius);
+        double pulse = PULSE_CENTRE + PULSE_DEPTH * Math.sin((this.waveSeed + this.age + 1) / PULSE_DIVISOR);
+        return new SizingResult(base * pulse, base);
     }
 
     private void trailStep(ClientLevel level, SizingResult sizing) {
@@ -153,7 +147,7 @@ public abstract class StreamInstance implements IFXInstance {
         if (this.radiusBase > MIN_RADIUS) {
             this.trailBuffer.append(new TrailPoint(sizing.pointRadius(), this.head.x() - this.originX, this.head.y() - this.originY, this.head.z() - this.originZ));
         } else {
-            this.trailBuffer.markDissolveStart(this.age);
+            this.trailBuffer.markDissolveStart(this.age + 1);
             this.length--;
             onDissolve(level);
         }
@@ -182,6 +176,21 @@ public abstract class StreamInstance implements IFXInstance {
         return new RangeShrink(shrinkRange());
     }
 
+    protected void colour(float[] out, int wave) {
+        float shade = (float) (1.0 - SHADE_DEPTH * Math.sin(wave / SHADE_DIVISOR));
+        out[0] = Math.min(1.0F, this.colorR * shade);
+        out[1] = Math.min(1.0F, this.colorG * shade);
+        out[2] = Math.min(1.0F, this.colorB * shade);
+        out[3] = OPAQUE_ALPHA;
+    }
+
+    protected static int travelTicks(double x1, double y1, double z1, double x2, double y2, double z2) {
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        double dz = z2 - z1;
+        return Math.max(1, (int) (Math.sqrt(dx * dx + dy * dy + dz * dz) * TICKS_PER_BLOCK));
+    }
+
     protected void onDissolve(ClientLevel level) {}
 
     protected void afterStep(ClientLevel level) {}
@@ -189,15 +198,7 @@ public abstract class StreamInstance implements IFXInstance {
     protected final @Nullable Snapshot buildSnapshot(float partialTick, float wobble, boolean newestFirst, float radiusMultiplier) {
         StreamFrame frame = new StreamFrame(this.age, this.radiusBase, this.originX, this.originY, this.originZ);
         SnapshotRequest request = new SnapshotRequest(partialTick, wobble, newestFirst, radiusMultiplier);
-        return StreamSnapshotBuilder.build(this.trailBuffer, frame, request, this::colour);
-    }
-
-    protected void colour(float[] out, int slot) {
-        double dim = 1.0 - SHIMMER_DEPTH * Math.sin((slot + this.age) / SHIMMER_DIVISOR);
-        out[0] = (float) Math.min(1.0, this.colorR * dim);
-        out[1] = (float) Math.min(1.0, this.colorG * dim);
-        out[2] = (float) Math.min(1.0, this.colorB * dim);
-        out[3] = OPAQUE_ALPHA;
+        return this.snapshots.build(this.trailBuffer, frame, request, this::colour);
     }
 
     protected final TrailPoint trailPoint(int index) {

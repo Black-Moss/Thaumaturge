@@ -3,17 +3,17 @@ package com.leclowndu93150.thaumaturge.client.hud.knowledge.spark;
 import net.minecraft.util.RandomSource;
 
 public final class SparkSpawner {
-    private static final int ODDS_BASE = 1;
-    private static final int ODDS_SPAN = 10;
-    private static final float POSITION_SPREAD = 5.0F;
-    private static final float VELOCITY_SPREAD = 1.0F;
+    private static final int MAX_CHANNEL = 255;
+    private static final float ODDS_BASE = 1.0F;
+    private static final float ODDS_SPAN = 10.0F;
+    private static final double POSITION_SPREAD = 5.0;
+    private static final double VELOCITY_SPREAD = 1.0;
     private static final int DELAY_RANGE = 5;
     private static final int LIFE_BASE = 32;
     private static final int LIFE_RANGE = 8;
     private static final float STAR_CHANCE = 0.2F;
     private static final int GREEN_BASE = 189;
     private static final int BLUE_BASE = 64;
-    private static final int MAX_CHANNEL = 255;
 
     public void maybeSpawn(SparkSystem system, RandomSource random, float lifeFraction, float x, float y) {
         SparkPool pool = system.pool();

@@ -41,24 +41,25 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
     private static final float STANDING_STEP_DEGREES = 22.5F;
     private static final int UNDYED = -1;
     private static final int OPAQUE = 0xFF000000;
-    private static final float PHASE_X = 7.0F;
-    private static final float PHASE_Y = 9.0F;
-    private static final float PHASE_Z = 13.0F;
-    private static final float PHASE_DIVISOR = 11.0F;
     private static final float HALF_TURN = 180.0F;
-    private static final float POSE_X = 0.5F;
-    private static final float POSE_Y = 1.5F;
-    private static final float WALL_OFFSET_Y = 1.0F;
-    private static final float WALL_OFFSET_Z = -0.21875F;
-    private static final float EMBLEM_DROP = -0.3125F;
+    private static final float EMBLEM_DROP = -0.25F;
     private static final float EMBLEM_Z = -0.052F;
     private static final float EMBLEM_HALF_WIDTH = 0.3F;
-    private static final float EMBLEM_BOTTOM = 0.35F;
-    private static final float EMBLEM_TOP = 0.95F;
+    private static final float EMBLEM_BOTTOM = 0.9F;
+    private static final float EMBLEM_TOP = 0.3F;
     private static final float EMBLEM_ALPHA = 0.75F;
     private static final int OUTLINE_NONE = 0;
     private static final int UNTINTED = -1;
     private static final int TOP_SEGMENT = 0;
+    private static final float CENTER = 0.5F;
+    private static final float STANDING_LIFT = 1.5F;
+    private static final float WALL_LIFT = 0.5F;
+    private static final float STANDING_SETBACK = -0.1875F;
+    private static final float WALL_SETBACK = 0.21875F;
+    private static final int PHASE_WEIGHT_X = 7;
+    private static final int PHASE_WEIGHT_Y = 9;
+    private static final int PHASE_WEIGHT_Z = 13;
+    private static final float PHASE_DIVISOR = 11.0F;
 
     private final TTBannerModel frame;
     private final TTBannerModel cloth;
@@ -94,6 +95,7 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
     public void submit(BannerRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
         orient(state, poseStack);
+        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN));
         submitBody(state, poseStack, collector);
         Identifier emblem = state.aspectTexture;
         if (emblem != null) {
@@ -102,34 +104,26 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
         poseStack.popPose();
     }
 
-    private static void orient(BannerRenderState state, PoseStack poseStack) {
-        poseStack.translate(POSE_X, POSE_Y, POSE_X);
-        poseStack.mulPose(Axis.XP.rotationDegrees(HALF_TURN));
-        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN + state.yawDegrees));
-        if (state.onWall) {
-            poseStack.translate(0.0F, WALL_OFFSET_Y, WALL_OFFSET_Z);
-        }
-    }
-
     private void submitBody(BannerRenderState state, PoseStack poseStack, SubmitNodeCollector collector) {
         RenderType layer = RenderTypes.entityCutout(state.color == UNDYED ? CULTIST_TEXTURE : BLANK_TEXTURE);
-        poseStack.pushPose();
-        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN));
         collector.submitModel(frame, state, poseStack, layer, state.lightCoords, OverlayTexture.NO_OVERLAY, UNTINTED, null, OUTLINE_NONE, state.breakProgress);
         collector.submitModel(cloth, state, poseStack, layer, state.lightCoords, OverlayTexture.NO_OVERLAY, state.color, null, OUTLINE_NONE, state.breakProgress);
-        poseStack.popPose();
+    }
+
+    private static void orient(BannerRenderState state, PoseStack poseStack) {
+        poseStack.translate(CENTER, state.onWall ? WALL_LIFT : STANDING_LIFT, CENTER);
+        poseStack.mulPose(Axis.YP.rotationDegrees(HALF_TURN - state.yawDegrees));
+        poseStack.translate(0.0F, 0.0F, state.onWall ? WALL_SETBACK : STANDING_SETBACK);
+        poseStack.scale(1.0F, -1.0F, -1.0F);
+    }
+
+    private static float swayPhase(BlockPos pos, float partialTicks) {
+        int position = PHASE_WEIGHT_X * pos.getX() + PHASE_WEIGHT_Y * pos.getY() + PHASE_WEIGHT_Z * pos.getZ();
+        return (position + localPlayerTicks() + partialTicks) / PHASE_DIVISOR;
     }
 
     private static int tintOf(@Nullable DyeColor dye) {
         return dye == null ? UNDYED : OPAQUE | dye.getTextureDiffuseColor();
-    }
-
-    private static float swayPhase(BlockPos pos, float partialTicks) {
-        return (positionOffset(pos) + localPlayerTicks() + partialTicks) / PHASE_DIVISOR;
-    }
-
-    private static float positionOffset(BlockPos pos) {
-        return pos.getX() * PHASE_X + pos.getY() * PHASE_Y + pos.getZ() * PHASE_Z;
     }
 
     private static float localPlayerTicks() {
@@ -141,7 +135,7 @@ public final class BannerRenderer implements BlockEntityRenderer<BlockEntityBann
         int light = state.lightCoords;
         poseStack.pushPose();
         poseStack.translate(0.0F, EMBLEM_DROP, 0.0F);
-        poseStack.mulPose(new Quaternionf().rotationX(-TTBannerModel.clothBend(state.phase, TOP_SEGMENT)));
+        poseStack.mulPose(new Quaternionf().rotationX(TTBannerModel.clothBend(state.phase, TOP_SEGMENT)));
         collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(texture), (pose, buffer) -> writeEmblem(pose, buffer, light));
         poseStack.popPose();
     }

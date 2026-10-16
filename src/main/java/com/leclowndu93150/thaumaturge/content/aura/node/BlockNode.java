@@ -2,7 +2,7 @@ package com.leclowndu93150.thaumaturge.content.aura.node;
 
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.content.item.PrimordialPearlItem;
 import com.leclowndu93150.thaumaturge.content.taint.flux.PhysicalFlux;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
@@ -76,7 +76,7 @@ public final class BlockNode extends Block implements EntityBlock {
         if (!(level instanceof ServerLevel serverLevel)) {
             return InteractionResult.SUCCESS;
         }
-        boolean researched = KnowledgeAccess.of(player).isResearchComplete(PRIMORDIAL_NODES_RESEARCH);
+        boolean researched = PlayerResearchAccess.of(player).hasCompleted(PRIMORDIAL_NODES_RESEARCH);
         RandomSource random = serverLevel.getRandom();
         node.applyPrimordialPearl(random, researched);
         stack.consume(1, player);

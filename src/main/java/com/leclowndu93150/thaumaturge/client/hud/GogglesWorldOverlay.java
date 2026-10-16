@@ -20,7 +20,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 
 @EventBusSubscriber(modid = TTIds.MODID, value = Dist.CLIENT)
 public final class GogglesWorldOverlay {
-    private static final float SCALE_CAP = 0.3F;
+    private static final float SCALE_CAP = 0.5F;
     private static final float TAG_ALPHA = 0.75F;
     private static final Predicate<Holder<IAspect>> ALL_DISCOVERED = aspect -> true;
     private static final TagAnimation ANIMATION = new TagAnimation(SCALE_CAP);

@@ -9,6 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class BlockTaskGoal extends TaskGoal {
     private static final double BLOCK_REACH_SQR = 4.0D;
@@ -17,6 +18,8 @@ public final class BlockTaskGoal extends TaskGoal {
     private static final int REACH_RANGE = 0;
     private static final float LOOK_TURN_SPEED = 10.0F;
 
+    private @Nullable Vec3 standSpot;
+
     public BlockTaskGoal(EntityThaumaturgeGolem golem) {
         super(golem);
         this.reachSqr = BLOCK_REACH_SQR;
@@ -24,9 +27,11 @@ public final class BlockTaskGoal extends TaskGoal {
 
     @Override
     protected boolean claim(ServerLevel level) {
+        standSpot = null;
         for (Task task : TaskBoard.of(level).openBlockTasks(golem.getUUID(), golem)) {
             if (mayTake(task, task.pos()) && reachable(task.pos())) {
                 take(task);
+                standSpot = pickStandSpot(task.pos());
                 return true;
             }
         }
@@ -35,13 +40,13 @@ public final class BlockTaskGoal extends TaskGoal {
 
     @Override
     protected void approach(Task task) {
-        Vec3 spot = destination(task.pos());
+        Vec3 spot = destination(task);
         golem.getNavigation().moveTo(spot.x, spot.y, spot.z, golem.travelSpeed());
     }
 
     @Override
     protected double distanceSqrTo(Task task) {
-        return golem.distanceToSqr(destination(task.pos()));
+        return golem.distanceToSqr(destination(task));
     }
 
     @Override
@@ -59,7 +64,7 @@ public final class BlockTaskGoal extends TaskGoal {
     }
 
     private boolean reachable(BlockPos pos) {
-        if (golem.distanceToSqr(Vec3.atCenterOf(pos)) <= reachSqr) {
+        if (golem.distanceToSqr(Vec3.atCenterOf(pos)) < reachSqr) {
             return true;
         }
         Path route = golem.getNavigation().createPath(pos, REACH_RANGE);
@@ -71,10 +76,15 @@ public final class BlockTaskGoal extends TaskGoal {
     }
 
     private static boolean isVerticalAccess(BlockPos wanted, BlockPos finish) {
-        return finish.getX() == wanted.getX() && finish.getZ() == wanted.getZ() && Math.abs(finish.getY() - wanted.getY()) == VERTICAL_ACCESS;
+        return finish.getX() == wanted.getX() && finish.getZ() == wanted.getZ() && finish.getY() - wanted.getY() == VERTICAL_ACCESS;
     }
 
-    private Vec3 destination(BlockPos pos) {
+    private Vec3 destination(Task task) {
+        Vec3 spot = standSpot;
+        return spot == null ? Vec3.atCenterOf(task.pos()) : spot;
+    }
+
+    private @Nullable Vec3 pickStandSpot(BlockPos pos) {
         Level level = golem.level();
         Vec3 best = null;
         double bestDistance = Double.MAX_VALUE;
@@ -90,6 +100,6 @@ public final class BlockTaskGoal extends TaskGoal {
                 best = center;
             }
         }
-        return best == null ? Vec3.atCenterOf(pos) : best;
+        return best;
     }
 }

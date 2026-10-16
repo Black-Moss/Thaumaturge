@@ -29,9 +29,10 @@ public final class TubeValveRenderer implements BlockEntityRenderer<BlockEntityT
     private static final float QUARTER_TURN = 90.0F;
     private static final float HALF_TURN = 180.0F;
     private static final float FULL_TURN = 360.0F;
-    private static final float SPIN_RATIO = -1.5F;
-    private static final float REST_SINK = -0.03F;
+    private static final float SPIN_RATIO = 1.5F;
+    private static final float SINK_REST = 0.03F;
     private static final float SINK_TRAVEL = 0.09F;
+    private static final int OUTLINE_NONE = 0;
 
     public TubeValveRenderer(BlockEntityRendererProvider.Context context) {}
 
@@ -60,13 +61,14 @@ public final class TubeValveRenderer implements BlockEntityRenderer<BlockEntityT
         if (state.model == null || state.parts.isEmpty()) {
             return;
         }
+        float closed = Math.clamp(state.rotation / FULL_TURN, 0.0F, 1.0F);
         poseStack.pushPose();
         poseStack.translate(CENTER, CENTER, CENTER);
         orient(poseStack, state.facing);
-        poseStack.mulPose(Axis.YP.rotationDegrees(SPIN_RATIO * state.rotation));
-        poseStack.translate(0.0F, REST_SINK - state.rotation / FULL_TURN * SINK_TRAVEL, 0.0F);
+        poseStack.translate(0.0F, -(SINK_REST + closed * SINK_TRAVEL), 0.0F);
+        poseStack.mulPose(Axis.YN.rotationDegrees(state.rotation * SPIN_RATIO));
         poseStack.translate(-CENTER, -CENTER, -CENTER);
-        collector.submitMultiLayerBlockModel(poseStack, state.parts, true, NO_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+        collector.submitMultiLayerBlockModel(poseStack, state.parts, false, NO_TINTS, state.lightCoords, OverlayTexture.NO_OVERLAY, OUTLINE_NONE);
         if (state.breakProgress != null) {
             collector.submitBreakingBlockModel(poseStack, state.model, state.seed, state.breakProgress.progress());
         }

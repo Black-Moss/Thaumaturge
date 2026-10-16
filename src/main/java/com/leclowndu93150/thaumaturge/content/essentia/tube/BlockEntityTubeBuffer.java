@@ -5,7 +5,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.casters.IInteractWithCaster;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.cadence.IntervalTimer;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.BufferSides;
@@ -13,7 +14,7 @@ import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.BufferSuction
 import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.ChokeLevel;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.PullCandidate;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.PullSelector;
-import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.TakeArbitration;
+import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.StrongerPullCheck;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.buffer.TakeVerdict;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -36,7 +37,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity implements IEssentiaTransport, IInteractWithCaster {
+public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity implements IEssentiaConduit, IInteractWithCaster {
     public static final int MAX_AMOUNT = 10;
 
     private static final String CONTENTS_KEY = "Contents";
@@ -50,17 +51,16 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
     private static final int FIRST_SIDE = 0;
     private static final int NO_ARM = -1;
     private static final int NO_SUCTION = 0;
-    private static final @Nullable Holder<IAspect> NO_SUCTION_TYPE = null;
-    private static final float TOOL_VOLUME = 0.5F;
-    private static final float TOOL_PITCH_BASE = 0.9F;
-    private static final float TOOL_PITCH_SPREAD = 0.2F;
     private static final float SQUEAK_VOLUME = 0.6F;
     private static final float SQUEAK_PITCH_BASE = 2.0F;
     private static final float SQUEAK_PITCH_SPREAD = 0.2F;
+    private static final float TOOL_VOLUME = 0.5F;
+    private static final float TOOL_PITCH_BASE = 0.9F;
+    private static final float TOOL_PITCH_SPREAD = 0.2F;
 
     private final BufferSides sides = new BufferSides();
     private final BufferSuctionPolicy suctionPolicy = new BufferSuctionPolicy();
-    private final TakeArbitration arbitration = new TakeArbitration(sides, suctionPolicy);
+    private final StrongerPullCheck strongerPull = new StrongerPullCheck(sides, suctionPolicy);
     private final PullSelector pullSelector = new PullSelector(sides, suctionPolicy);
     private final IntervalTimer bellowsTimer = IntervalTimer.firingAfterFullPeriod(BELLOWS_RECOUNT_TICKS);
     private final IntervalTimer pullTimer = IntervalTimer.firingAfterFullPeriod(PULL_TICKS);
@@ -132,11 +132,6 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
         return handled;
     }
 
-    private static int lookedAtArm(Level level, Player player, BlockPos pos) {
-        BlockHitResult hit = BlockEssentiaTransport.traceLook(level, player, pos);
-        return hit == null ? NO_ARM : BlockEssentiaTransport.resolveSubHit(level.getBlockState(pos), hit, pos);
-    }
-
     public boolean handleCasterClick(int part, boolean sneaking) {
         if (level == null || part < 0 || part >= DIRECTIONS.length) {
             return false;
@@ -153,6 +148,31 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
         return true;
     }
 
+    public void tickServer(Level level, BlockPos pos, BlockState state) {
+        if (suctionPolicy.needsCount() || bellowsTimer.advance()) {
+            suctionPolicy.recount(level, pos);
+        }
+        if (pullTimer.advance() && !isFull()) {
+            pullFromNeighbour(level, pos);
+        }
+    }
+
+    private void pullFromNeighbour(Level level, BlockPos pos) {
+        int from = FIRST_SIDE;
+        while (from < DIRECTIONS.length) {
+            PullCandidate candidate = pullSelector.select(level, pos, from);
+            if (candidate == null || transfer(candidate)) {
+                return;
+            }
+            from = candidate.side().ordinal() + 1;
+        }
+    }
+
+    private static int lookedAtArm(Level level, Player player, BlockPos pos) {
+        BlockHitResult hit = BlockEssentiaTransport.traceLook(level, player, pos);
+        return hit == null ? NO_ARM : BlockEssentiaTransport.resolveSubHit(level.getBlockState(pos), hit, pos);
+    }
+
     private void playClickSound(Level world, SoundEvent sound, float volume, float pitchBase, float pitchSpread) {
         world.playSound(null, worldPosition, sound, SoundSource.BLOCKS, volume, pitchBase + world.getRandom().nextFloat() * pitchSpread);
     }
@@ -163,10 +183,10 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
 
     public int fill(ResourceKey<IAspect> aspect, int amount) {
         Holder<IAspect> resolved = Aspects.resolve(level, aspect);
-        return resolved == null ? 0 : insert(resolved, amount);
+        return resolved == null ? 0 : addUnit(resolved, amount);
     }
 
-    private int insert(Holder<IAspect> aspect, int amount) {
+    private int addUnit(Holder<IAspect> aspect, int amount) {
         if (amount != SINGLE_UNIT || isFull()) {
             return 0;
         }
@@ -192,68 +212,42 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
         return suctionPolicy.bellowsCount();
     }
 
-    public void tickServer(Level level, BlockPos pos, BlockState state) {
-        boolean pullDue = pullTimer.advance();
-        boolean recountDue = bellowsTimer.advance();
-        if (recountDue || suctionPolicy.needsCount()) {
-            suctionPolicy.recount(level, pos);
-        }
-        if (pullDue && !isFull()) {
-            pullFromNeighbour(level, pos);
-        }
-    }
-
     private boolean isFull() {
         return heldTotal() >= MAX_AMOUNT;
     }
 
-    private void pullFromNeighbour(Level world, BlockPos origin) {
-        PullCandidate found = pullSelector.select(world, origin, FIRST_SIDE);
-        while (found != null && !transfer(found)) {
-            found = pullSelector.select(world, origin, found.side().ordinal() + 1);
-        }
-    }
-
     private boolean transfer(PullCandidate candidate) {
         Direction towardPeer = candidate.side().getOpposite();
-        if (candidate.peer().takeEssentia(candidate.aspect(), SINGLE_UNIT, towardPeer) <= 0) {
+        if (candidate.peer().extract(candidate.aspect(), SINGLE_UNIT, towardPeer, false) <= 0) {
             return false;
         }
-        insert(candidate.aspect(), SINGLE_UNIT);
+        addUnit(candidate.aspect(), SINGLE_UNIT);
         return true;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable Direction side) {
-        return NO_SUCTION_TYPE;
-    }
-
-    @Override
-    public int getSuctionAmount(@Nullable Direction side) {
+    public EssentiaPull pull(@Nullable Direction side) {
         ChokeLevel level = side == null ? ChokeLevel.NORMAL : sides.choke(side);
-        return suctionPolicy.offered(level);
+        return EssentiaPull.any(suctionPolicy.offered(level));
     }
 
     @Override
-    public int getMinimumSuction() {
+    public int pullThreshold() {
         return NO_SUCTION;
     }
 
     @Override
-    public void setSuction(@Nullable Holder<IAspect> type, int strength) {}
-
-    @Override
-    public boolean isConnectable(Direction side) {
+    public boolean connectsOn(Direction side) {
         return openOn(side);
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable Direction side) {
+    public int heldAmount(@Nullable Direction side) {
         return heldTotal();
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable Direction side) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable Direction side) {
         if (contents.isEmpty()) {
             return null;
         }
@@ -263,32 +257,46 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
     }
 
     @Override
-    public int takeEssentia(Holder<IAspect> kind, int amount, Direction side) {
-        if (side == null || !canOutputTo(side)) {
+    public int extract(Holder<IAspect> kind, int amount, Direction side, boolean simulate) {
+        if (side == null || !releasesOn(side)) {
             return 0;
         }
-        boolean outbid = level != null && arbitration.judge(level, worldPosition, kind, side) == TakeVerdict.OUTBID;
+        boolean outbid = level != null && strongerPull.verdict(level, worldPosition, kind, side) == TakeVerdict.OUTBID;
         int moved = Math.min(amount, contents.amountOf(kind));
         if (outbid || moved < SINGLE_UNIT) {
             return 0;
+        }
+        if (simulate) {
+            return moved;
         }
         boolean removed = drain(kind, moved);
         return removed ? moved : 0;
     }
 
     @Override
-    public boolean canOutputTo(Direction side) {
+    public boolean releasesOn(Direction side) {
         return openOn(side);
     }
 
     @Override
-    public int addEssentia(Holder<IAspect> kind, int amount, Direction side) {
-        boolean accepted = side != null && canInputFrom(side) && kind.unwrapKey().isPresent();
-        return accepted ? insert(kind, amount) : 0;
+    public int insert(Holder<IAspect> kind, int amount, Direction side, boolean simulate) {
+        boolean accepted = side != null && receivesOn(side) && kind.unwrapKey().isPresent();
+        if (!accepted) {
+            return 0;
+        }
+        if (simulate) {
+            return amount == SINGLE_UNIT && !isFull() ? SINGLE_UNIT : 0;
+        }
+        return addUnit(kind, amount);
     }
 
     @Override
-    public boolean canInputFrom(Direction side) {
+    public int roomFor(Holder<IAspect> kind, Direction side) {
+        return side != null && receivesOn(side) ? Math.max(0, MAX_AMOUNT - heldTotal()) : 0;
+    }
+
+    @Override
+    public boolean receivesOn(Direction side) {
         return side != null && sides.isOpen(side);
     }
 

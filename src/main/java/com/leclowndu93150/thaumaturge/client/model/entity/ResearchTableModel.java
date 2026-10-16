@@ -23,13 +23,10 @@ public final class ResearchTableModel {
     private static final float SCROLL_ANCHOR_Y = -2.0F;
     private static final float SCROLL_ANCHOR_Z = 2.0F;
     private static final float SCROLL_YAW = 10.0F;
-    private static final float INK_X = -6.0F;
-    private static final float INK_Z = 3.0F;
     private static final float[] SCROLL_ROW_Z = {2.0F, -1.0F, -4.0F};
 
     public final ModelPart root;
     public final ModelPart table;
-    public final ModelPart inkwell;
     public final ModelPart scrollTube;
     public final ModelPart scrollRibbon;
     public final ModelPart shelfScrolls;
@@ -37,7 +34,6 @@ public final class ResearchTableModel {
     public ResearchTableModel(ModelPart root) {
         this.root = root;
         this.table = root.getChild("table");
-        this.inkwell = root.getChild("inkwell");
         this.scrollTube = root.getChild("scroll_tube");
         this.scrollRibbon = root.getChild("scroll_ribbon");
         this.shelfScrolls = root.getChild("shelf_scrolls");
@@ -102,7 +98,6 @@ public final class ResearchTableModel {
         PartDefinition root = mesh.getRoot();
         attachScroll(root, "scroll_ribbon", flatBox(0, 4, true, -15.1F, -0.275F, -6.75F, 1.0F, 2.0F, 2.0F));
         attachScroll(root, "scroll_tube", flatBox(0, 0, true, -21.0F, -0.5F, -8.0F, 8.0F, 2.0F, 2.0F));
-        root.addOrReplaceChild("inkwell", flatBox(0, 44, true, 0.0F, 0.0F, 0.0F, 3.0F, 2.0F, 3.0F), PartPose.offset(INK_X, SCROLL_ANCHOR_Y, INK_Z));
         PartDefinition table = root.addOrReplaceChild("table", CubeListBuilder.create(), PartPose.ZERO);
         attachStatic(table, "shelf", shelfShape());
         attachStatic(table, "rails", railsShape());

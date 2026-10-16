@@ -24,37 +24,40 @@ import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4fc;
-import org.joml.Vector3f;
 
 public final class GrappleRenderer extends EntityRenderer<EntityGrapple, GrappleRenderer.State> {
     private static final Identifier MODEL_TEXTURE = TTIds.rl("textures/entity/grappler.png");
     private static final Identifier ROPE_TEXTURE = TTIds.rl("textures/misc/rope.png");
     private static final float SHADOW_RADIUS = 0.0F;
-    private static final float MODEL_YAW_OFFSET = 90.0F;
-    private static final float GLOW_PULSE_DIVISOR = 5.0F;
-    private static final float GLOW_PULSE_AMPLITUDE = 0.2F;
-    private static final float GLOW_PULSE_OFFSET = 0.2F;
     private static final float GLOW_HALF = 0.5F;
-    private static final int GLOW_TINT = ARGB.white(0.21F);
-    private static final int GLOW_LIGHT = 0x00F000DC;
-    private static final float SAMPLES_PER_BLOCK = 5.0F;
-    private static final int MIN_SEGMENTS = 2;
-    private static final float SAG_X_PERIOD = 10.0F;
-    private static final float SAG_Y_PERIOD = 8.0F;
-    private static final float SAG_Z_PERIOD = 6.0F;
-    private static final float SAG_DAMPING_DIVISOR = 1.25F;
-    private static final float HAND_SIDE = 0.1F;
-    private static final float HAND_FORWARD = 0.3F;
-    private static final float HAND_DROP = 0.1F;
-    private static final float ROPE_RADIUS = 0.025F;
-    private static final int ROPE_SIDES = 4;
+    private static final int MIN_ROPE_POINTS = 2;
     private static final float ROPE_V_STEP = 0.5F;
     private static final int ROPE_TINT = ARGB.white(1.0F);
     private static final float VERTICAL_THRESHOLD = 0.9F;
     private static final int COMPONENTS = 3;
+    private static final float MODEL_YAW_OFFSET = 90.0F;
+    private static final float SAMPLES_PER_BLOCK = 5.0F;
+    private static final int MIN_ROPE_SAMPLES = 2;
+    private static final double WAVE_DIVISOR_X = 10.0;
+    private static final double WAVE_DIVISOR_Y = 8.0;
+    private static final double WAVE_DIVISOR_Z = 6.0;
+    private static final double DAMP_FACTOR = 1.25;
+    private static final float ROPE_RADIUS = 0.022F;
+    private static final int ROPE_SIDES = 6;
+    private static final int RING_STRIDE = ROPE_SIDES * COMPONENTS;
+    private static final float GLOW_SCALE_BASE = 1.2F;
+    private static final float GLOW_PULSE_SCALE = 0.2F;
+    private static final float GLOW_PULSE_DIVISOR = 5.0F;
+    private static final int GLOW_TINT = ARGB.colorFromFloat(0.21F, 1.0F, 1.0F, 1.0F);
+    private static final int GLOW_LIGHT = 0x00F000DC;
+    private static final double HAND_SIDE = 0.1;
+    private static final float HAND_YAW_BIAS = 0.5F;
+    private static final double HAND_LOOK_DIVISOR = 5.0;
+    private static final double HAND_EYE_DIVISOR = 2.6;
+    private static final double BODY_MIDDLE = 0.5;
+    private static final double TANGENT_EPSILON = 1.0E-8;
 
     private final GrapplerModel model;
 
@@ -84,40 +87,6 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
         fillRope(state.points, end, entity.ampl);
     }
 
-    private static Vec3 ropeEnd(EntityGrapple entity, Entity owner, float partialTicks) {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (owner == minecraft.player && minecraft.options.getCameraType().isFirstPerson()) {
-            Player player = minecraft.player;
-            float yaw = player.getViewYRot(partialTicks) * Mth.DEG_TO_RAD;
-            float side = entity.getHand() == InteractionHand.MAIN_HAND ? HAND_SIDE : -HAND_SIDE;
-            double forwardX = -Mth.sin(yaw);
-            double forwardZ = Mth.cos(yaw);
-            double rightX = -Mth.cos(yaw);
-            double rightZ = -Mth.sin(yaw);
-            Vec3 eye = player.getEyePosition(partialTicks);
-            return new Vec3(eye.x + rightX * side + forwardX * HAND_FORWARD, eye.y - HAND_DROP, eye.z + rightZ * side + forwardZ * HAND_FORWARD);
-        }
-        return new Vec3(Mth.lerp(partialTicks, owner.xOld, owner.getX()), Mth.lerp(partialTicks, owner.yOld, owner.getY()) + owner.getBbHeight() / 2.0F,
-                Mth.lerp(partialTicks, owner.zOld, owner.getZ()));
-    }
-
-    private static void fillRope(List<Vec3> points, Vec3 end, float amplitude) {
-        float length = (float) end.length();
-        int segments = (int) (length * SAMPLES_PER_BLOCK);
-        if (segments < MIN_SEGMENTS) {
-            return;
-        }
-        points.add(Vec3.ZERO);
-        for (int i = 1; i < segments; i++) {
-            float fraction = i / (float) segments;
-            float distance = fraction * length;
-            float damping = 1.0F - fraction / SAG_DAMPING_DIVISOR;
-            points.add(new Vec3(end.x * fraction + Mth.sin(distance / SAG_X_PERIOD) * amplitude * damping, end.y * fraction + Mth.sin(distance / SAG_Y_PERIOD) * amplitude * damping,
-                    end.z * fraction + Mth.sin(distance / SAG_Z_PERIOD) * amplitude * damping));
-        }
-        points.add(end);
-    }
-
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         super.submit(state, poseStack, collector, camera);
@@ -127,27 +96,59 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
         collector.submitModelPart(model.root, poseStack, RenderTypes.entityCutout(MODEL_TEXTURE), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
         poseStack.popPose();
         submitGlow(state, poseStack, collector, camera);
-        if (state.points.size() > MIN_SEGMENTS) {
+        if (state.points.size() > MIN_ROPE_POINTS) {
             submitRope(state, poseStack, collector);
         }
+    }
+
+    private static Vec3 ropeEnd(EntityGrapple grapple, Entity owner, float partialTicks) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (owner == minecraft.getCameraEntity() && minecraft.options.getCameraType().isFirstPerson()) {
+            Vec3 feet = owner.getPosition(partialTicks);
+            Vec3 look = owner.getLookAngle();
+            double theta = Math.toRadians(Mth.rotLerp(partialTicks, owner.yRotO, owner.getYRot()) - HAND_YAW_BIAS);
+            double side = grapple.getHand() == InteractionHand.MAIN_HAND ? HAND_SIDE : -HAND_SIDE;
+            return new Vec3(
+                    feet.x - Math.cos(theta) * side + look.x / HAND_LOOK_DIVISOR,
+                    feet.y + owner.getEyeHeight() / HAND_EYE_DIVISOR + owner.getBbHeight() * BODY_MIDDLE + look.y / HAND_LOOK_DIVISOR,
+                    feet.z - Math.sin(theta) * side + look.z / HAND_LOOK_DIVISOR);
+        }
+        return owner.getPosition(partialTicks).add(0.0, owner.getBbHeight() * BODY_MIDDLE, 0.0);
+    }
+
+    private static void fillRope(List<Vec3> points, Vec3 end, float amplitude) {
+        float length = (float) end.length() * SAMPLES_PER_BLOCK;
+        int count = (int) length;
+        points.add(Vec3.ZERO);
+        for (int k = 1; k <= count - MIN_ROPE_SAMPLES; k++) {
+            double distance = k * (length / count);
+            double damp = 1.0 - k / (DAMP_FACTOR * count);
+            double along = k / (double) count;
+            double x = Math.sin(distance / WAVE_DIVISOR_X) * amplitude * damp;
+            double y = Math.sin(distance / WAVE_DIVISOR_Y) * amplitude * damp;
+            double z = Math.sin(distance / WAVE_DIVISOR_Z) * amplitude * damp;
+            points.add(new Vec3(end.x * along + x, end.y * along + y, end.z * along + z));
+        }
+        points.add(end);
     }
 
     private static void submitGlow(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int frame = Math.floorMod(state.ticks, ParticleTextures.GOLEM_ORB_FRAMES);
         float u0 = StripUv.u0(frame, ParticleTextures.GOLEM_ORB_FRAMES);
         float u1 = StripUv.u1(frame, ParticleTextures.GOLEM_ORB_FRAMES);
-        float half = GLOW_HALF * (1.0F + (Mth.sin(state.ticks / GLOW_PULSE_DIVISOR) * GLOW_PULSE_AMPLITUDE + GLOW_PULSE_OFFSET));
+        float scale = GLOW_SCALE_BASE + GLOW_PULSE_SCALE * Mth.sin(state.ticks / GLOW_PULSE_DIVISOR);
         poseStack.pushPose();
         poseStack.mulPose(camera.orientation);
-        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.GOLEM_ORB_BLUE), (pose, buffer) -> writeGlow(buffer, pose.pose(), half, u0, u1));
+        poseStack.scale(scale, scale, scale);
+        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.GOLEM_ORB_BLUE), (pose, buffer) -> writeGlow(buffer, pose.pose(), u0, u1));
         poseStack.popPose();
     }
 
-    private static void writeGlow(VertexConsumer buffer, Matrix4fc matrix, float half, float u0, float u1) {
-        buffer.addVertex(matrix, -half, -half, 0.0F).setUv(u0, StripUv.V1).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
-        buffer.addVertex(matrix, half, -half, 0.0F).setUv(u1, StripUv.V1).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
-        buffer.addVertex(matrix, half, half, 0.0F).setUv(u1, StripUv.V0).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
-        buffer.addVertex(matrix, -half, half, 0.0F).setUv(u0, StripUv.V0).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
+    private static void writeGlow(VertexConsumer buffer, Matrix4fc matrix, float u0, float u1) {
+        buffer.addVertex(matrix, -GLOW_HALF, -GLOW_HALF, 0.0F).setUv(u0, StripUv.V1).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
+        buffer.addVertex(matrix, GLOW_HALF, -GLOW_HALF, 0.0F).setUv(u1, StripUv.V1).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
+        buffer.addVertex(matrix, GLOW_HALF, GLOW_HALF, 0.0F).setUv(u1, StripUv.V0).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
+        buffer.addVertex(matrix, -GLOW_HALF, GLOW_HALF, 0.0F).setUv(u0, StripUv.V0).setColor(GLOW_TINT).setLight(GLOW_LIGHT);
     }
 
     private static void submitRope(State state, PoseStack poseStack, SubmitNodeCollector collector) {
@@ -164,45 +165,77 @@ public final class GrappleRenderer extends EntityRenderer<EntityGrapple, Grapple
 
     private static void writeRope(VertexConsumer buffer, Matrix4fc matrix, float[] points, int light) {
         int count = points.length / COMPONENTS;
-        float[] ring = new float[count * ROPE_SIDES * COMPONENTS];
-        Vector3f tangent = new Vector3f();
-        Vector3f reference = new Vector3f();
-        Vector3f across = new Vector3f();
-        Vector3f along = new Vector3f();
-        for (int i = 0; i < count; i++) {
-            int previous = Math.max(i - 1, 0);
-            int next = Math.min(i + 1, count - 1);
-            tangent.set(points[next * COMPONENTS] - points[previous * COMPONENTS], points[next * COMPONENTS + 1] - points[previous * COMPONENTS + 1],
-                    points[next * COMPONENTS + 2] - points[previous * COMPONENTS + 2]);
-            if (tangent.lengthSquared() == 0.0F) {
-                tangent.set(0.0F, 1.0F, 0.0F);
-            }
-            tangent.normalize();
-            boolean vertical = Math.abs(tangent.y) > VERTICAL_THRESHOLD;
-            reference.set(vertical ? 1.0F : 0.0F, vertical ? 0.0F : 1.0F, 0.0F);
-            reference.cross(tangent, across).normalize();
-            tangent.cross(across, along);
-            for (int side = 0; side < ROPE_SIDES; side++) {
-                float angle = Mth.HALF_PI * side;
-                float cos = Mth.cos(angle) * ROPE_RADIUS;
-                float sin = Mth.sin(angle) * ROPE_RADIUS;
-                int base = (i * ROPE_SIDES + side) * COMPONENTS;
-                ring[base] = points[i * COMPONENTS] + across.x * cos + along.x * sin;
-                ring[base + 1] = points[i * COMPONENTS + 1] + across.y * cos + along.y * sin;
-                ring[base + 2] = points[i * COMPONENTS + 2] + across.z * cos + along.z * sin;
-            }
-        }
+        float[] ring = buildRings(points, count);
         for (int i = 0; i < count - 1; i++) {
+            float v0 = i * ROPE_V_STEP;
+            float v1 = (i + 1) * ROPE_V_STEP;
             for (int side = 0; side < ROPE_SIDES; side++) {
-                int nextSide = (side + 1) % ROPE_SIDES;
+                int next = (side + 1) % ROPE_SIDES;
                 float u0 = side / (float) ROPE_SIDES;
                 float u1 = (side + 1) / (float) ROPE_SIDES;
-                ropeVertex(buffer, matrix, ring, i, side, u0, i * ROPE_V_STEP, light);
-                ropeVertex(buffer, matrix, ring, i, nextSide, u1, i * ROPE_V_STEP, light);
-                ropeVertex(buffer, matrix, ring, i + 1, nextSide, u1, (i + 1) * ROPE_V_STEP, light);
-                ropeVertex(buffer, matrix, ring, i + 1, side, u0, (i + 1) * ROPE_V_STEP, light);
+                ropeVertex(buffer, matrix, ring, i, side, u0, v0, light);
+                ropeVertex(buffer, matrix, ring, i + 1, side, u0, v1, light);
+                ropeVertex(buffer, matrix, ring, i + 1, next, u1, v1, light);
+                ropeVertex(buffer, matrix, ring, i, next, u1, v0, light);
             }
         }
+    }
+
+    private static float[] buildRings(float[] points, int count) {
+        float[] ring = new float[count * RING_STRIDE];
+        double nx = 0.0;
+        double ny = 0.0;
+        double nz = 0.0;
+        double tx = 0.0;
+        double ty = 1.0;
+        double tz = 0.0;
+        for (int i = 0; i < count; i++) {
+            int before = Math.max(0, i - 1) * COMPONENTS;
+            int after = Math.min(count - 1, i + 1) * COMPONENTS;
+            double dx = points[after] - points[before];
+            double dy = points[after + 1] - points[before + 1];
+            double dz = points[after + 2] - points[before + 2];
+            double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+            if (length > TANGENT_EPSILON) {
+                tx = dx / length;
+                ty = dy / length;
+                tz = dz / length;
+            }
+            boolean steep = Math.abs(ty) > VERTICAL_THRESHOLD;
+            if (i == 0) {
+                nx = steep ? 1.0 : 0.0;
+                ny = steep ? 0.0 : 1.0;
+                nz = 0.0;
+            }
+            double onTangent = nx * tx + ny * ty + nz * tz;
+            nx -= onTangent * tx;
+            ny -= onTangent * ty;
+            nz -= onTangent * tz;
+            double normal = Math.sqrt(nx * nx + ny * ny + nz * nz);
+            if (normal < TANGENT_EPSILON) {
+                nx = steep ? 1.0 - tx * tx : -ty * tx;
+                ny = steep ? -tx * ty : 1.0 - ty * ty;
+                nz = steep ? -tx * tz : -ty * tz;
+                normal = Math.sqrt(nx * nx + ny * ny + nz * nz);
+            }
+            nx /= normal;
+            ny /= normal;
+            nz /= normal;
+            double bx = ty * nz - tz * ny;
+            double by = tz * nx - tx * nz;
+            double bz = tx * ny - ty * nx;
+            int point = i * COMPONENTS;
+            for (int side = 0; side < ROPE_SIDES; side++) {
+                double angle = side * Mth.TWO_PI / ROPE_SIDES;
+                double cos = Math.cos(angle) * ROPE_RADIUS;
+                double sin = Math.sin(angle) * ROPE_RADIUS;
+                int at = i * RING_STRIDE + side * COMPONENTS;
+                ring[at] = (float) (points[point] + nx * cos + bx * sin);
+                ring[at + 1] = (float) (points[point + 1] + ny * cos + by * sin);
+                ring[at + 2] = (float) (points[point + 2] + nz * cos + bz * sin);
+            }
+        }
+        return ring;
     }
 
     private static void ropeVertex(VertexConsumer buffer, Matrix4fc matrix, float[] ring, int index, int side, float u, float v, int light) {

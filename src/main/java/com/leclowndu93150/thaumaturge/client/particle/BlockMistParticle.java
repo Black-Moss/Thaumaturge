@@ -14,9 +14,10 @@ public final class BlockMistParticle extends TTParticle {
     private static final float GRAVITY = 0.1F;
     private static final float START_SIZE = 0.5F;
     private static final float END_SIZE = 0.1F;
-    private static final double WIND_SCALE = 0.001;
     private static final float PEAK_ALPHA = 0.5F;
-    private static final float[] FADE_CURVE = {0.0F, PEAK_ALPHA, 0.4F, 0.3F, 0.2F, 0.1F, 0.0F};
+    private static final float[] FADE_CURVE = {0.0F, PEAK_ALPHA, PEAK_ALPHA * 0.8F, PEAK_ALPHA * 0.6F, PEAK_ALPHA * 0.4F, PEAK_ALPHA * 0.2F, 0.0F};
+    private static final float SPIN_SPEED = 1.0F;
+    private static final double WIND_SCALE = 1.0E-3;
 
     private BlockMistParticle(ParticleSheet sheet, ClientLevel level, Vec3 origin, Vec3 motion, ColorParticleOption tint) {
         super(level, origin.x, origin.y, origin.z, motion.x, motion.y, motion.z, sheet);
@@ -25,7 +26,7 @@ public final class BlockMistParticle extends TTParticle {
         this.gravity = GRAVITY;
         this.quadSize = START_SIZE;
         this.alpha = 0.0F;
-        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? 1.0F : -1.0F);
+        setSpin(this.random.nextFloat(), this.random.nextBoolean() ? SPIN_SPEED : -SPIN_SPEED);
         setMoonWind(WIND_SCALE);
     }
 

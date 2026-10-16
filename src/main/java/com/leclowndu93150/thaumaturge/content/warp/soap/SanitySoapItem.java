@@ -17,17 +17,17 @@ public final class SanitySoapItem extends Item {
     private static final int SCRUB_COMPLETE_TICKS = 95;
     private static final int CONSUMED = 1;
 
-    private static final int SCRUB_BUBBLES = 3;
+    private static final int SCRUB_BUBBLES = 10;
     private static final double SCRUB_COLUMN_WIDTH = 1.0;
     private static final float SCRUB_SQUELCH_CHANCE = 0.2F;
     private static final float SCRUB_VOLUME = 0.1F;
-    private static final float SCRUB_PITCH = 1.6F;
-    private static final float SCRUB_PITCH_VARIATION = 0.3F;
+    private static final float SCRUB_PITCH = 1.5F;
+    private static final float SCRUB_PITCH_VARIATION = 0.2F;
 
     private static final int RINSE_BUBBLES = 40;
-    private static final double RINSE_COLUMN_WIDTH = 1.4;
+    private static final double RINSE_COLUMN_WIDTH = 1.5;
     private static final float RINSE_SOUND_CHANCE = 1.0F;
-    private static final float RINSE_VOLUME = 0.6F;
+    private static final float RINSE_VOLUME = 0.25F;
     private static final float RINSE_PITCH = 1.0F;
     private static final float RINSE_PITCH_SPREAD = 0.0F;
 

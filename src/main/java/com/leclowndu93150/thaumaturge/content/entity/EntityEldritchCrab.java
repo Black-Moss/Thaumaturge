@@ -3,8 +3,6 @@ package com.leclowndu93150.thaumaturge.content.entity;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ItemParticleOption;
@@ -37,7 +35,7 @@ import net.minecraft.world.entity.ai.goal.LeapAtTargetGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
@@ -67,9 +65,8 @@ public class EntityEldritchCrab extends Monster {
     private static final float LOOK_DISTANCE = 8.0F;
     private static final int LEAP_PRIORITY = 2;
     private static final int MELEE_PRIORITY = 3;
-    private static final int STROLL_PRIORITY = 5;
-    private static final int LOOK_PLAYER_PRIORITY = 6;
-    private static final int LOOK_AROUND_PRIORITY = 7;
+    private static final int STROLL_PRIORITY = 7;
+    private static final int LOOK_PRIORITY = 8;
     private static final int RETALIATE_PRIORITY = 1;
     private static final int PLAYER_PRIORITY = 2;
     private static final int CULTIST_PRIORITY = 3;
@@ -94,6 +91,7 @@ public class EntityEldritchCrab extends Monster {
     private static final double SEAT_WIDTH_FACTOR = 0.5;
     private static final double SEAT_CRAB_WIDTH_FACTOR = 0.25;
     private static final float FACE_VICTIM_TURN = 180.0F;
+    private static final double LATCH_HEIGHT_FACTOR = 0.5;
 
     private int attackTimer;
     private int shellBreakTicks;
@@ -140,25 +138,21 @@ public class EntityEldritchCrab extends Monster {
     }
 
     private void registerTargetGoals() {
-        Map<Integer, Goal> targets = new TreeMap<>();
-        targets.put(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
-        targets.put(PLAYER_PRIORITY, stalk(Player.class));
-        targets.put(CULTIST_PRIORITY, stalk(EntityCultist.class));
-        targets.forEach(this.targetSelector::addGoal);
+        this.targetSelector.addGoal(RETALIATE_PRIORITY, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(PLAYER_PRIORITY, stalk(Player.class));
+        this.targetSelector.addGoal(CULTIST_PRIORITY, stalk(EntityCultist.class));
+    }
+
+    private void registerBehaviourGoals() {
+        this.goalSelector.addGoal(LEAP_PRIORITY, new LeapAtTargetGoal(this, LEAP_STRENGTH));
+        this.goalSelector.addGoal(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
+        this.goalSelector.addGoal(STROLL_PRIORITY, new RandomStrollGoal(this, STROLL_SPEED));
+        this.goalSelector.addGoal(LOOK_PRIORITY, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(LOOK_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
     }
 
     private <T extends LivingEntity> Goal stalk(Class<T> quarry) {
         return new NearestAttackableTargetGoal<>(this, quarry, true);
-    }
-
-    private void registerBehaviourGoals() {
-        Map<Integer, Goal> behaviours = new TreeMap<>();
-        behaviours.put(LEAP_PRIORITY, new LeapAtTargetGoal(this, LEAP_STRENGTH));
-        behaviours.put(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
-        behaviours.put(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
-        behaviours.put(LOOK_PLAYER_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
-        behaviours.put(LOOK_AROUND_PRIORITY, new RandomLookAroundGoal(this));
-        behaviours.forEach(this.goalSelector::addGoal);
     }
 
     @Override
@@ -211,13 +205,69 @@ public class EntityEldritchCrab extends Monster {
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData groupData) {
         SpawnGroupData data = super.finalizeSpawn(level, difficulty, reason, groupData);
-        RandomSource dice = level.getRandom();
+        RandomSource random = level.getRandom();
         boolean hard = level.getDifficulty() == Difficulty.HARD;
-        this.setHelm(hard || dice.nextFloat() < HELM_CHANCE);
-        if (hard && dice.nextFloat() < BOON_CHANCE * difficulty.getSpecialMultiplier()) {
-            grantBoon(SPAWN_BOONS.get(dice.nextInt(SPAWN_BOONS.size())));
+        this.setHelm(hard || random.nextFloat() < HELM_CHANCE);
+        if (hard && random.nextFloat() < BOON_CHANCE * difficulty.getSpecialMultiplier()) {
+            grantBoon(pickBoon(random));
         }
         return data;
+    }
+
+    private static Holder<MobEffect> pickBoon(RandomSource random) {
+        return SPAWN_BOONS.get(random.nextInt(SPAWN_BOONS.size()));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!(this.level() instanceof ServerLevel level)) {
+            if (this.shellBreakTicks > 0) {
+                this.shellBreakTicks--;
+            }
+            return;
+        }
+        if (this.tickCount < FALL_GRACE_TICKS) {
+            this.resetFallDistance();
+        }
+        if (!this.isAlive()) {
+            return;
+        }
+        if (this.attackTimer > 0) {
+            this.attackTimer--;
+        }
+        if (!this.isPassenger()) {
+            latchOntoTarget();
+        }
+        if (this.isAlive() && this.getVehicle() instanceof LivingEntity host) {
+            strikeVehicle(level, host);
+        }
+    }
+
+    private void latchOntoTarget() {
+        LivingEntity target = this.getTarget();
+        if (target == null || this.hasHelm() || this.onGround() || this.isPassenger() || !target.isAlive() || target.isVehicle()) {
+            return;
+        }
+        boolean above = this.getY() >= target.getY() + target.getBbHeight() * LATCH_HEIGHT_FACTOR;
+        if (above && this.distanceToSqr(target) < LATCH_SQUARED_DISTANCE) {
+            this.startRiding(target);
+        }
+    }
+
+    private void strikeVehicle(ServerLevel level, LivingEntity host) {
+        if (!host.isAlive()) {
+            this.stopRiding();
+            return;
+        }
+        if (this.attackTimer > 0) {
+            return;
+        }
+        this.attackTimer = MOUNTED_ATTACK_BASE + this.getRandom().nextInt(MOUNTED_ATTACK_SPREAD);
+        this.doHurtTarget(level, host);
+        if (this.getRandom().nextFloat() < DISMOUNT_CHANCE) {
+            this.stopRiding();
+        }
     }
 
     private void grantBoon(Holder<MobEffect> boon) {
@@ -280,21 +330,6 @@ public class EntityEldritchCrab extends Monster {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (this.tickCount < FALL_GRACE_TICKS) {
-            this.resetFallDistance();
-        }
-        if (this.level() instanceof ServerLevel level) {
-            latchOntoTarget();
-            strikeVehicle(level);
-        } else {
-            this.shellBreakTicks = Math.max(0, this.shellBreakTicks - 1);
-        }
-        this.attackTimer = Math.max(0, this.attackTimer - 1);
-    }
-
-    @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
         if (!super.doHurtTarget(level, target)) {
             return false;
@@ -347,29 +382,4 @@ public class EntityEldritchCrab extends Monster {
         return entity instanceof EntityEldritchCrab || super.considersEntityAsAlly(entity);
     }
 
-    private void latchOntoTarget() {
-        LivingEntity prey = this.getTarget();
-        if (this.getVehicle() != null || prey == null || this.onGround() || this.hasHelm()) {
-            return;
-        }
-        if (prey.isVehicle() || !prey.isAlive()) {
-            return;
-        }
-        boolean above = this.getY() - prey.getY() >= prey.getBbHeight() / 2.0;
-        if (above && this.distanceToSqr(prey) < LATCH_SQUARED_DISTANCE) {
-            this.startRiding(prey);
-        }
-    }
-
-    private void strikeVehicle(ServerLevel level) {
-        Entity host = this.getVehicle();
-        if (host == null || !this.isAlive() || this.attackTimer > 0) {
-            return;
-        }
-        this.doHurtTarget(level, host);
-        this.attackTimer = MOUNTED_ATTACK_BASE + this.getRandom().nextInt(MOUNTED_ATTACK_SPREAD);
-        if (this.getRandom().nextFloat() < DISMOUNT_CHANCE) {
-            this.stopRiding();
-        }
-    }
 }

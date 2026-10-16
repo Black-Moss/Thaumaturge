@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumaturge.api.entity.ThaumaturgeEntityTypeTags;
 import com.leclowndu93150.thaumaturge.api.labyrinth.LabyrinthHelper;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import it.unimi.dsi.fastutil.objects.ObjectIterator;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -40,7 +39,10 @@ import org.jspecify.annotations.Nullable;
 
 public class EntityThaumaturgeBoss extends Monster {
     private static final EntityDataAccessor<Integer> DATA_ANGER = SynchedEntityData.defineId(EntityThaumaturgeBoss.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_EMERGENCE = SynchedEntityData.defineId(EntityThaumaturgeBoss.class, EntityDataSerializers.INT);
     private static final int CALM = 0;
+    private static final int SETTLED = 0;
+    private static final int FIRST_EXTRA_PLAYER = 1;
     private static final boolean DESPAWNS_WHEN_FAR = false;
     private static final boolean PICKS_UP_LOOT = false;
     private static final int KILL_EXPERIENCE = 50;
@@ -129,6 +131,7 @@ public class EntityThaumaturgeBoss extends Monster {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_ANGER, CALM);
+        builder.define(DATA_EMERGENCE, SETTLED);
     }
 
     public int rageTicks() {
@@ -140,7 +143,11 @@ public class EntityThaumaturgeBoss extends Monster {
     }
 
     public int emergenceTicks() {
-        return spawnTimer;
+        return level().isClientSide() ? entityData.get(DATA_EMERGENCE) : spawnTimer;
+    }
+
+    protected boolean holdsStill() {
+        return isEmerging();
     }
 
     protected boolean usesLegacyEnrage() {
@@ -176,54 +183,23 @@ public class EntityThaumaturgeBoss extends Monster {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        rage.tick();
-        if (isEmerging()) {
-            spawnTimer--;
-        }
-        if (level() instanceof ServerLevel server) {
-            runServerCadence(server);
-        }
-    }
-
-    @Override
     public void setCustomName(@Nullable Component name) {
         super.setCustomName(name);
         bossBar.rename();
     }
 
     private boolean isEmerging() {
-        return spawnTimer > 0;
+        return emergenceTicks() > 0;
     }
 
     private boolean isDue(int interval) {
         return tickCount % interval == 0;
     }
 
-    private void runServerCadence(ServerLevel server) {
-        float regen = passiveHealing();
-        if (isDue(PASSIVE_HEAL_INTERVAL) && regen > 0.0F) {
-            heal(regen);
-        }
-        if (isDue(AGGRO_REVIEW_INTERVAL) && getTarget() != null) {
-            reviewAggro(server);
-        }
-    }
-
     @Override
     public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
         boolean shielded = isEmerging() && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY);
         return shielded || super.isInvulnerableTo(level, source);
-    }
-
-    @Override
-    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
-        float applied = usesLegacyEnrage() ? rage.absorb(source, damage) : damage;
-        if (source.getEntity() instanceof LivingEntity attacker && attacker != this) {
-            recordHit(attacker, damage);
-        }
-        return super.hurtServer(level, source, applied);
     }
 
     @Override
@@ -237,91 +213,126 @@ public class EntityThaumaturgeBoss extends Monster {
         super.customServerAiStep(level);
         bossBar.update();
         dropDeadTarget();
-        setAiGate(!isEmerging());
+        setAiGate(!holdsStill());
     }
 
-    private void recordHit(LivingEntity attacker, float damage) {
-        int id = attacker.getId();
-        long sum = (long) aggro.get(id) + (int) damage;
-        aggro.put(id, (int) Math.min(sum, Integer.MAX_VALUE));
+    @Override
+    public boolean canBreatheUnderwater() {
+        return true;
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (level() instanceof ServerLevel level) {
+            runServerCadence(level);
+        }
+    }
+
+    @Override
+    public boolean hurtServer(ServerLevel level, DamageSource source, float damage) {
+        float dealt = usesLegacyEnrage() ? rage.absorb(source, damage) : damage;
+        boolean hurt = super.hurtServer(level, source, dealt);
+        if (hurt) {
+            recordHit(source, damage);
+        }
+        return hurt;
+    }
+
+    private void runServerCadence(ServerLevel level) {
+        rage.tick();
+        if (spawnTimer > 0) {
+            spawnTimer--;
+        }
+        entityData.set(DATA_EMERGENCE, Math.max(SETTLED, spawnTimer));
+        float healing = passiveHealing();
+        if (healing > 0.0F && isAlive() && isDue(PASSIVE_HEAL_INTERVAL)) {
+            heal(healing);
+        }
+        if (isDue(AGGRO_REVIEW_INTERVAL)) {
+            reviewAggro(level);
+            if (getTarget() != null && !LabyrinthHelper.isLabyrinthBound(this)) {
+                scaleForPlayers(level);
+            }
+        }
+    }
+
+    private void recordHit(DamageSource source, float damage) {
+        if (source.getEntity() instanceof LivingEntity attacker && attacker != this) {
+            aggro.addTo(attacker.getId(), (int) damage);
+        }
     }
 
     private void reviewAggro(ServerLevel level) {
-        LivingEntity current = getTarget();
-        AggroTally tally = new AggroTally();
-        ObjectIterator<Int2IntMap.Entry> cursor = aggro.int2IntEntrySet().fastIterator();
-        while (cursor.hasNext()) {
-            Int2IntMap.Entry entry = cursor.next();
-            Entity found = level.getEntity(entry.getIntKey());
-            if (isStaleAttacker(found)) {
-                cursor.remove();
-            } else {
-                tally.consider((LivingEntity) found, entry.getIntValue());
-            }
-        }
-        int incumbent = current == null ? 0 : aggro.get(current.getId());
-        if (current != null && tally.overtakes(current, incumbent)) {
-            setTarget(tally.leader);
-        }
-        if (!LabyrinthHelper.isLabyrinthBound(this)) {
-            scaleForPlayers(tally.players);
-        }
-    }
-
-    private boolean isStaleAttacker(@Nullable Entity found) {
-        return !(found instanceof LivingEntity living) || !living.isAlive() || distanceToSqr(living) > AGGRO_RANGE_SQR;
-    }
-
-    private static final class AggroTally {
-        private LivingEntity leader;
-        private int leaderDamage;
-        private int players;
-
-        private void consider(LivingEntity attacker, int damage) {
-            if (attacker instanceof Player) {
-                players++;
-            }
-            if (leader == null || damage > leaderDamage) {
-                leader = attacker;
-                leaderDamage = damage;
-            }
-        }
-
-        private boolean overtakes(LivingEntity current, int incumbentDamage) {
-            if (leader == null || leader == current) {
-                return false;
-            }
-            return leaderDamage > incumbentDamage + AGGRO_LEAD && leaderDamage > incumbentDamage * AGGRO_RATIO;
-        }
-    }
-
-    private void scaleForPlayers(int players) {
-        int slots = Mth.clamp(players - 1, 0, MAX_SCALING_SLOTS);
-        float oldHealth = getHealth();
-        float oldMaximum = getMaxHealth();
-        applyScalingSlots(slots);
-        rebalanceHealth(oldHealth, oldMaximum);
-    }
-
-    private void rebalanceHealth(float oldHealth, float oldMaximum) {
-        float newMaximum = getMaxHealth();
-        if (newMaximum == oldMaximum) {
+        aggro.int2IntEntrySet().removeIf(entry -> isStaleAttacker(level.getEntity(entry.getIntKey())));
+        LivingEntity target = getTarget();
+        if (target == null || aggro.isEmpty()) {
             return;
         }
-        setHealth(oldHealth / oldMaximum * newMaximum);
+        int leaderId = target.getId();
+        int leaderThreat = aggro.get(leaderId);
+        for (Int2IntMap.Entry entry : aggro.int2IntEntrySet()) {
+            if (entry.getIntValue() > leaderThreat) {
+                leaderId = entry.getIntKey();
+                leaderThreat = entry.getIntValue();
+            }
+        }
+        if (leaderId == target.getId()) {
+            return;
+        }
+        int currentThreat = aggro.get(target.getId());
+        boolean clearLead = leaderThreat > currentThreat + AGGRO_LEAD && leaderThreat > currentThreat * AGGRO_RATIO;
+        if (clearLead && level.getEntity(leaderId) instanceof LivingEntity challenger && canAttack(challenger)) {
+            setTarget(challenger);
+        }
+    }
+
+    private boolean isStaleAttacker(@Nullable Entity attacker) {
+        if (!(attacker instanceof LivingEntity living) || !living.isAlive() || living.isRemoved() || living.level() != level()) {
+            return true;
+        }
+        if (living instanceof Player player && (player.isSpectator() || player.isCreative())) {
+            return true;
+        }
+        return distanceToSqr(living) > AGGRO_RANGE_SQR;
+    }
+
+    private void scaleForPlayers(ServerLevel level) {
+        int players = 0;
+        for (int attackerId : aggro.keySet()) {
+            if (level.getEntity(attackerId) instanceof Player) {
+                players++;
+            }
+        }
+        applyScalingSlots(Mth.clamp(players - FIRST_EXTRA_PLAYER, 0, MAX_SCALING_SLOTS));
     }
 
     private void applyScalingSlots(int slots) {
-        applySlots(Attributes.MAX_HEALTH, HEALTH_BUFFS, HEALTH_PER_SLOT, slots);
+        float fraction = getMaxHealth() > 0.0F ? getHealth() / getMaxHealth() : 1.0F;
+        boolean healthChanged = applySlots(Attributes.MAX_HEALTH, HEALTH_BUFFS, HEALTH_PER_SLOT, slots);
         applySlots(Attributes.ATTACK_DAMAGE, DAMAGE_BUFFS, DAMAGE_PER_SLOT, slots);
+        if (healthChanged) {
+            rebalanceHealth(fraction);
+        }
     }
 
-    private void applySlots(Holder<Attribute> attribute, Identifier[] ids, double amount, int slots) {
+    private boolean applySlots(Holder<Attribute> attribute, Identifier[] ids, double amount, int slots) {
         AttributeInstance instance = getAttribute(attribute);
-        if (instance != null) {
-            for (int slot = 0; slot < ids.length; slot++) {
-                syncModifier(instance, ids[slot], amount, slot < slots);
-            }
+        if (instance == null) {
+            return false;
+        }
+        boolean changed = false;
+        for (int slot = 0; slot < MAX_SCALING_SLOTS; slot++) {
+            boolean wanted = slot < slots;
+            changed |= instance.hasModifier(ids[slot]) != wanted;
+            syncModifier(instance, ids[slot], amount, wanted);
+        }
+        return changed;
+    }
+
+    private void rebalanceHealth(float fraction) {
+        if (isAlive()) {
+            setHealth(fraction * getMaxHealth());
         }
     }
 

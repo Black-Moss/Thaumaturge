@@ -9,7 +9,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -53,7 +52,7 @@ public final class EntityTaintSwarm extends Monster {
     private static final float SUMMONED_DECAY_DAMAGE = 5.0F;
     private static final int MAX_FLIGHT_HEIGHT = 8;
     private static final double TARGET_REACHED_DISTANCE_SQR = 4.0;
-    private static final int TARGET_ATTEMPTS = 8;
+    private static final int TARGET_ATTEMPTS = 12;
     private static final double WANDER_SPEED = 0.55;
     private static final double WANDER_LIFT = 0.1;
     private static final double HUNT_SPEED = 1.0;
@@ -65,12 +64,11 @@ public final class EntityTaintSwarm extends Monster {
     private static final float ATTACK_SOUND_PITCH_SPREAD = 0.2F;
     private static final float SOUND_VOLUME = 0.1F;
     private static final double HALF = 0.5;
-    private static final double VERTICAL_DAMPING = 0.55;
+    private static final double VERTICAL_DAMPING = 0.6;
     private static final int RETARGET_ODDS = 30;
     private static final int TARGET_HORIZONTAL_SPREAD = 6;
     private static final int TARGET_VERTICAL_RANGE = 6;
     private static final int TARGET_VERTICAL_BELOW = 2;
-    private static final int CLOUD_PARTICLES_PER_TICK = 3;
 
     private int attackCooldown;
     private int damageBonus;
@@ -169,9 +167,7 @@ public final class EntityTaintSwarm extends Monster {
             serverBehaviour(server);
             return;
         }
-        for (int i = 0; i < CLOUD_PARTICLES_PER_TICK; i++) {
-            spawnSwarmCloud(world);
-        }
+        spawnSwarmCloud(world);
     }
 
     private void serverBehaviour(ServerLevel server) {
@@ -219,6 +215,7 @@ public final class EntityTaintSwarm extends Monster {
 
     private @Nullable BlockPos currentGoal(ServerLevel server) {
         if (needsNewFlightTarget(server)) {
+            this.flightTarget = null;
             this.flightTarget = pickFlightTarget(server);
         }
         return this.flightTarget;
@@ -226,13 +223,10 @@ public final class EntityTaintSwarm extends Monster {
 
     private boolean needsNewFlightTarget(ServerLevel server) {
         BlockPos goal = this.flightTarget;
-        if (goal == null || this.random.nextInt(RETARGET_ODDS) == 0) {
+        if (goal == null || !isValidFlightTarget(server, goal) || this.random.nextInt(RETARGET_ODDS) == 0) {
             return true;
         }
-        double dx = goal.getX() + HALF - this.getX();
-        double dy = goal.getY() + WANDER_LIFT - this.getY();
-        double dz = goal.getZ() + HALF - this.getZ();
-        return dx * dx + dy * dy + dz * dz < TARGET_REACHED_DISTANCE_SQR || !isValidFlightTarget(server, goal);
+        return goal.distSqr(this.blockPosition()) < TARGET_REACHED_DISTANCE_SQR;
     }
 
     private @Nullable BlockPos pickFlightTarget(ServerLevel server) {
@@ -267,7 +261,9 @@ public final class EntityTaintSwarm extends Monster {
             prey.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, WEAKNESS_DURATION, WEAKNESS_AMPLIFIER, false, false, false), this);
         }
         float pitch = ATTACK_SOUND_PITCH_BASE + this.random.nextFloat() * ATTACK_SOUND_PITCH_SPREAD;
-        server.playSound(null, this.getX(), this.getY(), this.getZ(), attackSound(), SoundSource.HOSTILE, ATTACK_SOUND_VOLUME, pitch);
+        if (!this.isSilent()) {
+            server.playSound(null, this.getX(), this.getY(), this.getZ(), attackSound(), this.getSoundSource(), ATTACK_SOUND_VOLUME, pitch);
+        }
     }
 
     private boolean overlapsVertically(LivingEntity target) {

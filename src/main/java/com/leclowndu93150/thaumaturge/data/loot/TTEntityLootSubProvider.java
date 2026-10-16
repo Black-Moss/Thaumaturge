@@ -30,7 +30,6 @@ import net.minecraft.world.level.storage.loot.predicates.InvertedLootItemConditi
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemEntityPropertyCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemKilledByPlayerCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceCondition;
 import net.minecraft.world.level.storage.loot.predicates.LootItemRandomChanceWithEnchantedBonusCondition;
 import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
 import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
@@ -39,6 +38,7 @@ public final class TTEntityLootSubProvider extends EntityLootSubProvider {
     private static final double GIANT_TAINTACLE_KIN_RADIUS = 48.0;
     private static final float CONSTRUCT_RARE_CHANCE = 0.2F;
     private static final float CONSTRUCT_COMMON_CHANCE = 0.5F;
+    private static final float CONSTRUCT_LOOTING_BONUS = 0.15F;
     private static final float TURRET_BRASS_CHANCE = 0.3F;
     private static final float TURRET_IRON_CHANCE = 0.4F;
     private static final int CRYSTAL_SLIME_MIN_SIZE = 2;
@@ -52,7 +52,6 @@ public final class TTEntityLootSubProvider extends EntityLootSubProvider {
     private static final float CRAB_PEARL_LOOTING_BONUS = 0.25F;
     private static final float CURIO_CHANCE = 0.0125F;
     private static final float CURIO_LOOTING_BONUS = 0.01F;
-    private static final float PRIME_SEED_EXTRA_CRYSTAL_CHANCE = 0.5F;
 
     public TTEntityLootSubProvider(HolderLookup.Provider registries) {
         super(FeatureFlags.REGISTRY.allFlags(), FeatureFlagSet.of(), registries);
@@ -86,22 +85,18 @@ public final class TTEntityLootSubProvider extends EntityLootSubProvider {
         add(TTEntities.TAINTACLE_GIANT.get(),
                 LootTable.lootTable().withPool(singlePool(TTItems.PRIMORDIAL_PEARL.get()).when(unbound()).when(NoNearbyKinCondition.noNearbyKin(GIANT_TAINTACLE_KIN_RADIUS))));
         add(TTEntities.TURRET_CROSSBOW.get(),
-                LootTable.lootTable().withPool(chancePool(TTItems.MIND_CLOCKWORK.get(), CONSTRUCT_RARE_CHANCE)).withPool(chancePool(TTItems.MECHANISM_SIMPLE.get(), CONSTRUCT_COMMON_CHANCE))
-                        .withPool(chancePool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)).withPool(chancePool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)));
+                LootTable.lootTable().withPool(constructPool(TTItems.MIND_CLOCKWORK.get(), CONSTRUCT_RARE_CHANCE)).withPool(constructPool(TTItems.MECHANISM_SIMPLE.get(), CONSTRUCT_COMMON_CHANCE))
+                        .withPool(constructPool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)).withPool(constructPool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)));
         add(TTEntities.TURRET_CROSSBOW_ADVANCED.get(),
-                LootTable.lootTable().withPool(chancePool(TTItems.MIND_BIOTHAUMIC.get(), CONSTRUCT_RARE_CHANCE)).withPool(chancePool(TTItems.MECHANISM_SIMPLE.get(), CONSTRUCT_COMMON_CHANCE))
-                        .withPool(chancePool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)).withPool(chancePool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE))
-                        .withPool(chancePool(TTItems.PLATE_BRASS.get(), TURRET_BRASS_CHANCE)).withPool(chancePool(TTItems.PLATE_IRON.get(), TURRET_IRON_CHANCE))
-                        .withPool(chancePool(TTItems.PLATE_IRON.get(), TURRET_IRON_CHANCE)));
+                LootTable.lootTable().withPool(constructPool(TTItems.MIND_BIOTHAUMIC.get(), CONSTRUCT_RARE_CHANCE)).withPool(constructPool(TTItems.MECHANISM_SIMPLE.get(), CONSTRUCT_COMMON_CHANCE))
+                        .withPool(constructPool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)).withPool(constructPool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE))
+                        .withPool(constructPool(TTItems.PLATE_BRASS.get(), TURRET_BRASS_CHANCE)).withPool(constructPool(TTItems.PLATE_IRON.get(), TURRET_IRON_CHANCE))
+                        .withPool(constructPool(TTItems.PLATE_IRON.get(), TURRET_IRON_CHANCE)));
         add(TTEntities.ARCANE_BORE.get(),
-                LootTable.lootTable().withPool(chancePool(TTItems.MIND_CLOCKWORK.get(), CONSTRUCT_RARE_CHANCE)).withPool(chancePool(TTItems.MORPHIC_RESONATOR.get(), CONSTRUCT_RARE_CHANCE))
-                        .withPool(chancePool(TTBlocks.CRYSTAL_AER.get(), CONSTRUCT_RARE_CHANCE)).withPool(chancePool(TTBlocks.CRYSTAL_TERRA.get(), CONSTRUCT_RARE_CHANCE))
-                        .withPool(chancePool(TTItems.MECHANISM_SIMPLE.get(), CONSTRUCT_COMMON_CHANCE)).withPool(chancePool(TTItems.PLATE_BRASS.get(), CONSTRUCT_COMMON_CHANCE))
-                        .withPool(chancePool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)));
-        add(TTEntities.TAINT_SEED.get(), LootTable.lootTable().withPool(vitiumCrystalPool()));
-        add(TTEntities.TAINT_SEED_PRIME.get(),
-                LootTable.lootTable().withPool(vitiumCrystalPool()).withPool(vitiumCrystalPool().when(LootItemRandomChanceCondition.randomChance(PRIME_SEED_EXTRA_CRYSTAL_CHANCE)))
-                        .withPool(vitiumCrystalPool().when(LootItemRandomChanceCondition.randomChance(PRIME_SEED_EXTRA_CRYSTAL_CHANCE))));
+                LootTable.lootTable().withPool(constructPool(TTItems.MIND_CLOCKWORK.get(), CONSTRUCT_RARE_CHANCE)).withPool(constructPool(TTItems.MORPHIC_RESONATOR.get(), CONSTRUCT_RARE_CHANCE))
+                        .withPool(constructPool(TTBlocks.CRYSTAL_AER.get(), CONSTRUCT_RARE_CHANCE)).withPool(constructPool(TTBlocks.CRYSTAL_TERRA.get(), CONSTRUCT_RARE_CHANCE))
+                        .withPool(constructPool(TTItems.MECHANISM_SIMPLE.get(), CONSTRUCT_COMMON_CHANCE)).withPool(constructPool(TTItems.PLATE_BRASS.get(), CONSTRUCT_COMMON_CHANCE))
+                        .withPool(constructPool(TTBlocks.PLANK_GREATWOOD.get(), CONSTRUCT_COMMON_CHANCE)));
         add(TTEntities.THAUMIC_SLIME.get(), LootTable.lootTable().withPool(LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(vitiumCrystal()).when(LootItemEntityPropertyCondition
                 .hasProperties(LootContext.EntityTarget.THIS, EntityPredicate.Builder.entity().subPredicate(SlimePredicate.sized(MinMaxBounds.Ints.atLeast(CRYSTAL_SLIME_MIN_SIZE)))))));
     }
@@ -118,17 +113,13 @@ public final class TTEntityLootSubProvider extends EntityLootSubProvider {
         return LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(LootItem.lootTableItem(item));
     }
 
-    private static LootPool.Builder chancePool(ItemLike item, float chance) {
-        return singlePool(item).when(LootItemRandomChanceCondition.randomChance(chance));
+    private LootPool.Builder constructPool(ItemLike item, float chance) {
+        return singlePool(item).when(LootItemRandomChanceWithEnchantedBonusCondition.randomChanceAndLootingBoost(this.registries, chance, CONSTRUCT_LOOTING_BONUS));
     }
 
     private LootItem.Builder<?> vitiumCrystal() {
         Holder<IAspect> vitium = this.registries.lookupOrThrow(IAspect.REGISTRY_KEY).getOrThrow(TTAspects.VITIUM);
         return LootItem.lootTableItem(TTItems.ESSENTIA_CRYSTAL.get()).apply(SetComponentsFunction.setComponent(TTDataComponents.CRYSTAL_ASPECT.get(), new AspectInstance(vitium, 1)));
-    }
-
-    private LootPool.Builder vitiumCrystalPool() {
-        return LootPool.lootPool().setRolls(ConstantValue.exactly(1)).add(vitiumCrystal());
     }
 
     private LootPool.Builder curioPool(ItemLike curio) {

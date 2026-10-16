@@ -3,7 +3,8 @@ package com.leclowndu93150.thaumaturge.content.device.fluxscrubber;
 import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.aura.relay.VisRelayNetwork;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
@@ -29,7 +30,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
-public final class BlockEntityFluxScrubber extends BlockEntity implements IEssentiaTransport {
+public final class BlockEntityFluxScrubber extends BlockEntity implements IEssentiaConduit {
     public static final int WORK_POWER = 5;
 
     private static final int NONE = 0;
@@ -86,22 +87,22 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
     }
 
     @Override
-    public boolean isConnectable(final Direction face) {
+    public boolean connectsOn(final Direction face) {
         return isOutputSide(face);
     }
 
     @Override
-    public boolean canOutputTo(final Direction face) {
+    public boolean releasesOn(final Direction face) {
         return isOutputSide(face);
     }
 
     @Override
-    public boolean canInputFrom(final Direction face) {
+    public boolean receivesOn(final Direction face) {
         return false;
     }
 
     @Override
-    public @Nullable Holder<IAspect> getEssentiaType(@Nullable final Direction face) {
+    public @Nullable Holder<IAspect> heldAspect(@Nullable final Direction face) {
         if (essentia <= 0 || !isOutputSide(face)) {
             return null;
         }
@@ -109,47 +110,42 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
     }
 
     @Override
-    public int getEssentiaAmount(@Nullable final Direction face) {
+    public int heldAmount(@Nullable final Direction face) {
         return isOutputSide(face) ? essentia : NONE;
     }
 
     @Override
-    public int takeEssentia(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face) {
+    public int extract(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face, final boolean simulate) {
         boolean allowed = isOutputSide(face) && aspect.is(TTAspects.PRAECANTATIO);
         if (!allowed || amount <= 0 || essentia <= 0) {
             return NONE;
         }
         int taken = Math.min(amount, essentia);
+        if (simulate) {
+            return taken;
+        }
         essentia -= taken;
         setChangedAndSend();
         return taken;
     }
 
     @Override
-    public int addEssentia(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face) {
+    public int insert(final Holder<IAspect> aspect, final int amount, @Nullable final Direction face, final boolean simulate) {
         return NONE;
     }
 
     @Override
-    public void setSuction(@Nullable final Holder<IAspect> aspect, final int amount) {}
-
-    @Override
-    public @Nullable Holder<IAspect> getSuctionType(@Nullable final Direction face) {
-        return passiveSuctionType();
+    public EssentiaPull pull(@Nullable final Direction face) {
+        return EssentiaPull.NONE;
     }
 
     @Override
-    public int getSuctionAmount(@Nullable final Direction face) {
+    public int pullThreshold() {
         return NONE;
     }
 
     @Override
-    public int getMinimumSuction() {
-        return NONE;
-    }
-
-    @Override
-    public int spaceFor(final Holder<IAspect> aspect, @Nullable final Direction face) {
+    public int roomFor(final Holder<IAspect> aspect, @Nullable final Direction face) {
         return NONE;
     }
 
@@ -187,10 +183,6 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
         output.putInt(POWER_KEY, power);
     }
 
-    private static @Nullable Holder<IAspect> passiveSuctionType() {
-        return null;
-    }
-
     private boolean isOutputSide(@Nullable Direction face) {
         return face == getBlockState().getValue(BlockStateProperties.FACING);
     }
@@ -206,13 +198,51 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
     private void work(ServerLevel level, BlockPos pos) {
         if (power < WORK_POWER) {
             refill(level, pos);
-        } else {
+        }
+        if (power >= WORK_POWER) {
             scan(level, pos);
         }
+    }
+
+    private void scan(ServerLevel level, BlockPos pos) {
+        RandomSource random = level.getRandom();
+        for (int checked = 0; checked < CELL_BUDGET; checked++) {
+            if (scanIndex >= SCAN_CELLS) {
+                reseed(random);
+            }
+            int cell = (int) ((scanOffset + (long) scanIndex * scanStep) % SCAN_CELLS);
+            scanIndex++;
+            int dx = cell / (SCAN_SIDE * SCAN_SIDE) - SCAN_RADIUS;
+            int dy = cell / SCAN_SIDE % SCAN_SIDE - SCAN_RADIUS;
+            int dz = cell % SCAN_SIDE - SCAN_RADIUS;
+            if (dx * dx + dy * dy + dz * dz >= SCAN_RADIUS_SQUARED) {
+                continue;
+            }
+            cursor.setWithOffset(pos, dx, dy, dz);
+            if (!level.hasChunkAt(cursor) || !PhysicalFlux.isScrubbable(level.getBlockState(cursor))) {
+                continue;
+            }
+            if (PhysicalFlux.reduce(level, cursor, REMOVAL_AMOUNT) > 0) {
+                power -= WORK_POWER;
+                charges++;
+                Effects.simpleSparkle(level, Vec3.atCenterOf(cursor)).color(SPARKLE_RED, SPARKLE_GREEN, SPARKLE_BLUE).scale(SPARKLE_SCALE).send();
+                roll(random);
+                setChangedAndSend();
+                return;
+            }
+        }
+    }
+
+    private void roll(RandomSource random) {
         int perRoll = ThaumaturgeCommonConfig.FLUX_SCRUBBER_CHARGES_PER_ROLL.get();
+        double chance = ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_CHANCE.get();
+        int yield = ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_PER_ROLL.get();
+        int capacity = essentiaCapacity();
         while (charges >= perRoll) {
             charges -= perRoll;
-            roll(level.getRandom());
+            if (random.nextDouble() < chance) {
+                essentia = Math.min(capacity, essentia + yield);
+            }
         }
     }
 
@@ -230,45 +260,6 @@ public final class BlockEntityFluxScrubber extends BlockEntity implements IEssen
             setChanged();
         } else {
             refillWait = RETRY_DELAY;
-        }
-    }
-
-    private void roll(RandomSource random) {
-        int capacity = essentiaCapacity();
-        if (essentia < capacity && random.nextDouble() < ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_CHANCE.get()) {
-            essentia = Math.min(capacity, essentia + ThaumaturgeCommonConfig.FLUX_SCRUBBER_ESSENTIA_PER_ROLL.get());
-            setChangedAndSend();
-        } else {
-            setChanged();
-        }
-    }
-
-    private void scan(ServerLevel level, BlockPos pos) {
-        if (scanIndex >= SCAN_CELLS) {
-            reseed(level.getRandom());
-        }
-        for (int budget = 0; budget < CELL_BUDGET && scanIndex < SCAN_CELLS; budget++) {
-            int cell = (int) ((scanOffset + (long) scanIndex * scanStep) % SCAN_CELLS);
-            scanIndex++;
-            int dx = cell % SCAN_SIDE - SCAN_RADIUS;
-            int rest = cell / SCAN_SIDE;
-            int dz = rest % SCAN_SIDE - SCAN_RADIUS;
-            int dy = rest / SCAN_SIDE - SCAN_RADIUS;
-            if (dx * dx + dy * dy + dz * dz >= SCAN_RADIUS_SQUARED) {
-                continue;
-            }
-            cursor.setWithOffset(pos, dx, dy, dz);
-            if (!level.hasChunkAt(cursor) || !PhysicalFlux.isScrubbable(level.getBlockState(cursor))) {
-                continue;
-            }
-            BlockPos target = cursor.immutable();
-            if (PhysicalFlux.reduce(level, target, REMOVAL_AMOUNT) == REMOVAL_AMOUNT) {
-                power -= WORK_POWER;
-                charges++;
-                setChanged();
-                Effects.simpleSparkle(level, Vec3.atCenterOf(target)).color(SPARKLE_RED, SPARKLE_GREEN, SPARKLE_BLUE).scale(SPARKLE_SCALE).send();
-                return;
-            }
         }
     }
 

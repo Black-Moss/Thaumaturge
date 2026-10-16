@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.decor;
 
-import com.leclowndu93150.thaumaturge.api.infusion.IInfusionStabiliser;
+import com.leclowndu93150.thaumaturge.api.infusion.AltarStabiliser;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.SupportType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
-public abstract class AbstractCandleBlock extends Block implements IInfusionStabiliser {
+public abstract class AbstractCandleBlock extends Block implements AltarStabiliser {
     private static final ParticleOptions[] FLAME_PARTICLES = {ParticleTypes.SMOKE, ParticleTypes.FLAME};
 
     private final double flameYOffset;
@@ -28,7 +28,7 @@ public abstract class AbstractCandleBlock extends Block implements IInfusionStab
     protected abstract boolean isBurning(BlockState state);
 
     @Override
-    public boolean canStabiliseInfusion(Level level, BlockPos pos) {
+    public boolean stabilisesNow(Level level, BlockPos pos) {
         return true;
     }
 

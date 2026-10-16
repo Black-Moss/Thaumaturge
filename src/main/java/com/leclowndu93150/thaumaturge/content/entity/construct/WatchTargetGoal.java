@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 public final class WatchTargetGoal extends Goal {
     private static final int MIN_WATCH_TICKS = 40;
     private static final int EXTRA_WATCH_TICKS = 41;
-    private static final float YAW_TURN_SPEED = 30.0F;
+    private static final float YAW_TURN_SPEED = 10.0F;
     private static final double FOLLOW_RANGE_SQR = EntityTurretCrossbow.FOLLOW_RANGE * EntityTurretCrossbow.FOLLOW_RANGE;
 
     private final Mob watcher;

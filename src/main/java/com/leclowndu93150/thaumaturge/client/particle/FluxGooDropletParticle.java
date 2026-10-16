@@ -35,12 +35,18 @@ public final class FluxGooDropletParticle extends BreakingItemParticle {
     }
 
     public static final class Provider extends BreakingItemParticle.ItemParticleProvider<FluxGooDropletParticleOptions> implements ParticleProvider<FluxGooDropletParticleOptions> {
-        @Nullable
+        private static final float RECIPROCAL_NUMERATOR = 66.0F;
+        private static final float RECIPROCAL_SPREAD = 0.9F;
+        private static final float RECIPROCAL_FLOOR = 0.1F;
+
         @Override
-        public Particle createParticle(FluxGooDropletParticleOptions options, ClientLevel level, double x, double y, double z, double xa, double ya, double za, RandomSource random) {
-            TextureAtlasSprite sprite = this.getSprite(new ItemStackTemplate(Items.SLIME_BALL), level, random);
-            int lifetime = options.lifetime() > 0 ? options.lifetime() : (int) (66.0F / (random.nextFloat() * 0.9F + 0.1F));
-            return new FluxGooDropletParticle(level, x, y, z, xa, ya, za, sprite, options.color(), options.alpha(), lifetime);
+        public @Nullable Particle createParticle(FluxGooDropletParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
+            int lifetime = options.lifetime() > 0 ? options.lifetime() : skewedLifetime(random);
+            return new FluxGooDropletParticle(level, x, y, z, vx, vy, vz, getSprite(new ItemStackTemplate(Items.SLIME_BALL), level, random), options.color(), options.alpha(), lifetime);
+        }
+
+        private static int skewedLifetime(RandomSource random) {
+            return (int) (RECIPROCAL_NUMERATOR / (random.nextFloat() * RECIPROCAL_SPREAD + RECIPROCAL_FLOOR));
         }
     }
 }

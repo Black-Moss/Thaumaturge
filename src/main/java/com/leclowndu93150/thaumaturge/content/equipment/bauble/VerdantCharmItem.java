@@ -61,8 +61,8 @@ public final class VerdantCharmItem extends Item {
         if (!(wearer instanceof ServerPlayer player) || player.tickCount % PULSE_INTERVAL_TICKS != 0) {
             return;
         }
-        Remedy chosen = pick(player, type(stack), RechargeAccess.getCharge(stack));
-        if (chosen != null && RechargeAccess.consumeCharge(stack, player, chosen.cost())) {
+        Remedy chosen = pick(player, type(stack), RechargeAccess.storedVis(stack));
+        if (chosen != null && RechargeAccess.spendVis(stack, chosen.cost())) {
             chosen.outcome().apply(player);
         }
     }

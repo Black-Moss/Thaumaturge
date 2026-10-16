@@ -27,6 +27,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.EventHooks;
 
 public final class ItemGolemPlacer extends Item implements ISealDisplayer {
     private static final String RANK_KEY = "tooltip.thaumaturge.golem.rank";
@@ -82,9 +83,9 @@ public final class ItemGolemPlacer extends Item implements ISealDisplayer {
         golem.snapTo(spot.getX() + CENTER, spot.getY(), spot.getZ() + CENTER, SPAWN_YAW, SPAWN_PITCH);
         golem.setValidSpawn();
         golem.setOwner(owner);
-        Optional.ofNullable(source.get(TTDataComponents.GOLEM_PROPERTIES.get())).ifPresent(golem::setProperties);
+        Optional.ofNullable(source.get(TTDataComponents.GOLEM_PROPERTIES.get())).ifPresent(golem::applyBuild);
         golem.setRankXp(source.getOrDefault(TTDataComponents.GOLEM_XP.get(), 0));
-        golem.finalizeSpawn(level, level.getCurrentDifficultyAt(spot), EntitySpawnReason.MOB_SUMMONED, null);
+        EventHooks.finalizeMobSpawn(golem, level, level.getCurrentDifficultyAt(spot), EntitySpawnReason.MOB_SUMMONED, null);
         return level.addFreshEntity(golem) ? golem : null;
     }
 

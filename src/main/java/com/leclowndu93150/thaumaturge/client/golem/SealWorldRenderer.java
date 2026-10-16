@@ -86,7 +86,7 @@ public final class SealWorldRenderer {
         }
         boolean seeThrough = player.isShiftKeyDown();
         MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(true);
+        float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         Overlay overlay = new Overlay(level, player, event.getPoseStack().last().pose(), mc.gameRenderer.getMainCamera().position(), partial, mc.getAtlasManager().getAtlasOrThrow(AtlasIds.ITEMS));
         List<SealFrame> frames = overlay.collect(seals.values());
         flush(buffers, seeThrough ? SealRenderTypes.RING_SEE_THROUGH : SealRenderTypes.RING, frames, overlay::ring);
@@ -102,8 +102,7 @@ public final class SealWorldRenderer {
 
     private static Identifier iconSprite(SealEntity seal) {
         Identifier typeId = seal.typeId();
-        String path = seal.type().icon().map(Identifier::getPath).map(SealWorldRenderer::stripTexturePath).orElse(DEFAULT_ICON_PREFIX + typeId.getPath());
-        return typeId.withPath(path);
+        return seal.type().icon().map(icon -> icon.withPath(stripTexturePath(icon.getPath()))).orElseGet(() -> typeId.withPath(DEFAULT_ICON_PREFIX + typeId.getPath()));
     }
 
     private static String stripTexturePath(String path) {

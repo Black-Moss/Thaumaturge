@@ -16,7 +16,7 @@ public record HoverGaugeLayout(GaugePart fill, GaugePart frame, GaugePart spark,
         static final int U = 0;
         static final int V = 72;
         static final int WIDTH = 8;
-        static final int TINT = ARGB.colorFromFloat(1.0F, 0.0F, 1.0F, 0.75F);
+        static final int TINT = 0xFF00FFBF;
 
         static GaugePart part() {
             return new GaugePart(TTScreenTextures.HUD, new SourceRect(U, V, WIDTH, MAX_HEIGHT), new Anchor(X, BOTTOM_OFFSET), SHEET, SHEET, TINT);

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.util.RandomSource;
 import org.jspecify.annotations.Nullable;
@@ -73,6 +74,13 @@ final class NodeRules {
             return NodeModifier.BRIGHT;
         }
         return modifier;
+    }
+
+    static BlockPos scatter(BlockPos origin, int bound, RandomSource random) {
+        int x = random.nextInt(bound) - random.nextInt(bound);
+        int y = random.nextInt(bound) - random.nextInt(bound);
+        int z = random.nextInt(bound) - random.nextInt(bound);
+        return origin.offset(x, y, z);
     }
 
     static AspectList toPrimals(AspectList source) {

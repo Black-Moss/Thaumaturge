@@ -1,13 +1,13 @@
 package com.leclowndu93150.thaumaturge.content.golem.seals.behavior;
 
-import com.leclowndu93150.thaumaturge.api.golems.GolemHelper;
+import com.leclowndu93150.thaumaturge.api.golems.GolemDispatch;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemAPI;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealBehavior;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealEntity;
 import com.leclowndu93150.thaumaturge.api.golems.seals.ISealFilter;
 import com.leclowndu93150.thaumaturge.api.golems.tasks.Task;
 import com.leclowndu93150.thaumaturge.api.items.InvHelper;
-import com.leclowndu93150.thaumaturge.api.items.InvHelper.InvFilter;
+import com.leclowndu93150.thaumaturge.api.items.ItemMatch;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -38,28 +38,28 @@ public final class StockBehavior implements ISealBehavior {
         }
         BlockPos container = seal.pos().pos();
         Direction side = seal.pos().face();
-        ResourceHandler<ItemResource> stored = InvHelper.getItemHandlerAt(level, container, side);
+        ResourceHandler<ItemResource> stored = InvHelper.handlerAt(level, container, side);
         if (stored != null) {
             ISealFilter filter = ItemMatchSettings.filterOf(seal);
-            InvFilter match = ItemMatchSettings.of(seal);
+            ItemMatch match = ItemMatchSettings.of(seal);
             for (int slot = 0; slot < filter.spec().slots(); slot++) {
                 topUp(level, container, side, stored, match, filter, slot);
             }
         }
     }
 
-    private static void topUp(ServerLevel level, BlockPos container, Direction side, ResourceHandler<ItemResource> stored, InvFilter match, ISealFilter filter, int slot) {
+    private static void topUp(ServerLevel level, BlockPos container, Direction side, ResourceHandler<ItemResource> stored, ItemMatch match, ISealFilter filter, int slot) {
         ItemStack ghost = filter.stack(slot);
         if (ghost.isEmpty()) {
             return;
         }
-        int missing = Math.min(filter.limit(slot) - InvHelper.countTotalItemsIn(stored, ghost, match), ghost.getMaxStackSize());
+        int missing = Math.min(filter.limit(slot) - InvHelper.count(stored, ghost, match), ghost.getMaxStackSize());
         if (missing <= 0) {
             return;
         }
-        ItemStack request = InvHelper.hasRoomFor(level, container, side, ghost.copyWithCount(missing));
+        ItemStack request = InvHelper.acceptedPortion(level, container, side, ghost.copyWithCount(missing));
         if (!request.isEmpty()) {
-            GolemHelper.requestProvisioning(level, container, side, request);
+            GolemDispatch.orderSupply(level, container, side, request);
         }
     }
 }

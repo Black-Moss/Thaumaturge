@@ -42,7 +42,11 @@ final class ArmorCloth {
     }
 
     static void swayFront(ModelPart cloth, ModelPart hem, ModelPart body, float legSwing, float flutter, Motion motion) {
-        float seatedLift = motion.seated() ? SEATED_LIFT : 0.0F;
+        swayFront(cloth, hem, body, legSwing, flutter, motion, true);
+    }
+
+    static void swayFront(ModelPart cloth, ModelPart hem, ModelPart body, float legSwing, float flutter, Motion motion, boolean seatedLiftApplies) {
+        float seatedLift = seatedLiftApplies && motion.seated() ? SEATED_LIFT : 0.0F;
         cloth.xRot += legSwing - motion.stride() * FRONT_STRIDE - Math.abs(body.yRot) - motion.speed() * FRONT_SPEED - motion.crouch() - seatedLift;
         cloth.y -= motion.crouch();
         cloth.xScale = motion.seated() ? SEATED_WIDTH : 1.0F;

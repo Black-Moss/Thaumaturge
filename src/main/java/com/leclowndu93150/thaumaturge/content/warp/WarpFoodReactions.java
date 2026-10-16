@@ -4,9 +4,7 @@ import com.leclowndu93150.thaumaturge.api.warp.WarpType;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.leclowndu93150.thaumaturge.registry.TTMobEffects;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -46,9 +44,9 @@ public final class WarpFoodReactions {
         }
         if (eaten.is(Items.ROTTEN_FLESH) || eaten.is(TTItems.BRAIN.get())) {
             ease(player, hunger);
-            tell(player, HUNGER_FADES, ChatFormatting.GREEN);
+            WarpNotices.send(player, HUNGER_FADES);
         } else if (restoresHunger(eaten)) {
-            tell(player, HUNGER_UNSATED, ChatFormatting.DARK_RED);
+            WarpNotices.send(player, HUNGER_UNSATED);
         }
     }
 
@@ -59,15 +57,11 @@ public final class WarpFoodReactions {
         if (amplifier <= WEAKEST_AMPLIFIER || remaining <= HUNGER_EASE_TICKS) {
             return;
         }
-        player.addEffect(new MobEffectInstance(TTMobEffects.UNNATURAL_HUNGER, remaining - HUNGER_EASE_TICKS, amplifier - 1, true, false));
+        player.addEffect(new MobEffectInstance(TTMobEffects.UNNATURAL_HUNGER, remaining - HUNGER_EASE_TICKS, amplifier - 1, true, true));
     }
 
     private static boolean restoresHunger(ItemStack eaten) {
         FoodProperties food = eaten.get(DataComponents.FOOD);
         return food != null && food.nutrition() > 0;
-    }
-
-    private static void tell(ServerPlayer player, String key, ChatFormatting colour) {
-        player.sendSystemMessage(Component.translatable(key).withStyle(colour, ChatFormatting.ITALIC));
     }
 }

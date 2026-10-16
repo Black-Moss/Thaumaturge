@@ -1,5 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.entity;
 
+import com.leclowndu93150.thaumaturge.api.aspect.Aspects;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.client.effect.rendertype.TTFXRenderTypes;
 import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.leclowndu93150.thaumaturge.client.render.aspect.StripUv;
@@ -10,22 +12,26 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
 import org.joml.Matrix4fc;
 
 public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, AspectOrbRenderer.State> {
     private static final float SHADOW_RADIUS = 0.0F;
-    private static final int FRAMES_PER_TICK = 2;
+    private static final float CHANNEL_MAX = 255.0F;
     private static final float MIN_SCALE = 0.1F;
     private static final float SCALE_RANGE = 0.3F;
     private static final float ALPHA = 0.5F;
-    private static final float CHANNEL_MAX = 255.0F;
     private static final float LEFT = -0.5F;
     private static final float RIGHT = 0.5F;
     private static final float BOTTOM = -0.25F;
     private static final float TOP = 0.75F;
+    private static final int FRAMES_PER_TICK = 2;
+    private static final int SEE_THROUGH_BLEND = 771;
 
     public AspectOrbRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -43,6 +49,9 @@ public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, Asp
         state.tick = entity.tickCount;
         state.age = entity.getAge();
         state.color = entity.getAspectColor();
+        ResourceKey<IAspect> aspect = entity.getAspect();
+        Holder<IAspect> holder = aspect == null ? null : Aspects.resolve(entity.level(), aspect);
+        state.seeThrough = holder != null && holder.value().blend() == SEE_THROUGH_BLEND;
     }
 
     @Override
@@ -56,7 +65,8 @@ public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, Asp
         poseStack.pushPose();
         poseStack.mulPose(camera.orientation);
         poseStack.scale(scale, scale, scale);
-        collector.submitCustomGeometry(poseStack, TTFXRenderTypes.additive(ParticleTextures.ORB_GLOW), (pose, buffer) -> writeQuad(buffer, pose.pose(), u0, u1, tint));
+        RenderType type = state.seeThrough ? TTFXRenderTypes.translucent(ParticleTextures.ORB_GLOW) : TTFXRenderTypes.additive(ParticleTextures.ORB_GLOW);
+        collector.submitCustomGeometry(poseStack, type, (pose, buffer) -> writeQuad(buffer, pose.pose(), u0, u1, tint));
         poseStack.popPose();
     }
 
@@ -71,5 +81,6 @@ public final class AspectOrbRenderer extends EntityRenderer<EntityAspectOrb, Asp
         public int tick;
         public int age;
         public int color;
+        public boolean seeThrough;
     }
 }

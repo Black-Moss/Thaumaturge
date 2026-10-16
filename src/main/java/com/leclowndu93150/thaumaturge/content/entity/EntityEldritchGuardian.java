@@ -5,6 +5,7 @@ import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
 import com.leclowndu93150.thaumaturge.api.warp.WarpType;
 import com.leclowndu93150.thaumaturge.content.entity.ai.LongRangeAttackGoal;
 import com.leclowndu93150.thaumaturge.content.entity.eldritch.CastingArms;
+import com.leclowndu93150.thaumaturge.content.entity.eldritch.LeadingAim;
 import com.leclowndu93150.thaumaturge.network.ClientboundWarpFXPayload;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.core.BlockPos;
@@ -29,7 +30,7 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.MoveTowardsRestrictionGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
@@ -61,10 +62,9 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
     private static final float LOOK_DISTANCE = 8.0F;
     private static final int CAST_PRIORITY = 2;
     private static final int MELEE_PRIORITY = 3;
-    private static final int HOME_PRIORITY = 4;
-    private static final int STROLL_PRIORITY = 5;
-    private static final int LOOK_PLAYER_PRIORITY = 6;
-    private static final int LOOK_AROUND_PRIORITY = 7;
+    private static final int HOME_PRIORITY = 5;
+    private static final int STROLL_PRIORITY = 7;
+    private static final int LOOK_PRIORITY = 8;
     private static final int RETALIATE_PRIORITY = 1;
     private static final int PLAYER_PRIORITY = 2;
     private static final int CULTIST_PRIORITY = 3;
@@ -86,6 +86,8 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
     private static final int WITHER_TICKS = 400;
     private static final int SCREECH_WARP_BASE = 1;
     private static final int SCREECH_WARP_SPREAD = 3;
+    private static final int SCREECH_AMPLIFIER = 0;
+    private static final int FOG_PHASE = 1;
 
     private static final boolean LOOTS_GROUND_ITEMS = false;
 
@@ -124,22 +126,20 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
         hunt(CULTIST_PRIORITY, EntityCultist.class);
     }
 
-    private <T extends LivingEntity> void hunt(int priority, Class<T> quarry) {
-        this.targetSelector.addGoal(priority, new NearestAttackableTargetGoal<>(this, quarry, true));
-    }
-
     private void registerCombatGoals() {
-        Goal caster = new LongRangeAttackGoal(this, CAST_SPEED, CAST_MIN_DISTANCE, CAST_MIN_INTERVAL, CAST_MAX_INTERVAL, CAST_RADIUS);
-        Goal brawler = new MeleeAttackGoal(this, MELEE_SPEED, false);
-        behave(CAST_PRIORITY, caster);
-        behave(MELEE_PRIORITY, brawler);
+        behave(CAST_PRIORITY, new LongRangeAttackGoal(this, CAST_SPEED, CAST_MIN_DISTANCE, CAST_MIN_INTERVAL, CAST_MAX_INTERVAL, CAST_RADIUS));
+        behave(MELEE_PRIORITY, new MeleeAttackGoal(this, MELEE_SPEED, false));
     }
 
     private void registerIdleGoals() {
         behave(HOME_PRIORITY, new MoveTowardsRestrictionGoal(this, HOME_SPEED));
-        behave(STROLL_PRIORITY, new WaterAvoidingRandomStrollGoal(this, STROLL_SPEED));
-        behave(LOOK_PLAYER_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
-        behave(LOOK_AROUND_PRIORITY, new RandomLookAroundGoal(this));
+        behave(STROLL_PRIORITY, new RandomStrollGoal(this, STROLL_SPEED));
+        behave(LOOK_PRIORITY, new LookAtPlayerGoal(this, Player.class, LOOK_DISTANCE));
+        behave(LOOK_PRIORITY, new RandomLookAroundGoal(this));
+    }
+
+    private <T extends LivingEntity> void hunt(int priority, Class<T> quarry) {
+        this.targetSelector.addGoal(priority, new NearestAttackableTargetGoal<>(this, quarry, true));
     }
 
     private void behave(int priority, Goal goal) {
@@ -158,18 +158,6 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        if (this.level() instanceof ServerLevel level) {
-            if (this.tickCount % FOG_INTERVAL == 0 && level.getDifficulty() != Difficulty.EASY) {
-                fogNearbyPlayers(level);
-            }
-        } else {
-            this.arms.relax();
-        }
-    }
-
-    @Override
     public boolean doHurtTarget(ServerLevel level, Entity target) {
         if (!super.doHurtTarget(level, target)) {
             return false;
@@ -180,23 +168,69 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
         return true;
     }
 
-    private void spreadFlames(ServerLevel level, Entity target) {
-        int severity = level.getDifficulty().getId();
-        float roll = this.getRandom().nextFloat();
-        if (roll < IGNITE_CHANCE_PER_DIFFICULTY * severity) {
-            target.igniteForSeconds(IGNITE_SECONDS_PER_DIFFICULTY * severity);
+    @Override
+    public void tick() {
+        super.tick();
+        this.arms.relax();
+        if (!(this.level() instanceof ServerLevel level) || !this.isAlive()) {
+            return;
+        }
+        if (this.tickCount % FOG_INTERVAL == FOG_PHASE) {
+            fogNearbyPlayers(level);
+        }
+    }
+
+    private void fogNearbyPlayers(ServerLevel level) {
+        Difficulty difficulty = level.getDifficulty();
+        if (difficulty == Difficulty.PEACEFUL || difficulty == Difficulty.EASY) {
+            return;
+        }
+        double reachSqr = difficulty == Difficulty.HARD ? HARD_FOG_RANGE_SQR : FOG_RANGE_SQR;
+        for (ServerPlayer player : level.players()) {
+            if (player.isAlive() && !player.isSpectator() && player.distanceToSqr(this) <= reachSqr) {
+                PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.mistShort());
+            }
         }
     }
 
     @Override
     public void performRangedAttack(LivingEntity target, float power) {
-        if (this.level() instanceof ServerLevel level) {
-            boolean castsOrb = this.getRandom().nextFloat() < ORB_CHANCE;
-            if (castsOrb) {
-                castOrb(level, target);
-                return;
-            }
+        if (!(this.level() instanceof ServerLevel level)) {
+            return;
+        }
+        if (this.getRandom().nextFloat() < ORB_CHANCE) {
+            castOrb(level, target);
+        } else if (this.hasLineOfSight(target)) {
             screech(level, target);
+        }
+    }
+
+    private void castOrb(ServerLevel level, LivingEntity target) {
+        Vec3 hand = this.arms.castFromNextHand();
+        EntityEldritchOrb orb = new EntityEldritchOrb(level, this);
+        orb.setPos(orb.getX() + hand.x, orb.getY(), orb.getZ() + hand.z);
+        Vec3 aim = leadAim(orb, target);
+        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_INACCURACY);
+        level.addFreshEntity(orb);
+        playSpread(level, TTSounds.EGATTACK.get(), ORB_SOUND_VOLUME);
+    }
+
+    private static Vec3 leadAim(Entity orb, LivingEntity target) {
+        return LeadingAim.at(orb, target, LEAD_TICKS);
+    }
+
+    private void screech(ServerLevel level, LivingEntity target) {
+        target.addEffect(new MobEffectInstance(MobEffects.WITHER, WITHER_TICKS, SCREECH_AMPLIFIER), this);
+        if (target instanceof ServerPlayer player) {
+            WarpHelper.addWarp(player, SCREECH_WARP_BASE + this.getRandom().nextInt(SCREECH_WARP_SPREAD), WarpType.TEMPORARY);
+        }
+        playSpread(level, TTSounds.EGSCREECH.get(), SCREECH_SOUND_VOLUME);
+    }
+
+    private void spreadFlames(ServerLevel level, Entity target) {
+        int severity = level.getDifficulty().getId();
+        if (this.getRandom().nextFloat() < IGNITE_CHANCE_PER_DIFFICULTY * severity) {
+            target.igniteForSeconds(IGNITE_SECONDS_PER_DIFFICULTY * severity);
         }
     }
 
@@ -241,43 +275,9 @@ public class EntityEldritchGuardian extends Monster implements RangedAttackMob {
         return TTSounds.EGDEATH.get();
     }
 
-    private void fogNearbyPlayers(ServerLevel level) {
-        double range = level.getDifficulty() == Difficulty.HARD ? HARD_FOG_RANGE_SQR : FOG_RANGE_SQR;
-        for (ServerPlayer player : level.players()) {
-            if (player.isAlive() && player.distanceToSqr(this) < range) {
-                PacketDistributor.sendToPlayer(player, ClientboundWarpFXPayload.mistShort());
-            }
-        }
-    }
-
-    private void castOrb(ServerLevel level, LivingEntity target) {
-        Vec3 hand = this.arms.castFromNextHand();
-        Vec3 aim = leadAim(target);
-        EntityEldritchOrb orb = new EntityEldritchOrb(level, this);
-        orb.setPos(orb.position().add(hand.x, 0.0, hand.z));
-        orb.shoot(aim.x, aim.y, aim.z, ORB_SPEED, ORB_INACCURACY);
-        level.addFreshEntity(orb);
-        playSpread(level, TTSounds.EGATTACK.get(), ORB_SOUND_VOLUME);
-    }
-
-    private Vec3 leadAim(LivingEntity target) {
-        Vec3 predicted = target.position().add(target.getKnownMovement().scale(LEAD_TICKS));
-        return predicted.subtract(this.position()).normalize();
-    }
-
     private void playSpread(ServerLevel level, SoundEvent sound, float volume) {
         float pitch = 1.0F + this.getRandom().nextFloat() * SOUND_PITCH_SPREAD;
         level.playSound(null, this.getX(), this.getY(), this.getZ(), sound, SoundSource.HOSTILE, volume, pitch);
     }
 
-    private void screech(ServerLevel level, LivingEntity target) {
-        if (!this.hasLineOfSight(target)) {
-            return;
-        }
-        target.addEffect(new MobEffectInstance(MobEffects.WITHER, WITHER_TICKS, 0));
-        if (target instanceof ServerPlayer player) {
-            WarpHelper.addWarp(player, SCREECH_WARP_BASE + this.getRandom().nextInt(SCREECH_WARP_SPREAD), WarpType.TEMPORARY);
-        }
-        playSpread(level, TTSounds.EGSCREECH.get(), SCREECH_SOUND_VOLUME);
-    }
 }

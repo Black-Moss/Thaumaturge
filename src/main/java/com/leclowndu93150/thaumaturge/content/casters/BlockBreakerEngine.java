@@ -98,10 +98,10 @@ public final class BlockBreakerEngine {
         HolderLookup.RegistryLookup<Enchantment> enchantments = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         EnchantmentHelper.updateEnchantments(tool, mutable -> {
             if (silk) {
-                mutable.set(enchantments.getOrThrow(Enchantments.SILK_TOUCH), SILK_TOUCH_LEVEL);
+                mutable.upgrade(enchantments.getOrThrow(Enchantments.SILK_TOUCH), SILK_TOUCH_LEVEL);
             }
             if (fortune > 0) {
-                mutable.set(enchantments.getOrThrow(Enchantments.FORTUNE), fortune);
+                mutable.upgrade(enchantments.getOrThrow(Enchantments.FORTUNE), fortune);
             }
         });
         return tool;

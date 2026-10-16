@@ -19,11 +19,12 @@ public final class TaintTraitVisuals {
     private static final float ALPHA = 0.25F;
     private static final float RED_BASE = 0.1F;
     private static final float RED_SPREAD = 0.2F;
+    private static final float GREEN = 0.0F;
     private static final float BLUE_BASE = 0.1F;
     private static final float BLUE_SPREAD = 0.1F;
     private static final float SCALE_BASE = 2.0F;
-    private static final float LIFE_SCALE = 2.0F;
-    private static final double DRIFT = -0.01;
+    private static final float END_SCALE = 2.0F;
+    private static final double DRIFT = -0.01D;
 
     private TaintTraitVisuals() {}
 
@@ -38,7 +39,10 @@ public final class TaintTraitVisuals {
     }
 
     private static void fluxSwirl(LivingEntity mob, Level level, RandomSource random, double x, double y, double z) {
-        level.addParticle(new FluxSwirlParticleOptions(ARGB.colorFromFloat(ALPHA, RED_BASE + random.nextFloat() * RED_SPREAD, 0.0F, BLUE_BASE + random.nextFloat() * BLUE_SPREAD),
-                SCALE_BASE + random.nextFloat(), LIFE_SCALE), x, y, z, 0.0, DRIFT, 0.0);
+        float red = RED_BASE + random.nextFloat() * RED_SPREAD;
+        float blue = BLUE_BASE + random.nextFloat() * BLUE_SPREAD;
+        float scale = SCALE_BASE + random.nextFloat();
+        int color = ARGB.colorFromFloat(ALPHA, red, GREEN, blue);
+        level.addParticle(new FluxSwirlParticleOptions(color, scale, END_SCALE), x, y, z, 0.0, DRIFT, 0.0);
     }
 }

@@ -106,9 +106,9 @@ public final class TTConfiguredFeatures {
     private static final int CROWN_TREE_BASE_HEIGHT = 11;
     private static final int CROWN_TREE_HEIGHT_SPREAD = 10;
     private static final int GREATWOOD_TRUNK_WIDTH = 2;
-    private static final double GREATWOOD_HEIGHT_ATTENUATION = 0.618;
+    private static final double GREATWOOD_TRUNK_SHARE = 0.618;
     private static final double GREATWOOD_BRANCH_SLOPE = 0.38;
-    private static final double GREATWOOD_SCALE_WIDTH = 1.2;
+    private static final double GREATWOOD_CROWN_WIDTH = 1.2;
     private static final float GREATWOOD_SPIDER_CHANCE = 0.125F;
     private static final double MAGIC_OAK_TRUNK_SHARE = 0.6618;
     private static final double MAGIC_OAK_BRANCH_SLOPE = 0.381;
@@ -260,7 +260,7 @@ public final class TTConfiguredFeatures {
     private static void registerSurfaceTrees(BootstrapContext<ConfiguredFeature<?, ?>> context) {
         Block greatwoodLog = TTBlocks.LOG_GREATWOOD.get();
         Block greatwoodLeaves = TTBlocks.LEAVES_GREATWOOD.get();
-        CrownShape greatwoodShape = new CrownShape(GREATWOOD_TRUNK_WIDTH, GREATWOOD_HEIGHT_ATTENUATION, GREATWOOD_BRANCH_SLOPE, GREATWOOD_SCALE_WIDTH, true);
+        CrownShape greatwoodShape = new CrownShape(GREATWOOD_TRUNK_WIDTH, GREATWOOD_TRUNK_SHARE, GREATWOOD_BRANCH_SLOPE, GREATWOOD_CROWN_WIDTH, true);
         List<TreeDecorator> greatwoodNest = List.of(new SpiderNestDecorator(GREATWOOD_SPIDER_CHANCE, greatwoodLog, greatwoodLeaves));
         add(context, GREATWOOD_TREE, Feature.TREE, crownTree(greatwoodLog, greatwoodLeaves, greatwoodShape, CrownRule.OPEN_AIR, false, greatwoodNest));
         add(context, GREATWOOD_TREE_GROWN, Feature.TREE, crownTree(greatwoodLog, greatwoodLeaves, greatwoodShape, CrownRule.OPEN_AIR, false, List.of()));

@@ -3,7 +3,7 @@ package com.leclowndu93150.thaumaturge.content.aura.node;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.content.effect.Effects;
 import com.leclowndu93150.thaumaturge.content.misc.TTActionBar;
@@ -163,7 +163,7 @@ public final class NodeJarRitual {
     }
 
     private enum JarGate {
-        RESEARCH(MESSAGE_NO_RESEARCH, (level, pos, player) -> KnowledgeAccess.of(player).isResearchComplete(RESEARCH_NODE_JAR)), STRUCTURE(MESSAGE_STRUCTURE,
+        RESEARCH(MESSAGE_NO_RESEARCH, (level, pos, player) -> PlayerResearchAccess.of(player).hasCompleted(RESEARCH_NODE_JAR)), STRUCTURE(MESSAGE_STRUCTURE,
                 (level, pos, player) -> fitsStructure(level, pos)), VIS(MESSAGE_VIS, (level, pos, player) -> WandVisHelper.consumeSpecificFromHotbar(player, primalCost(), true), VIS_PER_PRIMAL);
 
         private final String messageKey;

@@ -20,6 +20,8 @@ public final class EntityTaintSpore extends AbstractTaintSpore {
     private static final float SATELLITE_MIN_SATURATION = 0.85F;
     private static final int SATELLITE_ONE_IN = 4;
     private static final int MAX_BROOD = 6;
+    private static final int BROOD_BASE_DIVISOR = 3;
+    private static final int BROOD_BONUS_DIVISOR = 2;
     private static final double BROOD_SPREAD = 0.5;
     private static final float FULL_TURN_DEGREES = 360.0F;
 
@@ -46,7 +48,8 @@ public final class EntityTaintSpore extends AbstractTaintSpore {
         if (level.getDifficulty() == Difficulty.PEACEFUL) {
             return;
         }
-        int brood = Math.min(MAX_BROOD, random.nextInt(getSporeSize() + 1));
+        int size = getSporeSize();
+        int brood = Math.min(MAX_BROOD, size / BROOD_BASE_DIVISOR + random.nextInt(size / BROOD_BONUS_DIVISOR + 1));
         for (int index = 0; index < brood; index++) {
             spawnSpider(level, random);
         }

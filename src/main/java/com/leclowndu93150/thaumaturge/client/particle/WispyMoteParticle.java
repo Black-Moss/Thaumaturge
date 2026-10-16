@@ -16,13 +16,13 @@ import org.jspecify.annotations.Nullable;
 
 public final class WispyMoteParticle extends TTParticle {
     private static final int EMISSIVE_LIGHT = 0x00F000F0;
-    private static final double WIND_SCALE = 0.001;
-    private static final float DRIFT = 0.0025F;
     private static final int FRAME_COUNT = 16;
-    private static final float PEAK_ALPHA = 0.6F;
     private static final float SIZE_START = 0.1F;
     private static final float SIZE_END = 0.05F;
     private static final float LIFETIME_JITTER = 0.5F;
+    private static final float PEAK_ALPHA = 0.6F;
+    private static final float DRIFT = 0.0025F;
+    private static final double WIND_SCALE = 1.0E-3;
     private static final float NEAR_TARGET_SHRINK = 0.9F;
     private static final double ARRIVAL_DISTANCE = 0.25;
     private static final double NEAR_DISTANCE = 4.0;
@@ -34,7 +34,6 @@ public final class WispyMoteParticle extends TTParticle {
     private final @Nullable TargetEntityResolver targetResolver;
     private final HomingSteering homing = new HomingSteering(HOMING);
     private final boolean emissive;
-    private float proximityScale = 1.0F;
 
     private WispyMoteParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, WispyMoteParticleOptions options, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);
@@ -52,38 +51,35 @@ public final class WispyMoteParticle extends TTParticle {
     protected void update() {
         drift(DRIFT, 0.0F, DRIFT);
         frame(this.age % FRAME_COUNT);
-        if (this.targetResolver != null) {
-            homeOnTarget(this.targetResolver);
-        }
-        applyLifetimeCurve(progress());
+        boolean nearTarget = this.targetResolver != null && homeOnTarget(this.targetResolver);
+        applyLifetimeCurve(progress(), nearTarget);
     }
 
-    private void applyLifetimeCurve(float progress) {
+    private void applyLifetimeCurve(float progress, boolean nearTarget) {
         this.alpha = PEAK_ALPHA * Keyframes.sample(progress, 0.0F, 1.0F, 1.0F, 0.0F);
-        this.quadSize = Mth.lerp(progress, SIZE_START, SIZE_END) * this.proximityScale;
+        float size = Mth.lerp(progress, SIZE_START, SIZE_END);
+        this.quadSize = nearTarget ? size * NEAR_TARGET_SHRINK : size;
     }
 
-    private void homeOnTarget(TargetEntityResolver resolver) {
+    private boolean homeOnTarget(TargetEntityResolver resolver) {
         Entity target = resolver.resolve(this.level);
         if (target == null) {
-            return;
+            return false;
         }
         if (!target.isAlive()) {
             remove();
-            return;
+            return false;
         }
         Vec3 position = target.position();
         HomingPhase phase = this.homing.step(this.x, this.y, this.z, position.x, position.y, position.z, this.xd, this.yd, this.zd);
         if (phase == HomingPhase.ARRIVED) {
             remove();
-            return;
+            return false;
         }
         this.xd = this.homing.velocityX();
         this.yd = this.homing.velocityY();
         this.zd = this.homing.velocityZ();
-        if (phase == HomingPhase.NEAR) {
-            this.proximityScale *= NEAR_TARGET_SHRINK;
-        }
+        return phase == HomingPhase.NEAR;
     }
 
     @Override

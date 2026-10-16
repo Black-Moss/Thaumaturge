@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
@@ -50,27 +51,26 @@ public final class BlockJarBrain extends BaseEntityBlock {
     }
 
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new BlockEntityJarBrain(pos, state);
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
+        if (!(level.getBlockEntity(pos) instanceof BlockEntityJarBrain jar)) {
+            return InteractionResult.PASS;
+        }
+        if (!(level instanceof ServerLevel server)) {
+            return InteractionResult.SUCCESS;
+        }
+        int released = server.getRandom().nextInt(Math.min(jar.xp(), MAX_RELEASE) + 1);
+        if (released > 0) {
+            jar.setXp(jar.xp() - released);
+            ExperienceOrb.award(server, Vec3.atCenterOf(pos), released);
+        }
+        jar.setEatDelay(EAT_DELAY_TICKS);
+        level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, CLICK_VOLUME, CLICK_PITCH);
+        return InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!(level.getBlockEntity(pos) instanceof BlockEntityJarBrain brain)) {
-            return InteractionResult.PASS;
-        }
-        brain.setEatDelay(EAT_DELAY_TICKS);
-        if (level instanceof ServerLevel server) {
-            int release = server.getRandom().nextInt(Math.min(brain.xp(), MAX_RELEASE) + 1);
-            if (release > 0) {
-                brain.setXp(brain.xp() - release);
-                ExperienceOrb.award(server, pos.getCenter(), release);
-                brain.setChangedAndSync();
-            }
-            return InteractionResult.SUCCESS_SERVER;
-        }
-        level.playSound(player, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, CLICK_VOLUME, CLICK_PITCH);
-        return InteractionResult.SUCCESS;
+    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new BlockEntityJarBrain(pos, state);
     }
 
     @Override

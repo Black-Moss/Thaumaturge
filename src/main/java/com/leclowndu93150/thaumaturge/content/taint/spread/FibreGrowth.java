@@ -8,7 +8,6 @@ import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
 import net.minecraft.core.BlockPos;
@@ -41,6 +40,8 @@ public final class FibreGrowth {
             new Conversion(TTBlockTags.TAINT_CONVERTIBLE_SOIL, GROUND_TAINT_NEIGHBOURS, state -> TTBlocks.TAINT_SOIL.get().defaultBlockState()),
             new Conversion(TTBlockTags.TAINT_CONVERTIBLE_ROCK, GROUND_TAINT_NEIGHBOURS, state -> TTBlocks.TAINT_ROCK.get().defaultBlockState()));
 
+    private static final List<Direction> SCAN_ORDER = List.of(Direction.DOWN, Direction.UP, Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST);
+
     private FibreGrowth() {}
 
     public static void attempt(ServerLevel level, BlockPos origin, boolean force) {
@@ -52,6 +53,9 @@ public final class FibreGrowth {
             return;
         }
         BlockPos target = pickTarget(origin, random);
+        if (target.equals(origin)) {
+            return;
+        }
         BlockState state = level.getBlockState(target);
         if (!isReachable(level, target, state, force)) {
             return;
@@ -60,20 +64,15 @@ public final class FibreGrowth {
             growInOpenSpace(level, target, force);
         } else if (state.is(BlockTags.LEAVES)) {
             sproutFeature(level, target, random);
-        } else if (!tryConvert(level, target, state, force) && random.nextInt(SPROUT_ONE_IN) == 0 && TaintEcology.getSaturation(level, target) >= SPROUT_MIN_SATURATION) {
+        } else if (!tryConvert(level, target, state, force) && random.nextDouble() * SPROUT_ONE_IN < 1.0 && TaintEcology.getSaturation(level, target) >= SPROUT_MIN_SATURATION) {
             TaintSprouting.trySprout(level, target, true);
         }
     }
 
     private static BlockPos pickTarget(BlockPos origin, RandomSource random) {
-        int dx;
-        int dy;
-        int dz;
-        do {
-            dx = offset(random, HORIZONTAL_REACH);
-            dy = offset(random, VERTICAL_REACH);
-            dz = offset(random, HORIZONTAL_REACH);
-        } while (dx == 0 && dy == 0 && dz == 0);
+        int dx = offset(random, HORIZONTAL_REACH);
+        int dy = offset(random, VERTICAL_REACH);
+        int dz = offset(random, HORIZONTAL_REACH);
         return origin.offset(dx, dy, dz);
     }
 
@@ -96,7 +95,7 @@ public final class FibreGrowth {
         if (state.isAir()) {
             return true;
         }
-        return state.canBeReplaced() && state.getFluidState().isEmpty() && !state.is(BlockTags.LEAVES) && !TaintHelper.isTaintBlock(state);
+        return state.canBeReplaced() && !state.is(BlockTags.LEAVES) && !state.liquid();
     }
 
     private static boolean columnReady(ServerLevel level, BlockPos pos, boolean force) {
@@ -115,17 +114,14 @@ public final class FibreGrowth {
     }
 
     private static void sproutFeature(ServerLevel level, BlockPos target, RandomSource random) {
-        List<Direction> awayFromLogs = new ArrayList<>(Direction.values().length);
-        for (Direction direction : Direction.values()) {
+        for (Direction direction : SCAN_ORDER) {
             if (level.getBlockState(target.relative(direction)).is(TTBlocks.TAINT_LOG)) {
-                awayFromLogs.add(direction.getOpposite());
+                if (random.nextFloat() < FEATURE_CHANCE) {
+                    level.setBlock(target, TTBlocks.TAINT_FEATURE.get().defaultBlockState().setValue(DirectionalBlock.FACING, direction.getOpposite()), Block.UPDATE_ALL);
+                }
+                return;
             }
         }
-        if (awayFromLogs.isEmpty() || random.nextFloat() >= FEATURE_CHANCE) {
-            return;
-        }
-        Direction facing = awayFromLogs.get(random.nextInt(awayFromLogs.size()));
-        level.setBlock(target, TTBlocks.TAINT_FEATURE.get().defaultBlockState().setValue(DirectionalBlock.FACING, facing), Block.UPDATE_ALL);
     }
 
     private static boolean tryConvert(ServerLevel level, BlockPos target, BlockState state, boolean force) {

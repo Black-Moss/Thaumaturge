@@ -26,6 +26,7 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.Tags;
@@ -60,12 +61,15 @@ public final class EnchantMining {
         if (!skipPermission && isBreakCancelled(level, serverPlayer, pos, state)) {
             return false;
         }
-        List<ItemStack> drops = collectDrops(level, player, pos, state);
+        boolean yieldsDrops = yieldsDrops(level, player, pos, state);
+        BlockEntity blockEntity = level.getBlockEntity(pos);
         level.levelEvent(null, LEVEL_EVENT_BLOCK_BREAK, pos, Block.getId(state));
         if (!level.removeBlock(pos, false)) {
             return false;
         }
-        drops.forEach(drop -> Block.popResource(level, pos, drop));
+        if (yieldsDrops) {
+            Block.dropResources(state, level, pos, blockEntity, player, player.getMainHandItem());
+        }
         return true;
     }
 
@@ -118,13 +122,6 @@ public final class EnchantMining {
     private static boolean isBreakCancelled(ServerLevel level, ServerPlayer player, BlockPos pos, BlockState state) {
         GameType mode = player.gameMode.getGameModeForPlayer();
         return CommonHooks.fireBlockBreak(level, mode, player, pos, state).isCanceled();
-    }
-
-    private static List<ItemStack> collectDrops(ServerLevel level, Player player, BlockPos pos, BlockState state) {
-        if (!yieldsDrops(level, player, pos, state)) {
-            return List.of();
-        }
-        return Block.getDrops(state, level, pos, level.getBlockEntity(pos), player, player.getMainHandItem());
     }
 
     private static boolean yieldsDrops(ServerLevel level, Player player, BlockPos pos, BlockState state) {

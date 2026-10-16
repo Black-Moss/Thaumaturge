@@ -1,26 +1,30 @@
 package com.leclowndu93150.thaumaturge.content.infernalfurnace;
 
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
+import com.leclowndu93150.thaumaturge.api.items.InvHelper;
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
 import com.leclowndu93150.thaumaturge.content.essentia.BellowsHelper;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.Containers;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
@@ -34,6 +38,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
@@ -53,14 +58,38 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
     private static final int BELLOWS_SPEED_BASE = 20;
     private static final int FLUX_ODDS = 20;
     private static final float FLUX_AMOUNT = 1.0F;
-    private static final double EJECT_SPEED = 0.3;
     private static final double CENTER = 0.5;
-    private static final int[] ORB_SIZES = {2477, 1237, 617, 307, 149, 73, 37, 17, 7, 3, 1};
+    private static final double TOSS_SPEED = 0.3;
+    private static final int OUTSIDE_DISTANCE = 2;
+    private static final double ORB_DISTANCE = 1.2;
+    private static final double ORB_HEIGHT = 0.4;
+    private static final double ORB_RETURN_SPEED = 0.13;
+    private static final double ORB_SIDE_SPEED = 0.025;
+    private static final float ORB_MIN_AMOUNT = 1.0F;
+    private static final int ORB_MIN_VALUE = 1;
+    private static final float HISS_VOLUME = 0.3F;
+    private static final float HISS_PITCH = 2.6F;
+    private static final float HISS_PITCH_JITTER = 0.8F;
+    private static final double TOP_FACE_HEIGHT = 1.0;
+    private static final double REJECT_SPARK_SPEED = 1.0;
+    private static final double SPARK_HEIGHT = 0.3;
+    private static final double SPARK_JITTER = 0.3;
+    private static final int SMELT_POPS = 1;
+    private static final float POP_VOLUME = 0.1F;
+    private static final float POP_VOLUME_JITTER = 0.1F;
+    private static final float POP_PITCH = 0.9F;
+    private static final float POP_PITCH_JITTER = 0.15F;
+    private static final int SMELT_SPARKS = 4;
+    private static final double SPARK_SPEED = 0.001;
+    private static final double SPARK_SIDE_SPREAD = 0.5;
+    private static final double SPARK_LIFT_SPREAD = 0.2;
     private static final int[] BELLOWS_SPEED_BONUS = speedBonuses();
     private static final Map<Direction, Direction[]> BELLOWS_SIDES = bellowsSides();
 
     private final FurnaceInventory inventory = new FurnaceInventory();
     private final CookTimer timer = new CookTimer();
+    private final Set<UUID> ejected = new HashSet<>();
+    private boolean contentsDirty = true;
 
     public int visCharge;
     public int smeltTicksTotal;
@@ -100,19 +129,98 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
         }
     }
 
-    public static ItemStack launchStack(Level level, BlockPos pos, Direction side, ItemStack stack) {
-        if (level.isClientSide() || stack.isEmpty()) {
-            return ItemStack.EMPTY;
+    private void serverTick(ServerLevel serverLevel) {
+        timer.load(smeltTicksTotal, smeltTicksLeft, visCharge);
+        if (timer.needsTotal() && timer.left() > 0) {
+            timer.setTotal(cookTime(serverLevel));
         }
-        BlockPos origin = level.getBlockState(pos.relative(side)).isAir() ? pos : pos.relative(side.getOpposite());
-        eject(level, origin.getX() + CENTER + side.getStepX(), origin.getY(), origin.getZ() + CENTER + side.getStepZ(), side, stack);
-        return ItemStack.EMPTY;
+        rechargeBoost(serverLevel);
+        if (!ejected.isEmpty()) {
+            pruneEjected(serverLevel);
+        }
+        switch (timer.step()) {
+            case IDLE -> {
+                if (contentsDirty) {
+                    contentsDirty = false;
+                    startCycle(serverLevel);
+                }
+            }
+            case FINISHING -> completeSmelt(serverLevel);
+            case COOKING -> {
+            }
+        }
+        storeTimer();
     }
 
-    private static void eject(Level level, double x, double y, double z, Direction side, ItemStack stack) {
-        ItemEntity entity = new ItemEntity(level, x, y, z, stack, side.getStepX() * EJECT_SPEED, 0.0, side.getStepZ() * EJECT_SPEED);
-        entity.setDefaultPickUpDelay();
+    private void pruneEjected(ServerLevel serverLevel) {
+        AABB cell = new AABB(worldPosition);
+        Iterator<UUID> iterator = ejected.iterator();
+        while (iterator.hasNext()) {
+            Entity thrown = serverLevel.getEntity(iterator.next());
+            if (thrown == null || !thrown.isAlive() || !thrown.getBoundingBox().intersects(cell)) {
+                iterator.remove();
+            }
+        }
+    }
+
+    public boolean isOwnThrow(ItemEntity item) {
+        return ejected.contains(item.getUUID());
+    }
+
+    private void rechargeBoost(ServerLevel serverLevel) {
+        if (!timer.boostDepleted()) {
+            return;
+        }
+        int whole = Mth.floor(AuraHelper.drainVis(serverLevel, worldPosition, VIS_DRAIN_AMOUNT, true));
+        if (whole <= 0) {
+            return;
+        }
+        AuraHelper.drainVis(serverLevel, worldPosition, whole, false);
+        timer.refill(whole);
+    }
+
+    private void completeSmelt(ServerLevel serverLevel) {
+        for (int slot = inventory.nextOccupied(0); slot >= 0; slot = inventory.nextOccupied(slot + 1)) {
+            ItemStack input = inventory.getResource(slot).toStack(1);
+            Optional<RecipeHolder<SmeltingRecipe>> recipe = smelting(serverLevel, input);
+            if (recipe.isPresent()) {
+                inventory.takeOne(slot);
+                finishSmelt(serverLevel, recipe.get().value(), input);
+                return;
+            }
+        }
+    }
+
+    private void storeTimer() {
+        boolean changed = smeltTicksLeft != timer.left() || visCharge != timer.boost();
+        smeltTicksTotal = timer.total();
+        smeltTicksLeft = timer.left();
+        visCharge = timer.boost();
+        if (changed) {
+            setChanged();
+        }
+    }
+
+    private void launchStack(ServerLevel level, Direction side, ItemStack stack) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        BlockPos outside = worldPosition.relative(side, OUTSIDE_DISTANCE);
+        ItemStack rest = InvHelper.insertAt(level, outside, side.getOpposite(), stack, false);
+        if (rest.isEmpty()) {
+            return;
+        }
+        BlockPos adjacent = worldPosition.relative(side);
+        BlockPos tile = level.getBlockState(adjacent).isAir() ? adjacent : worldPosition;
+        ItemEntity thrown = eject(level, tile.getX() + CENTER, worldPosition.getY(), tile.getZ() + CENTER, side, rest);
+        ejected.add(thrown.getUUID());
+    }
+
+    private static ItemEntity eject(Level level, double x, double y, double z, Direction side, ItemStack stack) {
+        ItemEntity entity = new ItemEntity(level, x, y, z, stack, side.getStepX() * TOSS_SPEED, 0.0, side.getStepZ() * TOSS_SPEED);
+        entity.setNoPickUpDelay();
         level.addFreshEntity(entity);
+        return entity;
     }
 
     public ItemStacksResourceHandler items() {
@@ -163,7 +271,7 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        OutputContext context = new OutputContext(serverLevel, worldPosition, outputSide(), bellowsCount(serverLevel));
+        OutputContext context = new OutputContext(serverLevel, this, worldPosition, outputSide(), bellowsCount(serverLevel));
         new FurnaceOutput(context).deliver(result, inputCopy, recipe.experience() * result.getCount());
     }
 
@@ -179,53 +287,10 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
         }
     }
 
-    void spill(ServerLevel serverLevel, BlockPos pos) {
-        for (ItemStack stack : inventory.drain()) {
-            Containers.dropItemStack(serverLevel, pos.getX() + CENTER, pos.getY() + CENTER, pos.getZ() + CENTER, stack);
-        }
-    }
-
-    private void serverTick(ServerLevel serverLevel) {
-        int cookBefore = smeltTicksLeft;
-        int boostBefore = visCharge;
-        timer.load(smeltTicksTotal, smeltTicksLeft, visCharge);
-        if (timer.needsTotal()) {
-            timer.setTotal(cookTime(serverLevel));
-        }
-        switch (timer.step()) {
-            case FINISHING -> completeSmelt(serverLevel);
-            case IDLE -> startCycle(serverLevel);
-            case COOKING -> {
-            }
-        }
-        if (timer.boostDepleted()) {
-            timer.refill((int) AuraHelper.drainVis(serverLevel, worldPosition, VIS_DRAIN_AMOUNT, false));
-        }
-        smeltTicksTotal = timer.total();
-        smeltTicksLeft = timer.left();
-        visCharge = timer.boost();
-        if (smeltTicksLeft != cookBefore || visCharge != boostBefore) {
-            setChanged();
-        }
-    }
-
     private void startCycle(ServerLevel serverLevel) {
         if (hasSmeltable(serverLevel)) {
             timer.setTotal(cookTime(serverLevel));
             timer.start();
-        }
-    }
-
-    private void completeSmelt(ServerLevel serverLevel) {
-        for (int slot = inventory.nextOccupied(0); slot >= 0; slot = inventory.nextOccupied(slot + 1)) {
-            ItemResource resource = inventory.getResource(slot);
-            int amount = inventory.getAmountAsInt(slot);
-            Optional<RecipeHolder<SmeltingRecipe>> found = smelting(serverLevel, resource.toStack(amount));
-            inventory.set(slot, amount > 1 ? resource : ItemResource.EMPTY, amount - 1);
-            if (found.isPresent()) {
-                finishSmelt(serverLevel, found.get().value(), resource.toStack(1));
-                return;
-            }
         }
     }
 
@@ -326,27 +391,7 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
         }
     }
 
-    private record OutputContext(ServerLevel level, BlockPos pos, Direction side, int bellows) {
-    }
-
-    private record OrbLayout(double distance, double height, double push, double jitter) {
-        private static final OrbLayout STANDARD = new OrbLayout(1.2, 0.4, 0.13, 0.025);
-
-        double x(BlockPos pos, Direction side) {
-            return pos.getX() + CENTER + side.getStepX() * distance;
-        }
-
-        double y(BlockPos pos) {
-            return pos.getY() + height;
-        }
-
-        double z(BlockPos pos, Direction side) {
-            return pos.getZ() + CENTER + side.getStepZ() * distance;
-        }
-
-        double velocity(int step, RandomSource random) {
-            return step == 0 ? (random.nextFloat() - random.nextFloat()) * jitter : -step * push;
-        }
+    private record OutputContext(ServerLevel level, BlockEntityInfernalFurnace furnace, BlockPos pos, Direction side, int bellows) {
     }
 
     private static final class FurnaceOutput {
@@ -357,12 +402,45 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
         }
 
         void deliver(ItemStack result, ItemStack input, float experience) {
-            launchStack(context.level(), context.pos(), context.side(), result);
+            context.furnace().launchStack(context.level(), context.side(), result);
             RandomSource random = context.level().getRandom();
             for (int rolls = context.bellows(); rolls >= 0; rolls--) {
                 rollBonuses(input, random);
             }
             spawnExperience(experience, random);
+        }
+
+        private void spawnExperience(float experience, RandomSource random) {
+            if (experience <= 0.0F) {
+                return;
+            }
+            if (experience < ORB_MIN_AMOUNT) {
+                if (random.nextFloat() < experience) {
+                    spawnOrb(ORB_MIN_VALUE, random);
+                }
+                return;
+            }
+            float remaining = experience;
+            while (remaining > 0.0F) {
+                int size = ExperienceOrb.getExperienceValue((int) remaining);
+                remaining -= size;
+                spawnOrb(size, random);
+            }
+        }
+
+        private void spawnOrb(int value, RandomSource random) {
+            BlockPos core = context.pos();
+            Direction side = context.side();
+            double x = core.getX() + CENTER + ORB_DISTANCE * side.getStepX();
+            double y = core.getY() + ORB_HEIGHT;
+            double z = core.getZ() + CENTER + ORB_DISTANCE * side.getStepZ();
+            double spread = (random.nextDouble() - random.nextDouble()) * ORB_SIDE_SPEED;
+            double speedX = side.getStepX() != 0 ? -ORB_RETURN_SPEED * side.getStepX() : spread;
+            double speedZ = side.getStepZ() != 0 ? -ORB_RETURN_SPEED * side.getStepZ() : spread;
+            ExperienceOrb orb = new ExperienceOrb(context.level(), x, y, z, value);
+            orb.setPos(x, y, z);
+            orb.setDeltaMovement(speedX, 0.0, speedZ);
+            context.level().addFreshEntity(orb);
         }
 
         private void rollBonuses(ItemStack input, RandomSource random) {
@@ -373,7 +451,7 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
             for (InfernalBonus bonus : bonuses) {
                 ItemStack drop = bonusDrop(bonus, random);
                 if (!drop.isEmpty()) {
-                    launchStack(context.level(), context.pos(), context.side(), drop);
+                    context.furnace().launchStack(context.level(), context.side(), drop);
                 }
             }
         }
@@ -397,84 +475,38 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
             return members.isEmpty() ? null : members.get(random.nextInt(members.size())).value();
         }
 
-        private void spawnExperience(float total, RandomSource random) {
-            int whole = Mth.floor(total);
-            float fraction = total - whole;
-            int remaining = fraction > 0.0F && random.nextFloat() < fraction ? whole + 1 : whole;
-            OrbLayout layout = OrbLayout.STANDARD;
-            BlockPos pos = context.pos();
-            Direction side = context.side();
-            double x = layout.x(pos, side);
-            double y = layout.y(pos);
-            double z = layout.z(pos, side);
-            for (int size : ORB_SIZES) {
-                while (remaining >= size) {
-                    remaining -= size;
-                    ExperienceOrb orb = new ExperienceOrb(context.level(), x, y, z, size);
-                    double pushX = layout.velocity(side.getStepX(), random);
-                    double pushZ = layout.velocity(side.getStepZ(), random);
-                    orb.setDeltaMovement(pushX, 0.0, pushZ);
-                    context.level().addFreshEntity(orb);
-                }
-            }
-        }
     }
 
     private static final class FurnaceEffects {
-        private static final int SMELT_PARTICLE_COUNT = 4;
-        private static final double SMELT_PARTICLE_HEIGHT = 0.3;
-        private static final double SMELT_PARTICLE_JITTER = 0.3;
-        private static final double SMELT_PARTICLE_SPREAD = 0.5;
-        private static final double SMELT_PARTICLE_RISE = 0.2;
-        private static final double SMELT_PARTICLE_SPEED = 0.001;
-        private static final float SMELT_VOLUME_BASE = 0.1F;
-        private static final float SMELT_VOLUME_RANGE = 0.1F;
-        private static final float SMELT_PITCH_BASE = 0.9F;
-        private static final float SMELT_PITCH_RANGE = 0.15F;
-        private static final float DESTROY_VOLUME = 0.3F;
-        private static final float DESTROY_PITCH_BASE = 2.6F;
-        private static final float DESTROY_PITCH_JITTER = 0.8F;
-        private static final double DESTROY_PARTICLE_HEIGHT = 1.0;
-        private static final double DESTROY_PARTICLE_SPEED = 1.0;
-
         private final ServerLevel level;
         private final BlockPos pos;
-        private final RandomSource random;
 
         private FurnaceEffects(ServerLevel level, BlockPos pos) {
             this.level = level;
             this.pos = pos;
-            this.random = level.getRandom();
-        }
-
-        void smelt(Direction side) {
-            int dx = side.getStepX();
-            int dz = side.getStepZ();
-            double x = pos.getX() + CENTER + (random.nextDouble() - random.nextDouble()) * SMELT_PARTICLE_JITTER + dx;
-            double y = pos.getY() + SMELT_PARTICLE_HEIGHT;
-            double z = pos.getZ() + CENTER + (random.nextDouble() - random.nextDouble()) * SMELT_PARTICLE_JITTER + dz;
-            double spreadX = spread(dx);
-            double spreadZ = spread(dz);
-            double spreadY = SMELT_PARTICLE_RISE * random.nextDouble();
-            lava(x, y, z, SMELT_PARTICLE_COUNT, spreadX, spreadY, spreadZ, SMELT_PARTICLE_SPEED);
-            sound(SoundEvents.LAVA_POP, SMELT_VOLUME_BASE + random.nextFloat() * SMELT_VOLUME_RANGE, SMELT_PITCH_BASE + random.nextFloat() * SMELT_PITCH_RANGE);
         }
 
         void destroy() {
-            sound(SoundEvents.LAVA_EXTINGUISH, DESTROY_VOLUME, DESTROY_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * DESTROY_PITCH_JITTER);
-            lava(pos.getX() + random.nextDouble(), pos.getY() + DESTROY_PARTICLE_HEIGHT, pos.getZ() + random.nextDouble(), 1, 0.0, 0.0, 0.0, DESTROY_PARTICLE_SPEED);
+            RandomSource random = level.getRandom();
+            double h = random.nextDouble();
+            double i = random.nextDouble();
+            level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, HISS_VOLUME, HISS_PITCH + (float) (h - i) * HISS_PITCH_JITTER);
+            level.sendParticles(ParticleTypes.LAVA, pos.getX() + h, pos.getY() + TOP_FACE_HEIGHT, pos.getZ() + i, 1, 0.0, 0.0, 0.0, REJECT_SPARK_SPEED);
         }
 
-        private double spread(int step) {
-            return step == 0 ? (random.nextDouble() - random.nextDouble()) * SMELT_PARTICLE_SPREAD : -step * random.nextDouble();
-        }
-
-        private void lava(double x, double y, double z, int count, double spreadX, double spreadY, double spreadZ, double speed) {
-            level.sendParticles(ParticleTypes.LAVA, x, y, z, count, spreadX, spreadY, spreadZ, speed);
-        }
-
-        private void sound(SoundEvent sound, float volume, float pitch) {
-            level.playSound(null, pos, sound, SoundSource.BLOCKS, volume, pitch);
+        void smelt(Direction side) {
+            RandomSource random = level.getRandom();
+            for (int pop = 0; pop < SMELT_POPS; pop++) {
+                level.playSound(null, pos, SoundEvents.LAVA_POP, SoundSource.BLOCKS, POP_VOLUME + random.nextFloat() * POP_VOLUME_JITTER, POP_PITCH + random.nextFloat() * POP_PITCH_JITTER);
+            }
+            double x = pos.getX() + CENTER + side.getStepX() + (random.nextDouble() - random.nextDouble()) * SPARK_JITTER;
+            double y = pos.getY() + SPARK_HEIGHT;
+            double z = pos.getZ() + CENTER + side.getStepZ() + (random.nextDouble() - random.nextDouble()) * SPARK_JITTER;
+            double outputSpread = random.nextDouble();
+            double sideSpread = Math.abs(random.nextDouble() - random.nextDouble()) * SPARK_SIDE_SPREAD;
+            double liftSpread = random.nextDouble() * SPARK_LIFT_SPREAD;
+            boolean alongX = side.getStepX() != 0;
+            level.sendParticles(ParticleTypes.LAVA, x, y, z, SMELT_SPARKS, alongX ? outputSpread : sideSpread, liftSpread, alongX ? sideSpread : outputSpread, SPARK_SPEED);
         }
     }
 
@@ -490,6 +522,11 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
                 }
             }
             return -1;
+        }
+
+        void takeOne(int slot) {
+            int left = getAmountAsInt(slot) - 1;
+            set(slot, left > 0 ? getResource(slot) : ItemResource.EMPTY, Math.max(0, left));
         }
 
         List<ItemStack> drain() {
@@ -510,6 +547,7 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
+            contentsDirty = true;
             setChanged();
         }
     }

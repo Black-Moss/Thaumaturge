@@ -4,14 +4,11 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
-import com.leclowndu93150.thaumaturge.api.items.ChargeProfile;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.compat.curio.ThaumaturgeCuriosCompat;
 import com.leclowndu93150.thaumaturge.content.wands.ItemWand;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandVisHelper;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
@@ -32,8 +29,8 @@ public final class AmuletVisItem extends Item {
     private static final int HOTBAR_SLOTS = 9;
     private static final int PULSE_AMOUNT = 1;
     private static final float WAND_DRAIN = 1.0F;
-    private static final List<EquipmentSlot> ARMOR_SLOTS = List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET);
-    private static final List<RechargeSource> SOURCES = sorted(new WandSource(0), new OffhandSource(1), new HotbarSource(2), new CurioSource(3), new ArmorSource(4));
+    private static final List<EquipmentSlot> ARMOR_SLOTS = List.of(EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD);
+    private static final List<RechargeSource> SOURCES = List.of(new HotbarStackSource(), new HotbarWandSource(), new OffhandStackSource(), new OffhandWandSource(), new CurioSource(), new ArmorSource());
 
     private final int interval;
 
@@ -46,13 +43,8 @@ public final class AmuletVisItem extends Item {
         if (!(wearer instanceof ServerPlayer player) || player.tickCount % interval != 0) {
             return;
         }
-        List<Target> targets = new ArrayList<>();
         for (RechargeSource source : SOURCES) {
-            source.collect(player, targets);
-        }
-        targets.sort(Comparator.comparingDouble(Target::fill));
-        for (Target target : targets) {
-            if (target.recharge(player)) {
+            if (source.recharge(player)) {
                 return;
             }
         }
@@ -64,117 +56,93 @@ public final class AmuletVisItem extends Item {
         super.appendHoverText(stack, context, display, tooltip, flag);
     }
 
-    private static List<RechargeSource> sorted(RechargeSource... sources) {
-        List<RechargeSource> list = new ArrayList<>(List.of(sources));
-        list.sort(Comparator.comparingInt(RechargeSource::priority));
-        return List.copyOf(list);
+    private static boolean rechargeStack(ServerPlayer player, ItemStack stack) {
+        return RechargeAccess.drawFromAura(player.level(), stack, player.blockPosition(), player, PULSE_AMOUNT) > 0;
     }
 
-    private static boolean canAccept(ItemStack stack) {
-        ChargeProfile profile = RechargeAccess.profile(stack);
-        return profile != null && RechargeAccess.getCharge(stack) < profile.capacity();
-    }
-
-    private interface Target {
-        float fill();
-
-        boolean recharge(ServerPlayer player);
+    private static boolean rechargeWand(ServerPlayer player, ItemStack stack) {
+        if (!(stack.getItem() instanceof ItemWand)) {
+            return false;
+        }
+        int max = WandVisHelper.capacityOf(stack);
+        ResourceKey<IAspect> lowest = null;
+        int lowestAmount = max;
+        for (ResourceKey<IAspect> primal : TTAspects.PRIMALS) {
+            int amount = WandVisHelper.storedIn(stack, primal);
+            if (amount < lowestAmount) {
+                lowest = primal;
+                lowestAmount = amount;
+            }
+        }
+        if (lowest == null) {
+            return false;
+        }
+        BlockPos pos = player.blockPosition();
+        if (AuraHelper.drainVis(player.level(), pos, WAND_DRAIN, false) <= 0.0F) {
+            return false;
+        }
+        WandVisHelper.topUpCentivis(stack, lowest, WandEconomy.CENTIVIS_PER_VIS, true);
+        return true;
     }
 
     private interface RechargeSource {
-        int priority();
-
-        void collect(ServerPlayer player, List<Target> targets);
+        boolean recharge(ServerPlayer player);
     }
 
-    private record StackTarget(ItemStack stack, float fill) implements Target {
+    private record HotbarStackSource() implements RechargeSource {
         @Override
         public boolean recharge(ServerPlayer player) {
-            return RechargeAccess.rechargeItem(player.level(), stack, player.blockPosition(), player, PULSE_AMOUNT) > 0.0F;
-        }
-    }
-
-    private record WandTarget(ItemStack wand, ResourceKey<IAspect> primal, float fill) implements Target {
-        @Override
-        public boolean recharge(ServerPlayer player) {
-            BlockPos pos = player.blockPosition();
-            if (AuraHelper.drainVis(player.level(), pos, WAND_DRAIN, false) <= 0.0F) {
-                return false;
-            }
-            WandVisHelper.topUpCentivis(wand, primal, WandEconomy.CENTIVIS_PER_VIS, true);
-            return true;
-        }
-    }
-
-    private static void collectStack(ItemStack stack, List<Target> targets) {
-        if (canAccept(stack)) {
-            targets.add(new StackTarget(stack, RechargeAccess.getChargePercentage(stack, null)));
-        }
-    }
-
-    private record WandSource(int priority) implements RechargeSource {
-        @Override
-        public void collect(ServerPlayer player, List<Target> targets) {
             for (int slot = 0; slot < HOTBAR_SLOTS; slot++) {
-                collectWand(player.getInventory().getItem(slot), targets);
-            }
-            collectWand(player.getOffhandItem(), targets);
-        }
-
-        private static void collectWand(ItemStack stack, List<Target> targets) {
-            if (!(stack.getItem() instanceof ItemWand)) {
-                return;
-            }
-            int max = WandVisHelper.capacityOf(stack);
-            ResourceKey<IAspect> lowest = null;
-            int lowestAmount = max;
-            for (ResourceKey<IAspect> primal : TTAspects.PRIMALS) {
-                int amount = WandVisHelper.storedIn(stack, primal);
-                if (amount < lowestAmount) {
-                    lowest = primal;
-                    lowestAmount = amount;
+                if (rechargeStack(player, player.getInventory().getItem(slot))) {
+                    return true;
                 }
             }
-            if (lowest != null) {
-                targets.add(new WandTarget(stack, lowest, (float) lowestAmount / max));
-            }
+            return false;
         }
     }
 
-    private record OffhandSource(int priority) implements RechargeSource {
+    private record HotbarWandSource() implements RechargeSource {
         @Override
-        public void collect(ServerPlayer player, List<Target> targets) {
-            collectStack(player.getOffhandItem(), targets);
-        }
-    }
-
-    private record HotbarSource(int priority) implements RechargeSource {
-        @Override
-        public void collect(ServerPlayer player, List<Target> targets) {
+        public boolean recharge(ServerPlayer player) {
             for (int slot = 0; slot < HOTBAR_SLOTS; slot++) {
-                collectStack(player.getInventory().getItem(slot), targets);
+                if (rechargeWand(player, player.getInventory().getItem(slot))) {
+                    return true;
+                }
             }
+            return false;
         }
     }
 
-    private record CurioSource(int priority) implements RechargeSource {
+    private record OffhandStackSource() implements RechargeSource {
         @Override
-        public void collect(ServerPlayer player, List<Target> targets) {
-            if (!ModList.get().isLoaded(TTIds.CURIOS)) {
-                return;
-            }
-            for (ItemStack curio : ThaumaturgeCuriosCompat.equippedCurios(player)) {
-                collectStack(curio, targets);
-            }
+        public boolean recharge(ServerPlayer player) {
+            return rechargeStack(player, player.getOffhandItem());
         }
     }
 
-    private record ArmorSource(int priority) implements RechargeSource {
+    private record OffhandWandSource() implements RechargeSource {
         @Override
-        public void collect(ServerPlayer player, List<Target> targets) {
+        public boolean recharge(ServerPlayer player) {
+            return rechargeWand(player, player.getOffhandItem());
+        }
+    }
+
+    private record CurioSource() implements RechargeSource {
+        @Override
+        public boolean recharge(ServerPlayer player) {
+            return ModList.get().isLoaded(TTIds.CURIOS) && ThaumaturgeCuriosCompat.rechargeFirstCurio(player);
+        }
+    }
+
+    private record ArmorSource() implements RechargeSource {
+        @Override
+        public boolean recharge(ServerPlayer player) {
             for (EquipmentSlot slot : ARMOR_SLOTS) {
-                collectStack(player.getItemBySlot(slot), targets);
+                if (rechargeStack(player, player.getItemBySlot(slot))) {
+                    return true;
+                }
             }
+            return false;
         }
     }
 }

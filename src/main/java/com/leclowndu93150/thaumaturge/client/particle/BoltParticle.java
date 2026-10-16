@@ -15,15 +15,15 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 
 public final class BoltParticle extends TTParticle {
-    private static final int LIFETIME = 3;
     private static final int BEADS_PER_SECTION = 4;
-    private static final int SEED_RANGE = 1000;
-    private static final int PHASE_MULTIPLES = 8;
+    private static final int PHASE_MULTIPLES = 50;
     private static final int FRAME_COUNT = 16;
     private static final float WIDTH_DIVISOR = 6.0F;
+    private static final int LIFETIME = 3;
+    private static final float HITBOX = 0.02F;
+    private static final int SEED_RANGE = 1000;
     private static final float SWAY_TIME_DIVISOR = 10.0F;
     private static final float MIN_ALPHA = 0.1F;
-    private static final float HITBOX = 0.01F;
 
     private final float width;
     private final int seed;
@@ -38,7 +38,7 @@ public final class BoltParticle extends TTParticle {
         setSize(HITBOX, HITBOX);
         this.seed = this.random.nextInt(SEED_RANGE);
         double phase = this.random.nextInt(PHASE_MULTIPLES) * Math.PI;
-        this.shape = new BoltLineShape(x, y, z, options.targetX(), options.targetY(), options.targetZ(), this.seed, phase);
+        this.shape = new BoltLineShape(x, y, z, options.targetX(), options.targetY(), options.targetZ(), this.random, phase);
         if (this.shape.isEmpty()) {
             remove();
         }
@@ -48,7 +48,6 @@ public final class BoltParticle extends TTParticle {
     @Override
     protected void update() {
         frame((this.age + this.seed) % FRAME_COUNT);
-        this.shape.refreshJitter(this.age);
     }
 
     @Override
@@ -73,8 +72,8 @@ public final class BoltParticle extends TTParticle {
         float v0 = getV0();
         float v1 = getV1();
         int sections = this.shape.sections();
-        for (int section = 0; section < sections; section++) {
-            for (int bead = 0; bead < BEADS_PER_SECTION; bead++) {
+        for (int section = 1; section <= sections; section++) {
+            for (int bead = 1; bead <= BEADS_PER_SECTION; bead++) {
                 double f = (double) bead / BEADS_PER_SECTION;
                 float bx = (float) (beadCoordinate(section, f, 0, amplitude) - cameraPos.x());
                 float by = (float) (beadCoordinate(section, f, 1, amplitude) - cameraPos.y());
@@ -85,7 +84,7 @@ public final class BoltParticle extends TTParticle {
     }
 
     private double beadCoordinate(int section, double fraction, int axis, double amplitude) {
-        return Mth.lerp(fraction, this.shape.coordinate(section, axis, amplitude), this.shape.coordinate(section + 1, axis, amplitude));
+        return Mth.lerp(fraction, this.shape.coordinate(section - 1, axis, amplitude), this.shape.coordinate(section, axis, amplitude));
     }
 
     public static final class Provider implements ParticleProvider<BoltParticleOptions> {

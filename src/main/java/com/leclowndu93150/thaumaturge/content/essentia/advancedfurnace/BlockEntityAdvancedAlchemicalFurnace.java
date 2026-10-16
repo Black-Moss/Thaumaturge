@@ -19,7 +19,7 @@ import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -99,27 +99,62 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
     }
 
     private void runCycle(ServerLevel server, BlockPos pos) {
+        boolean dirty = false;
+        if (server.getGameTime() % POWER_INTERVAL == 0) {
+            dirty |= rechargeReserves(server, pos);
+        }
         if (cooldown > 0) {
-            if (--cooldown == 0) {
+            cooldown--;
+            if (cooldown == 0) {
                 cycleDuration = 0;
             }
+            dirty = true;
+        }
+        if (cooldown == 0 && tryProcessInput(server, pos)) {
+            changed();
+            return;
+        }
+        if (dirty) {
             setChanged();
         }
-        if (server.getGameTime() % POWER_INTERVAL == 0) {
-            rechargeReserves(server, pos);
-        }
-        tryProcessInput();
     }
 
-    private void rechargeReserves(ServerLevel server, BlockPos pos) {
-        int totalBefore = heat + perditio + aqua;
-        int cooled = Math.max(0, heat - HEAT_DECAY);
-        heat = topUp(server, pos, TTAspects.IGNIS, cooled);
+    private boolean rechargeReserves(ServerLevel server, BlockPos pos) {
+        int heatBefore = heat;
+        int perditioBefore = perditio;
+        int aquaBefore = aqua;
+        heat = topUp(server, pos, TTAspects.IGNIS, Math.max(0, heat - HEAT_DECAY));
         perditio = topUp(server, pos, TTAspects.PERDITIO, perditio);
         aqua = topUp(server, pos, TTAspects.AQUA, aqua);
-        if (heat + perditio + aqua != totalBefore) {
+        boolean moved = heat != heatBefore || perditio != perditioBefore || aqua != aquaBefore;
+        if (moved) {
             changed();
         }
+        return moved;
+    }
+
+    private boolean tryProcessInput(ServerLevel server, BlockPos pos) {
+        if (input.isEmpty()) {
+            return false;
+        }
+        AspectList content = inputContent();
+        int points = content.totalAmount();
+        if (points <= 0 || aspects.totalAmount() + points > MAX_ESSENTIA || !canAfford(points)) {
+            return false;
+        }
+        heat -= points * HEAT_PER_ASPECT;
+        perditio -= points;
+        aqua -= points;
+        aspects = aspects.add(content);
+        input = ItemStack.EMPTY;
+        inputAspects = null;
+        cooldown = MIN_COOLDOWN + Math.round((1.0F - (float) heat / MAX_POWER) * COOLDOWN_RANGE);
+        cycleDuration = cooldown;
+        return true;
+    }
+
+    private boolean canAfford(int points) {
+        return heat >= points * HEAT_PER_ASPECT && perditio >= points && aqua >= points;
     }
 
     private static int topUp(ServerLevel server, BlockPos pos, ResourceKey<IAspect> primal, int level) {
@@ -133,31 +168,6 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
             gained += VisRelayNetwork.drainNodesNear(server, pos, primal, request - gained);
         }
         return Math.min(level + gained, MAX_POWER);
-    }
-
-    private boolean canAfford(int points) {
-        return heat >= points * HEAT_PER_ASPECT && perditio >= points && aqua >= points && aspects.totalAmount() + points <= MAX_ESSENTIA;
-    }
-
-    private void tryProcessInput() {
-        if (cooldown > 0 || input.isEmpty()) {
-            return;
-        }
-        AspectList batch = inputContent();
-        int points = batch.totalAmount();
-        if (!canAfford(points)) {
-            return;
-        }
-        heat -= points * HEAT_PER_ASPECT;
-        perditio -= points;
-        aqua -= points;
-        aspects = aspects.add(batch);
-        input = ItemStack.EMPTY;
-        inputAspects = null;
-        float missingHeat = 1.0F - (float) heat / MAX_POWER;
-        cooldown = MIN_COOLDOWN + Math.round(missingHeat * COOLDOWN_RANGE);
-        cycleDuration = cooldown;
-        changed();
     }
 
     private AspectList inputContent() {
@@ -266,7 +276,7 @@ public final class BlockEntityAdvancedAlchemicalFurnace extends BlockEntity {
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         if (level instanceof ServerLevel server) {
             if (!input.isEmpty()) {
-                server.addFreshEntity(new ItemEntity(server, pos.getX(), pos.getY(), pos.getZ(), input.copy()));
+                Containers.dropItemStack(server, pos.getX(), pos.getY(), pos.getZ(), input);
             }
             int stored = aspects.totalAmount();
             if (stored > 0) {

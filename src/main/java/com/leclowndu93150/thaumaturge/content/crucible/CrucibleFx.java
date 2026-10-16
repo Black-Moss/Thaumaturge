@@ -10,68 +10,86 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
 final class CrucibleFx {
-    private static final double FROTH_INSET = 0.2;
-    private static final double FROTH_SPAN = 0.6;
-    private static final int FROTH_DOWN_PASSES = 2;
-    private static final int BUBBLE_ODDS = 6;
-    private static final int BUBBLE_CELL_MIN = 5;
-    private static final int BUBBLE_CELL_RANGE = 22;
-    private static final double BUBBLE_CELLS_PER_BLOCK = 32.0;
-    private static final double BUBBLE_CELL_OFFSET = 1.0 / 64.0;
-    private static final double BUBBLE_RISE = 0.05;
-    private static final double BOIL_INSET = 0.2;
-    private static final double BOIL_SPAN = 0.6;
-    private static final double BOIL_RISE = 0.1;
     private static final int BOIL_EFFECT_COUNT = 10;
     private static final double BAMF_LIFT = 0.75;
     private static final float BAMF_RED = 0.5F;
     private static final float BAMF_GREEN = 0.1F;
     private static final float BAMF_BLUE = 0.6F;
 
+    private static final double CENTRE = 0.5;
+    private static final double FROTH_SPREAD = 0.3;
+    private static final int FROTH_DOWN_PASSES = 2;
+    private static final double RIM_TOP = 1.0;
+    private static final double BOIL_LIFT = 0.1;
+    private static final double BOIL_SEND_ORIGIN = 0.2;
+    private static final double BOIL_SEND_SPAN = 0.6;
+
+    private static final int BUBBLE_ODDS = 6;
+    private static final double PIXEL = 1.0 / 32.0;
+    private static final int BUBBLE_GRID_INSET = 5;
+    private static final int BUBBLE_GRID_CELLS = 22;
+    private static final double BUBBLE_SURFACE_LIFT = 0.05;
+    private static final int NO_ASPECT_COLOR = 0xFFFFFF;
+
     private CrucibleFx() {}
 
-    static void froth(ServerLevel level, BlockPos pos, float fluidHeight, boolean overflowing) {
+    static void froth(ServerLevel level, BlockPos pos, float height, boolean overfilled) {
         RandomSource random = level.getRandom();
-        double x = pos.getX();
-        double z = pos.getZ();
-        Effects.cauldronFoamUp(level, new Vec3(x + FROTH_INSET + random.nextFloat() * FROTH_SPAN, pos.getY() + fluidHeight, z + FROTH_INSET + random.nextFloat() * FROTH_SPAN)).send();
-        if (!overflowing) {
+        double x = pos.getX() + CENTRE + spread(random, FROTH_SPREAD);
+        double z = pos.getZ() + CENTRE + spread(random, FROTH_SPREAD);
+        Effects.cauldronFoamUp(level, new Vec3(x, pos.getY() + height, z)).send();
+        if (!overfilled) {
             return;
         }
-        double top = pos.getY() + 1.0;
         for (int pass = 0; pass < FROTH_DOWN_PASSES; pass++) {
-            Effects.cauldronFoamDown(level, new Vec3(x, top, z + random.nextFloat())).send();
-            Effects.cauldronFoamDown(level, new Vec3(x + 1.0, top, z + random.nextFloat())).send();
-            Effects.cauldronFoamDown(level, new Vec3(x + random.nextFloat(), top, z)).send();
-            Effects.cauldronFoamDown(level, new Vec3(x + random.nextFloat(), top, z + 1.0)).send();
+            for (Direction side : Direction.Plane.HORIZONTAL) {
+                Effects.cauldronFoamDown(level, rimPoint(pos, side, random)).send();
+            }
         }
     }
 
-    static void bubble(ServerLevel level, BlockPos pos, float fluidHeight, AspectList aspects) {
+    static void bubble(ServerLevel level, BlockPos pos, float height, AspectList aspects) {
         RandomSource random = level.getRandom();
         if (aspects.isEmpty() || random.nextInt(BUBBLE_ODDS) != 0) {
             return;
         }
-        double cellX = BUBBLE_CELL_MIN + random.nextInt(BUBBLE_CELL_RANGE);
-        double cellZ = BUBBLE_CELL_MIN + random.nextInt(BUBBLE_CELL_RANGE);
+        double x = pos.getX() + gridCoordinate(random);
+        double z = pos.getZ() + gridCoordinate(random);
         int color = randomColor(aspects, random);
-        Vec3 at = new Vec3(pos.getX() + cellX / BUBBLE_CELLS_PER_BLOCK + BUBBLE_CELL_OFFSET, pos.getY() + BUBBLE_RISE + fluidHeight, pos.getZ() + cellZ / BUBBLE_CELLS_PER_BLOCK + BUBBLE_CELL_OFFSET);
-        Effects.cauldronBubble(level, at).color(ARGB.redFloat(color), ARGB.greenFloat(color), ARGB.blueFloat(color)).send();
+        Effects.cauldronBubble(level, new Vec3(x, pos.getY() + height + BUBBLE_SURFACE_LIFT, z)).color(ARGB.redFloat(color), ARGB.greenFloat(color), ARGB.blueFloat(color)).send();
     }
 
-    static void boilBurst(ServerLevel level, BlockPos pos, float fluidHeight, AspectList aspects, int intensity) {
+    static void boilBurst(ServerLevel level, BlockPos pos, float surface, AspectList aspects, int heat) {
         RandomSource random = level.getRandom();
-        double surface = pos.getY() + BOIL_RISE + fluidHeight;
-        for (int effect = 0; effect < BOIL_EFFECT_COUNT; effect++) {
-            int color = aspects.isEmpty() ? ARGB.white(1.0F) : randomColor(aspects, random);
-            Vec3 at = new Vec3(pos.getX() + BOIL_INSET - random.nextFloat() * BOIL_SPAN, surface, pos.getZ() + BOIL_INSET - random.nextFloat() * BOIL_SPAN);
-            Effects.cauldronBoil(level, at).color(ARGB.redFloat(color), ARGB.greenFloat(color), ARGB.blueFloat(color)).heat(intensity).send();
+        double y = pos.getY() + BOIL_LIFT + surface;
+        for (int i = 0; i < BOIL_EFFECT_COUNT; i++) {
+            double x = pos.getX() + BOIL_SEND_ORIGIN - BOIL_SEND_SPAN * random.nextDouble();
+            double z = pos.getZ() + BOIL_SEND_ORIGIN - BOIL_SEND_SPAN * random.nextDouble();
+            Vec3 sendPoint = new Vec3(x, y, z);
+            int color = aspects.isEmpty() ? NO_ASPECT_COLOR : randomColor(aspects, random);
+            Effects.cauldronBoil(level, sendPoint).color(ARGB.redFloat(color), ARGB.greenFloat(color), ARGB.blueFloat(color)).heat(heat).send();
         }
     }
 
     static void craftComplete(ServerLevel level, BlockPos pos) {
         Vec3 at = Vec3.atCenterOf(pos).add(0.0, BAMF_LIFT, 0.0);
         Effects.bamf(level, at).color(BAMF_RED, BAMF_GREEN, BAMF_BLUE).withSound().fancy().side(Direction.UP).send();
+    }
+
+    private static Vec3 rimPoint(BlockPos pos, Direction side, RandomSource random) {
+        Direction along = side.getClockWise();
+        double slide = random.nextDouble() - CENTRE;
+        double x = pos.getX() + CENTRE + side.getStepX() * CENTRE + along.getStepX() * slide;
+        double z = pos.getZ() + CENTRE + side.getStepZ() * CENTRE + along.getStepZ() * slide;
+        return new Vec3(x, pos.getY() + RIM_TOP, z);
+    }
+
+    private static double gridCoordinate(RandomSource random) {
+        return (BUBBLE_GRID_INSET + random.nextInt(BUBBLE_GRID_CELLS) + CENTRE) * PIXEL;
+    }
+
+    private static double spread(RandomSource random, double reach) {
+        return (random.nextDouble() * 2.0 - 1.0) * reach;
     }
 
     private static int randomColor(AspectList aspects, RandomSource random) {

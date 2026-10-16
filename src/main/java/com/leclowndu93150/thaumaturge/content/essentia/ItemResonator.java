@@ -6,7 +6,8 @@ import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.EssentiaPull;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.device.BlockEntityCondenser;
 import com.leclowndu93150.thaumaturge.content.essentia.tube.BlockEntityTubeBuffer;
 import net.minecraft.core.BlockPos;
@@ -49,23 +50,23 @@ public final class ItemResonator extends Item {
         if (player == null) {
             return InteractionResult.FAIL;
         }
-        IEssentiaTransport transport = EssentiaAccess.transport(level, pos, face);
-        if (transport == null) {
+        IEssentiaConduit conduit = EssentiaAccess.conduit(level, pos, face);
+        if (conduit == null) {
             return InteractionResult.FAIL;
         }
         if (level.isClientSide()) {
             player.swing(context.getHand());
             return InteractionResult.SUCCESS;
         }
-        reportContents(player, level, pos, face, transport);
-        reportSuction(player, transport, face);
+        reportContents(player, level, pos, face, conduit);
+        reportSuction(player, conduit, face);
         reportCondenser(player, level.getBlockEntity(pos));
         level.playSound(null, pos.getX() + CENTER_OFFSET, pos.getY() + CENTER_OFFSET, pos.getZ() + CENTER_OFFSET, SoundEvents.SHIELD_BLOCK, SoundSource.BLOCKS, SOUND_VOLUME,
                 SOUND_BASE_PITCH + level.getRandom().nextFloat() * SOUND_PITCH_SPREAD);
         return InteractionResult.SUCCESS;
     }
 
-    private static void reportContents(Player player, Level level, BlockPos pos, Direction face, IEssentiaTransport transport) {
+    private static void reportContents(Player player, Level level, BlockPos pos, Direction face, IEssentiaConduit conduit) {
         IAspectContainer container = level.getBlockEntity(pos) instanceof BlockEntityTubeBuffer ? level.getCapability(AspectCapabilities.CONTAINER, pos, face) : null;
         if (container != null) {
             for (AspectInstance entry : container.getAspects().sortedByTag()) {
@@ -73,16 +74,17 @@ public final class ItemResonator extends Item {
             }
             return;
         }
-        Holder<IAspect> type = transport.getEssentiaType(face);
+        Holder<IAspect> type = conduit.heldAspect(face);
         if (type != null) {
-            player.sendSystemMessage(contents(transport.getEssentiaAmount(face), type));
+            player.sendSystemMessage(contents(conduit.heldAmount(face), type));
         }
     }
 
-    private static void reportSuction(Player player, IEssentiaTransport transport, Direction face) {
-        Holder<IAspect> type = transport.getSuctionType(face);
+    private static void reportSuction(Player player, IEssentiaConduit conduit, Direction face) {
+        EssentiaPull pull = conduit.pull(face);
+        Holder<IAspect> type = pull.aspect();
         Component name = type == null ? Component.translatable(UNTYPED_KEY) : AspectComponents.trueName(type);
-        player.sendSystemMessage(Component.translatable(SUCTION_KEY, Integer.toString(transport.getSuctionAmount(face)), name));
+        player.sendSystemMessage(Component.translatable(SUCTION_KEY, Integer.toString(pull.strength()), name));
     }
 
     private static void reportCondenser(Player player, @Nullable BlockEntity entity) {

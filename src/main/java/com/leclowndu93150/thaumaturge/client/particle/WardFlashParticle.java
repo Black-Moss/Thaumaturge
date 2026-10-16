@@ -13,60 +13,36 @@ import net.minecraft.util.RandomSource;
 import org.joml.Quaternionf;
 
 public final class WardFlashParticle extends TTParticle {
-    private static final float CENTRE = 0.5F;
-    private static final float JITTER = 0.1F;
-    private static final float EDGE_LIMIT = 0.4F;
-    private static final double NORMAL_NUDGE = 0.005;
+    private static final double EDGE_MARGIN = 0.1;
+    private static final double HIT_NUDGE = 0.1;
+    private static final double SURFACE_OFFSET = 0.005;
     private static final int LIFETIME_BASE = 12;
     private static final int LIFETIME_RANGE = 5;
-    private static final float SIZE_MEAN = 1.4F;
-    private static final float SIZE_DEVIATION = 0.3F;
-    private static final float HALF = 0.5F;
-    private static final int DEGREES_RANGE = 360;
-    private static final float RAMP_DIVISOR = 5.0F;
-    private static final float ALPHA_SCALE = 0.5F;
-    private static final int FRAME_COUNT = 16;
-    private static final float HITBOX = 0.01F;
+    private static final float SIZE_BASE = 0.7F;
+    private static final float SIZE_SPREAD = 0.15F;
+    private static final float SIZE_MIN = 0.2F;
+    private static final float SIZE_MAX = 1.2F;
+    private static final float PEAK_ALPHA = 0.5F;
+    private static final float RISE_SHARE = 0.2F;
+    private static final float QUAD_FACING_PITCH = (float) (-Math.PI / 2.0);
 
     private final Quaternionf orientation;
 
-    private WardFlashParticle(ClientLevel level, double x, double y, double z, WardFlashParticleOptions options, ParticleSheet sheet) {
+    private WardFlashParticle(ClientLevel level, double x, double y, double z, Direction face, ParticleSheet sheet) {
         super(level, x, y, z, 0.0, 0.0, 0.0, sheet);
-        Direction face = options.face();
-        double px = x + offset(options.hitX(), face.getStepX() != 0) + NORMAL_NUDGE * face.getStepX();
-        double py = y + offset(options.hitY(), face.getStepY() != 0) + NORMAL_NUDGE * face.getStepY();
-        double pz = z + offset(options.hitZ(), face.getStepZ() != 0) + NORMAL_NUDGE * face.getStepZ();
-        setSize(HITBOX, HITBOX);
-        setPos(px, py, pz);
-        this.xo = px;
-        this.yo = py;
-        this.zo = pz;
         this.lifetime = LIFETIME_BASE + this.random.nextInt(LIFETIME_RANGE);
-        this.quadSize = (SIZE_MEAN + (float) this.random.nextGaussian() * SIZE_DEVIATION) * HALF;
+        this.quadSize = Mth.clamp(SIZE_BASE + (float) this.random.nextGaussian() * SIZE_SPREAD, SIZE_MIN, SIZE_MAX);
         this.alpha = 0.0F;
-        this.orientation = new Quaternionf().rotateTo(0.0F, 0.0F, 1.0F, face.getStepX(), face.getStepY(), face.getStepZ()).rotateZ((float) Math.toRadians(this.random.nextInt(DEGREES_RANGE)));
-    }
-
-    private double offset(float hit, boolean onFaceAxis) {
-        float centred = hit - CENTRE;
-        if (onFaceAxis) {
-            return centred;
-        }
-        float jitter = (this.random.nextFloat() * 2.0F - 1.0F) * JITTER;
-        return Mth.clamp(centred + jitter, -EDGE_LIMIT, EDGE_LIMIT);
+        this.orientation = new Quaternionf(face.getRotation()).rotateX(QUAD_FACING_PITCH).rotateZ(this.random.nextFloat() * Mth.TWO_PI);
+        frame(0);
     }
 
     @Override
     protected void update() {
-        float ramp = this.lifetime / RAMP_DIVISOR;
-        float raw = this.age <= ramp ? this.age / ramp : (float) (this.lifetime - this.age) / this.lifetime;
-        this.alpha = Mth.clamp(raw, 0.0F, 1.0F) * ALPHA_SCALE;
-        frame(Math.min(FRAME_COUNT - 1, (int) (FRAME_COUNT * progress())));
-    }
-
-    @Override
-    protected int getLightCoords(float partialTick) {
-        return LightCoordsUtil.FULL_BRIGHT;
+        float t = progress();
+        frame(Math.min(sheetFrames() - 1, (int) (sheetFrames() * t)));
+        float threshold = this.lifetime * RISE_SHARE;
+        this.alpha = this.age <= threshold ? PEAK_ALPHA * this.age / threshold : PEAK_ALPHA * (this.lifetime - this.age) / this.lifetime;
     }
 
     @Override
@@ -74,12 +50,35 @@ public final class WardFlashParticle extends TTParticle {
         extractRotatedQuad(state, camera, this.orientation, partialTick);
     }
 
+    @Override
+    protected int getLightCoords(float partialTick) {
+        return LightCoordsUtil.FULL_BRIGHT;
+    }
+
+    private static double placeAcross(double hit, RandomSource random) {
+        return Mth.clamp(hit + (random.nextDouble() * 2.0 - 1.0) * HIT_NUDGE, EDGE_MARGIN, 1.0 - EDGE_MARGIN);
+    }
+
+    private static double placeAlong(int step, double hit, RandomSource random) {
+        if (step == 0) {
+            return placeAcross(hit, random);
+        }
+        return step > 0 ? 1.0 + SURFACE_OFFSET : -SURFACE_OFFSET;
+    }
+
     public static final class Provider implements ParticleProvider<WardFlashParticleOptions> {
         private static final ParticleSheet SHEET = TTParticleSheets.sheet("ward_flash");
 
         @Override
         public Particle createParticle(WardFlashParticleOptions options, ClientLevel level, double x, double y, double z, double vx, double vy, double vz, RandomSource random) {
-            return new WardFlashParticle(level, x, y, z, options, SHEET);
+            Direction face = options.face();
+            int originX = Mth.floor(x);
+            int originY = Mth.floor(y);
+            int originZ = Mth.floor(z);
+            double px = originX + placeAlong(face.getStepX(), options.hitX(), random);
+            double py = originY + placeAlong(face.getStepY(), options.hitY(), random);
+            double pz = originZ + placeAlong(face.getStepZ(), options.hitZ(), random);
+            return new WardFlashParticle(level, px, py, pz, face, SHEET);
         }
     }
 }

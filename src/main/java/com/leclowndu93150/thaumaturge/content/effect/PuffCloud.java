@@ -12,101 +12,93 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 final class PuffCloud {
-    private static final float SOUND_VOLUME = 0.4F;
-    private static final double SOUND_PITCH_BASE = 1.0;
-    private static final double SOUND_PITCH_DEVIATION = 0.05;
-    private static final int PUFF_BASE_COUNT = 6;
-    private static final int PUFF_COUNT_BONUS = 2;
-    private static final int PUFF_COUNT_RANGE = 3;
+    private static final float POOF_VOLUME = 0.4F;
+    private static final float POOF_PITCH_WOBBLE = 0.05F;
+
+    private static final int PUFF_COUNT_BASE = 6;
+    private static final int PUFF_COUNT_BOUND = 3;
+    private static final int PUFF_COUNT_EXTRA = 2;
     private static final double PUFF_SPEED_BASE = 0.05;
     private static final double PUFF_SPEED_SPREAD = 0.05;
     private static final double PUFF_SIDE_PUSH = 0.1;
-    private static final double PUFF_SPAWN_LEAD = 2.0;
-    private static final double PUFF_MOTION_FACTOR = 0.5;
-    private static final double PUFF_COLOR_DEVIATION = 0.1;
-    private static final int MOTE_BASE_COUNT = 2;
-    private static final int MOTE_COUNT_RANGE = 3;
-    private static final double MOTE_SPEED_BASE = 0.025;
-    private static final double MOTE_SPEED_SPREAD = 0.025;
-    private static final double MOTE_SPAWN_LEAD = 2.0;
-    private static final int MOTE_AGE_BASE = 15;
-    private static final int MOTE_AGE_RANGE = 10;
-    private static final float MOTE_GRAVITY = -0.01F;
-    private static final float FLASH_RED = 1.0F;
-    private static final float FLASH_GREEN = 0.9F;
-    private static final float FLASH_BLUE = 1.0F;
-    private static final int FANCY_WISP_BONUS = 2;
-    private static final int WISP_COUNT_RANGE = 3;
+    private static final double PUFF_OPENING_TICKS = 2.0;
+    private static final double PUFF_MOTION_SHARE = 0.5;
+    private static final double PUFF_COLOR_WOBBLE = 0.1;
+
+    private static final int FANCY_MOTE_BASE = 2;
+    private static final int FANCY_MOTE_BOUND = 3;
+    private static final double FANCY_MOTE_SPEED_BASE = 0.025;
+    private static final double FANCY_MOTE_SPEED_SPREAD = 0.025;
+    private static final double FANCY_MOTE_OPENING_TICKS = 2.0;
+    private static final float FANCY_MOTE_BUOYANCY = -0.01F;
+    private static final int FANCY_MOTE_AGE_BASE = 15;
+    private static final int FANCY_MOTE_AGE_BOUND = 10;
+    private static final EffectColor FLASH_COLOR = new EffectColor(1.0F, 0.9F, 1.0F);
+
+    private static final int WISP_BOUND = 3;
+    private static final int WISP_FANCY_EXTRA = 2;
+    private static final float WISP_SCALE = 1.0F;
+    private static final float WISP_ALPHA = 0.75F;
     private static final float WISP_RED_BASE = 0.9F;
     private static final float WISP_RED_SPREAD = 0.1F;
     private static final float WISP_GREEN_BASE = 0.1F;
     private static final float WISP_BLUE_BASE = 0.5F;
     private static final float WISP_BLUE_SPREAD = 0.1F;
-    private static final float WISP_ALPHA = 0.75F;
+    private static final float WISP_AVERAGE_DIVISOR = 2.0F;
 
     private PuffCloud() {}
 
     static void send(ServerLevel level, Vec3 pos, EffectColor base, boolean sound, boolean fancy, @Nullable Direction side) {
         RandomSource random = level.getRandom();
         if (sound) {
-            float pitch = (float) (SOUND_PITCH_BASE + random.nextGaussian() * SOUND_PITCH_DEVIATION);
-            level.playSound(null, pos.x, pos.y, pos.z, TTSounds.POOF.get(), SoundSource.BLOCKS, SOUND_VOLUME, pitch);
+            float pitch = 1.0F + (float) (random.nextGaussian() * POOF_PITCH_WOBBLE);
+            level.playSound(null, pos.x, pos.y, pos.z, TTSounds.POOF.get(), SoundSource.BLOCKS, POOF_VOLUME, pitch);
         }
-        sendPuffs(level, random, pos, base, side);
+        Vec3 push = side == null ? Vec3.ZERO : side.getUnitVec3().scale(PUFF_SIDE_PUSH);
+        int puffs = PUFF_COUNT_BASE + random.nextInt(PUFF_COUNT_BOUND) + PUFF_COUNT_EXTRA;
+        for (int i = 0; i < puffs; i++) {
+            puff(level, pos, base, push, random);
+        }
         if (fancy) {
-            sendMotes(level, random, pos);
-            Effects.spawn(level, TTParticles.colorOf(TTParticles.FLASH, FLASH_RED, FLASH_GREEN, FLASH_BLUE), pos.x, pos.y, pos.z);
+            fancyFlourish(level, pos, random);
         }
-        sendWisps(level, random, pos, base, fancy, side);
+        wisps(level, pos, base, fancy, side, random);
     }
 
-    private static void sendPuffs(ServerLevel level, RandomSource random, Vec3 pos, EffectColor base, @Nullable Direction side) {
-        int count = PUFF_BASE_COUNT + random.nextInt(PUFF_COUNT_RANGE) + PUFF_COUNT_BONUS;
-        for (int i = 0; i < count; i++) {
-            double vx = EffectRandom.signedSpeed(random, PUFF_SPEED_BASE, PUFF_SPEED_SPREAD);
-            double vy = EffectRandom.signedSpeed(random, PUFF_SPEED_BASE, PUFF_SPEED_SPREAD);
-            double vz = EffectRandom.signedSpeed(random, PUFF_SPEED_BASE, PUFF_SPEED_SPREAD);
-            if (side != null) {
-                vx += side.getStepX() * PUFF_SIDE_PUSH;
-                vy += side.getStepY() * PUFF_SIDE_PUSH;
-                vz += side.getStepZ() * PUFF_SIDE_PUSH;
-            }
-            float r = jitter(random, base.r());
-            float g = jitter(random, base.g());
-            float b = jitter(random, base.b());
-            Effects.spawn(level, TTParticles.colorOf(TTParticles.PUFF, r, g, b), pos.x + vx * PUFF_SPAWN_LEAD, pos.y + vy * PUFF_SPAWN_LEAD, pos.z + vz * PUFF_SPAWN_LEAD, vx * PUFF_MOTION_FACTOR,
-                    vy * PUFF_MOTION_FACTOR, vz * PUFF_MOTION_FACTOR);
+    private static void puff(ServerLevel level, Vec3 pos, EffectColor base, Vec3 push, RandomSource random) {
+        Vec3 launch = new Vec3(EffectRandom.signedSpeed(random, PUFF_SPEED_BASE, PUFF_SPEED_SPREAD), EffectRandom.signedSpeed(random, PUFF_SPEED_BASE, PUFF_SPEED_SPREAD),
+                EffectRandom.signedSpeed(random, PUFF_SPEED_BASE, PUFF_SPEED_SPREAD)).add(push);
+        Vec3 start = pos.add(launch.scale(PUFF_OPENING_TICKS));
+        EffectColor shade = new EffectColor(wobble(base.r(), random), wobble(base.g(), random), wobble(base.b(), random));
+        Vec3 drift = launch.scale(PUFF_MOTION_SHARE);
+        Effects.spawn(level, TTParticles.colorOf(TTParticles.PUFF, shade.r(), shade.g(), shade.b()), start.x, start.y, start.z, drift.x, drift.y, drift.z);
+    }
+
+    private static float wobble(float channel, RandomSource random) {
+        return Mth.clamp(channel * (1.0F + (float) (random.nextGaussian() * PUFF_COLOR_WOBBLE)), 0.0F, 1.0F);
+    }
+
+    private static void fancyFlourish(ServerLevel level, Vec3 pos, RandomSource random) {
+        int motes = FANCY_MOTE_BASE + random.nextInt(FANCY_MOTE_BOUND);
+        for (int i = 0; i < motes; i++) {
+            Vec3 velocity = new Vec3(EffectRandom.signedSpeed(random, FANCY_MOTE_SPEED_BASE, FANCY_MOTE_SPEED_SPREAD), EffectRandom.signedSpeed(random, FANCY_MOTE_SPEED_BASE, FANCY_MOTE_SPEED_SPREAD),
+                    EffectRandom.signedSpeed(random, FANCY_MOTE_SPEED_BASE, FANCY_MOTE_SPEED_SPREAD));
+            Vec3 start = pos.add(velocity.scale(FANCY_MOTE_OPENING_TICKS));
+            int color = EffectColor.randomMote(random).argb();
+            int age = FANCY_MOTE_AGE_BASE + random.nextInt(FANCY_MOTE_AGE_BOUND);
+            WispyMoteParticleOptions mote = new WispyMoteParticleOptions(color, age, FANCY_MOTE_BUOYANCY, WispyMoteParticleOptions.NO_ENTITY);
+            Effects.spawn(level, mote, start.x, start.y, start.z, velocity.x, velocity.y, velocity.z);
         }
+        Effects.spawn(level, TTParticles.colorOf(TTParticles.FLASH, FLASH_COLOR.r(), FLASH_COLOR.g(), FLASH_COLOR.b()), pos.x, pos.y, pos.z);
     }
 
-    private static void sendMotes(ServerLevel level, RandomSource random, Vec3 pos) {
-        int count = MOTE_BASE_COUNT + random.nextInt(MOTE_COUNT_RANGE);
-        for (int i = 0; i < count; i++) {
-            double vx = EffectRandom.signedSpeed(random, MOTE_SPEED_BASE, MOTE_SPEED_SPREAD);
-            double vy = EffectRandom.signedSpeed(random, MOTE_SPEED_BASE, MOTE_SPEED_SPREAD);
-            double vz = EffectRandom.signedSpeed(random, MOTE_SPEED_BASE, MOTE_SPEED_SPREAD);
-            int age = MOTE_AGE_BASE + random.nextInt(MOTE_AGE_RANGE);
-            WispyMoteParticleOptions options = new WispyMoteParticleOptions(EffectColor.randomMote(random).argb(), age, MOTE_GRAVITY, WispyMoteParticleOptions.NO_ENTITY);
-            Effects.spawn(level, options, pos.x + vx * MOTE_SPAWN_LEAD, pos.y + vy * MOTE_SPAWN_LEAD, pos.z + vz * MOTE_SPAWN_LEAD, vx, vy, vz);
+    private static void wisps(ServerLevel level, Vec3 pos, EffectColor base, boolean fancy, @Nullable Direction side, RandomSource random) {
+        int count = (fancy ? WISP_FANCY_EXTRA : 0) + random.nextInt(WISP_BOUND);
+        for (int seed = 0; seed < count; seed++) {
+            float r = (WISP_RED_BASE + random.nextFloat() * WISP_RED_SPREAD + base.r()) / WISP_AVERAGE_DIVISOR;
+            float g = (WISP_GREEN_BASE + base.g()) / WISP_AVERAGE_DIVISOR;
+            float b = (WISP_BLUE_BASE + random.nextFloat() * WISP_BLUE_SPREAD + base.b()) / WISP_AVERAGE_DIVISOR;
+            Effects.curlyWisp(level, pos).color(r, g, b).alpha(WISP_ALPHA).scale(WISP_SCALE).side(side).seed(seed).send();
         }
-    }
-
-    private static void sendWisps(ServerLevel level, RandomSource random, Vec3 pos, EffectColor base, boolean fancy, @Nullable Direction side) {
-        int count = (fancy ? FANCY_WISP_BONUS : 0) + random.nextInt(WISP_COUNT_RANGE);
-        for (int i = 0; i < count; i++) {
-            float r = (WISP_RED_BASE + random.nextFloat() * WISP_RED_SPREAD + base.r()) / 2.0F;
-            float g = (WISP_GREEN_BASE + base.g()) / 2.0F;
-            float b = (WISP_BLUE_BASE + random.nextFloat() * WISP_BLUE_SPREAD + base.b()) / 2.0F;
-            Effects.curlyWisp(level, pos).color(r, g, b).alpha(WISP_ALPHA).side(side).seed(i).send();
-        }
-    }
-
-    private static double signedSpeed(RandomSource random, double base, double spread) {
-        double speed = base + random.nextDouble() * spread;
-        return random.nextBoolean() ? -speed : speed;
-    }
-
-    private static float jitter(RandomSource random, float channel) {
-        return Mth.clamp((float) (channel * (1.0 + random.nextGaussian() * PUFF_COLOR_DEVIATION)), 0.0F, 1.0F);
     }
 }

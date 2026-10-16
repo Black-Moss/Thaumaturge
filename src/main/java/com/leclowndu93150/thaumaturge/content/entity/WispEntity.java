@@ -55,9 +55,7 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
     private static final double FLYING_SPEED = 0.1;
     private static final int EXPERIENCE = 5;
     private static final int MAX_CLUSTER = 2;
-    private static final float SOUND_VOLUME = 0.25F;
     private static final float TRAVEL_FRICTION = 0.02F;
-    private static final double VERTICAL_DAMPING = 0.6;
     private static final int WANDER_PRIORITY = 5;
     private static final int LOOK_PRIORITY = 7;
     private static final int ZAP_PRIORITY = 7;
@@ -68,13 +66,15 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
     private static final int SCAN_AMOUNT = 5;
     private static final int SPAWN_CAP = 8;
     private static final double SPAWN_CAP_RADIUS = 16.0;
-    private static final float BIRTH_BURST_SIZE = 10.0F;
-    private static final float DEATH_BURST_SIZE = 1.0F;
-    private static final double DEATH_BURST_LIFT = 0.45;
     private static final int BIRTH_TICKS = 1;
     private static final int DEATH_BURST_TICK = 1;
+    private static final double VERTICAL_DAMPING = 0.6;
+    private static final float BIRTH_BURST_SIZE = 10.0F;
+    private static final float DEATH_BURST_SIZE = 1.0F;
+    private static final double MID_HEIGHT = 0.5;
+    private static final float MOTE_SPREAD = 0.7F;
     private static final int MOTE_ONE_IN = 2;
-    private static final double MOTE_SPREAD = 0.7;
+    private static final float SOUND_VOLUME = 0.25F;
 
     public WispEntity(EntityType<? extends WispEntity> type, Level level) {
         super(type, level);
@@ -154,11 +154,32 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
     @Override
     public void tick() {
         super.tick();
-        setDeltaMovement(getDeltaMovement().multiply(1.0, VERTICAL_DAMPING, 1.0));
-        if (!level().isClientSide()) {
+        Vec3 motion = getDeltaMovement();
+        setDeltaMovement(motion.x, motion.y * VERTICAL_DAMPING, motion.z);
+        if (level().isClientSide()) {
+            spawnClientEffects();
+        }
+    }
+
+    private void spawnClientEffects() {
+        Level world = level();
+        if (tickCount == BIRTH_TICKS) {
+            world.addParticle(WispEffects.burst(BIRTH_BURST_SIZE), getX(), getY(), getZ(), 0.0, 0.0, 0.0);
+        }
+        if (isDeadOrDying() && deathTime == DEATH_BURST_TICK) {
+            world.addParticle(WispEffects.burst(DEATH_BURST_SIZE), getX(), getY(MID_HEIGHT), getZ(), 0.0, 0.0, 0.0);
+        }
+        if (random.nextInt(MOTE_ONE_IN) != 0) {
             return;
         }
-        spawnClientEffects();
+        Holder<IAspect> aspect = aspect();
+        if (aspect != null) {
+            world.addParticle(WispEffects.mote(random, aspect.value().color()), getX() + moteOffset(), getY() + moteOffset(), getZ() + moteOffset(), 0.0, 0.0, 0.0);
+        }
+    }
+
+    private double moteOffset() {
+        return (random.nextFloat() - random.nextFloat()) * MOTE_SPREAD;
     }
 
     @Override
@@ -199,27 +220,6 @@ public final class WispEntity extends Monster implements IEntityAspectSource {
 
     @Override
     protected void checkFallDamage(double yDelta, boolean onGround, BlockState state, BlockPos pos) {}
-
-    private void spawnClientEffects() {
-        if (tickCount <= BIRTH_TICKS) {
-            level().addParticle(WispEffects.burst(BIRTH_BURST_SIZE), getX(), getY(), getZ(), 0.0, 0.0, 0.0);
-        }
-        if (isDeadOrDying() && deathTime == DEATH_BURST_TICK) {
-            level().addParticle(WispEffects.burst(DEATH_BURST_SIZE), getX(), getY() + DEATH_BURST_LIFT, getZ(), 0.0, 0.0, 0.0);
-        }
-        Holder<IAspect> aspect = aspect();
-        if (aspect == null || random.nextInt(MOTE_ONE_IN) != 0) {
-            return;
-        }
-        double moteX = getX() + moteOffset();
-        double moteY = getY() + getBbHeight() / 2.0 + moteOffset();
-        double moteZ = getZ() + moteOffset();
-        level().addParticle(WispEffects.mote(random, aspect.value().color()), moteX, moteY, moteZ, 0.0, 0.0, 0.0);
-    }
-
-    private double moteOffset() {
-        return (random.nextDouble() * 2.0 - 1.0) * MOTE_SPREAD;
-    }
 
     @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource source, boolean killedByPlayer) {

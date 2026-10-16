@@ -1518,7 +1518,7 @@ public final class TTModelProvider extends ModelProvider {
         simpleCube(blockModels, TTBlocks.LEAVES_GREATWOOD.get(), "leaves_greatwood");
         simpleCube(blockModels, TTBlocks.LEAVES_SILVERWOOD.get(), "leaves_silverwood");
         itemModels.itemModelOutput.accept(TTBlocks.LEAVES_GREATWOOD.get().asItem(), ItemModelUtils.tintedModel(TTIds.rl("block/leaves_greatwood"), new Constant(FOLIAGE_DEFAULT_COLOR)));
-        log(blockModels, TTBlocks.LOG_GREATWOOD.get(), TTBlocks.WOOD_GREATWOOD.get());
+        TrunkModels.register(blockModels, TTBlocks.LOG_GREATWOOD.get(), TTBlocks.WOOD_GREATWOOD.get(), texture("log_greatwood_wide"), texture("log_greatwood_top_wide"));
         log(blockModels, TTBlocks.LOG_SILVERWOOD.get(), TTBlocks.WOOD_SILVERWOOD.get());
         blockModels.blockStateOutput.accept(BlockModelGenerators.createRotatedPillarWithHorizontalVariant(TTBlocks.SILVERWOOD_NODE_LOG.get(),
                 BlockModelGenerators.plainVariant(ModelLocationUtils.getModelLocation(TTBlocks.LOG_SILVERWOOD.get())),

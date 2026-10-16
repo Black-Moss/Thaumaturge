@@ -1,12 +1,12 @@
 package com.leclowndu93150.thaumaturge.client.casters.architect;
 
-import com.leclowndu93150.thaumaturge.TTIds;
+import com.leclowndu93150.thaumaturge.client.render.aspect.ParticleTextures;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 
 public final class CornerFramePass extends AbstractFacePass {
-    private static final Identifier TEXTURE = TTIds.rl("textures/misc/frame_corner.png");
+    private static final Identifier TEXTURE = ParticleTextures.FRAME_CORNER;
     private static final float ALPHA = 0.66F;
 
     @Override

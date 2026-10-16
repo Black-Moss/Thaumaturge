@@ -12,13 +12,13 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 public final class BoreDebrisParticle extends SeekerParticle {
-    private static final float DRIFT_STRENGTH = 0.005F;
-    private static final float GREY = 0.6F;
-    private static final float SIZE_BASE = 0.4F;
-    private static final float SIZE_RANGE = 0.3F;
-    private static final float SIZE_UNIT = 0.1F;
     private static final float WINDOW_STEPS = 4.0F;
     private static final float OFFSET_RANGE = 3.0F;
+    private static final float DRIFT_STRENGTH = 0.005F;
+    private static final float GREY = 0.6F;
+    private static final float SIZE_UNIT = 0.1F;
+    private static final float SIZE_BASE = 0.4F;
+    private static final float SIZE_RANGE = 0.3F;
 
     private final float windowU;
     private final float windowV;

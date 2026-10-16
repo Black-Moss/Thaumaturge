@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.client.effect.manager.IFXInstance;
 import com.leclowndu93150.thaumaturge.content.device.bore.BlockEntityArcaneBore;
 import com.leclowndu93150.thaumaturge.content.particle.BoreDebrisParticleOptions;
 import com.leclowndu93150.thaumaturge.content.particle.BoreSparkleParticleOptions;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleOptions;
@@ -30,8 +29,8 @@ public final class BoreDigEffect implements IFXInstance {
     private final BlockPos borePos;
     private final BlockState state;
     private final int delay;
+    private final int perTick;
     private int elapsed;
-    private int emitted;
     private boolean finished;
 
     public BoreDigEffect(ClientLevel level, BlockPos target, int boreEntityId, BlockPos borePos, BlockState state, int delay) {
@@ -41,6 +40,7 @@ public final class BoreDigEffect implements IFXInstance {
         this.borePos = borePos;
         this.state = state;
         this.delay = Math.max(1, delay);
+        this.perTick = (TOTAL_PARTICLES + this.delay - 1) / this.delay;
     }
 
     @Override
@@ -54,12 +54,10 @@ public final class BoreDigEffect implements IFXInstance {
             return;
         }
         this.elapsed++;
-        int due = (int) ((long) TOTAL_PARTICLES * Math.min(this.elapsed, this.delay) / this.delay);
-        while (this.emitted < due) {
+        for (int index = 0; index < this.perTick; index++) {
             emit(destination);
-            this.emitted++;
         }
-        if (this.emitted >= TOTAL_PARTICLES) {
+        if (this.elapsed >= this.delay) {
             this.finished = true;
         }
     }
@@ -89,6 +87,6 @@ public final class BoreDigEffect implements IFXInstance {
         } else {
             options = new BoreDebrisParticleOptions(this.state, this.boreEntityId, destination.x, destination.y, destination.z, 0.0, 0.0, 0.0);
         }
-        Minecraft.getInstance().particleEngine.createParticle(options, x, y, z, 0.0, 0.0, 0.0);
+        this.level.addParticle(options, x, y, z, 0.0, 0.0, 0.0);
     }
 }

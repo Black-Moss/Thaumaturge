@@ -51,7 +51,7 @@ public final class VoidStreamInstance extends StreamInstance {
     }
 
     @Override
-    protected void colour(float[] out, int slot) {
+    protected void colour(float[] out, int wave) {
         out[0] = 1.0F;
         out[1] = 1.0F;
         out[2] = 1.0F;

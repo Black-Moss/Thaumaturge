@@ -10,24 +10,25 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 
 public final class EntityGrapple extends ThrowableProjectile {
     private static final EntityDataAccessor<Boolean> PULLING = SynchedEntityData.defineId(EntityGrapple.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> MAIN_HAND = SynchedEntityData.defineId(EntityGrapple.class, EntityDataSerializers.BOOLEAN);
-    private static final double FLIGHT_GRAVITY = 0.03;
     private static final double PULLING_GRAVITY = 0.0;
     private static final int MAX_FLIGHT_TICKS = 30;
     private static final int NO_GRAPPLE = -1;
     private static final double START_HEIGHT_DROP = 0.1;
-    private static final double NEAR_RANGE = 8.0;
-    private static final double MIN_DIVISOR = 1.0E-9;
-    private static final double PULL_SCALE = 5.0;
-    private static final double MAX_PULL = 0.25;
+    private static final double FLIGHT_GRAVITY = 0.03;
+    private static final double RENDER_DISTANCE_SQR = 64.0 * 64.0;
+    private static final double TUG_RANGE = 8.0;
+    private static final double TUG_DIVISOR = 5.0;
+    private static final double FAR_TUG = 0.2;
+    private static final double MAX_TUG = 0.25;
     private static final double LIFT = 0.033;
     private static final double BOOST = 0.4;
     private static final float AMPLITUDE_GROWTH = 0.02F;
@@ -37,6 +38,7 @@ public final class EntityGrapple extends ThrowableProjectile {
 
     private boolean claimed;
     private boolean boosted;
+    private boolean anchored;
 
     public EntityGrapple(EntityType<? extends EntityGrapple> type, Level level) {
         super(type, level);
@@ -64,29 +66,89 @@ public final class EntityGrapple extends ThrowableProjectile {
         return entityData.get(PULLING);
     }
 
-    public InteractionHand getHand() {
-        return entityData.get(MAIN_HAND) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
+    private boolean isAnchored() {
+        return anchored || isPulling();
+    }
+
+    @Override
+    public void onSyncedDataUpdated(EntityDataAccessor<?> accessor) {
+        super.onSyncedDataUpdated(accessor);
+        if (PULLING.equals(accessor) && isPulling()) {
+            anchored = true;
+            setDeltaMovement(Vec3.ZERO);
+        }
+    }
+
+    @Override
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        return distance < RENDER_DISTANCE_SQR;
+    }
+
+    @Override
+    protected boolean canHitEntity(Entity target) {
+        return false;
     }
 
     @Override
     public void tick() {
-        super.tick();
         Entity owner = getOwner();
-        if (!isPulling() && !isRemoved() && (tickCount > MAX_FLIGHT_TICKS || owner == null)) {
-            remove(Entity.RemovalReason.DISCARDED);
-            return;
-        }
-        if (owner == null) {
+        if (!level().isClientSide() && !keepAlive(owner)) {
             return;
         }
         if (level().isClientSide()) {
-            ampl = isPulling() ? ampl * AMPLITUDE_DECAY : ampl + AMPLITUDE_GROWTH;
-        } else if (!claim(owner)) {
+            ampl = isAnchored() ? ampl * AMPLITUDE_DECAY : ampl + AMPLITUDE_GROWTH;
+        }
+        if (!isAnchored()) {
+            super.tick();
             return;
         }
-        if (isPulling() && isAlive() && owner instanceof LivingEntity living) {
-            pull(living);
+        baseTick();
+        setDeltaMovement(Vec3.ZERO);
+        if (isPulling() && owner != null && owner.canSimulateMovement()) {
+            pull(owner);
         }
+    }
+
+    private boolean keepAlive(@Nullable Entity owner) {
+        if (owner == null || !owner.isAlive() || owner.level() != level()) {
+            discard();
+            return false;
+        }
+        if (!claim(owner)) {
+            return false;
+        }
+        if (!isPulling() && tickCount > MAX_FLIGHT_TICKS) {
+            discard();
+            return false;
+        }
+        return true;
+    }
+
+    private void pull(Entity owner) {
+        if (owner.isShiftKeyDown()) {
+            if (!level().isClientSide()) {
+                discard();
+            }
+            return;
+        }
+        owner.resetFallDistance();
+        if (owner instanceof ServerPlayer player) {
+            ((ServerGamePacketListenerImplAccessor) player.connection).setAboveGroundTickCount(0);
+        }
+        Vec3 offset = position().subtract(owner.position());
+        double distance = offset.length();
+        Vec3 tug = distance > 0.0 ? offset.scale(Math.min(tugStrength(distance), MAX_TUG) / distance) : Vec3.ZERO;
+        double hop = boosted ? 0.0 : BOOST;
+        boosted = true;
+        owner.setDeltaMovement(owner.getDeltaMovement().add(tug.x, tug.y + LIFT + hop, tug.z));
+    }
+
+    private static double tugStrength(double distance) {
+        return distance < TUG_RANGE ? 1.0 / (TUG_DIVISOR * (TUG_RANGE - distance)) : FAR_TUG;
+    }
+
+    public InteractionHand getHand() {
+        return entityData.get(MAIN_HAND) ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
     }
 
     private boolean claim(Entity owner) {
@@ -106,36 +168,6 @@ public final class EntityGrapple extends ThrowableProjectile {
         return true;
     }
 
-    private void pull(LivingEntity owner) {
-        if (owner.isShiftKeyDown()) {
-            if (!level().isClientSide()) {
-                remove(Entity.RemovalReason.DISCARDED);
-            }
-            return;
-        }
-        if (owner instanceof ServerPlayer serverPlayer) {
-            ((ServerGamePacketListenerImplAccessor) serverPlayer.connection).setAboveGroundTickCount(0);
-        }
-        owner.resetFallDistance();
-        if (level().isClientSide() && !(owner instanceof Player player && player.isLocalPlayer())) {
-            return;
-        }
-        Vec3 toHook = position().subtract(owner.position());
-        double distance = toHook.length();
-        double divisor = Math.max(distance < NEAR_RANGE ? distance * (NEAR_RANGE - distance) : distance, MIN_DIVISOR);
-        Vec3 pull = toHook.scale(1.0 / (divisor * PULL_SCALE));
-        double length = pull.length();
-        if (length > MAX_PULL) {
-            pull = pull.scale(MAX_PULL / length);
-        }
-        double lift = LIFT;
-        if (!boosted) {
-            boosted = true;
-            lift += BOOST;
-        }
-        owner.setDeltaMovement(owner.getDeltaMovement().add(pull.x, pull.y + lift, pull.z));
-    }
-
     @Override
     public void remove(Entity.RemovalReason reason) {
         if (!level().isClientSide()) {
@@ -150,10 +182,14 @@ public final class EntityGrapple extends ThrowableProjectile {
     @Override
     protected void onHitBlock(BlockHitResult hitResult) {
         super.onHitBlock(hitResult);
-        if (!level().isClientSide() && !isPulling()) {
+        if (isPulling()) {
+            return;
+        }
+        anchored = true;
+        setDeltaMovement(Vec3.ZERO);
+        setPos(hitResult.getLocation());
+        if (!level().isClientSide()) {
             entityData.set(PULLING, true);
-            setDeltaMovement(Vec3.ZERO);
-            setPos(hitResult.getLocation());
         }
     }
 }

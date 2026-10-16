@@ -19,12 +19,14 @@ public final class SpawnSpots {
 
     public static BlockPos ringCell(BlockPos origin, RandomSource random) {
         int dx;
+        int dy;
         int dz;
         do {
             dx = displacement(random);
+            dy = displacement(random);
             dz = displacement(random);
-        } while (dx == 0 && dz == 0);
-        return origin.offset(dx, displacement(random), dz);
+        } while (dx == 0 && dy == 0 && dz == 0);
+        return origin.offset(dx, dy, dz);
     }
 
     private static int displacement(RandomSource random) {

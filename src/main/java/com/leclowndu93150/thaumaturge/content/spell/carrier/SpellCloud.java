@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ColorParticleOption;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -21,10 +19,12 @@ import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
@@ -34,7 +34,6 @@ public final class SpellCloud extends AbstractSpellCarrier {
     private static final float DEFAULT_RADIUS = 1.0F;
     private static final float HEIGHT = 0.5F;
     private static final double HALF_HEIGHT = 0.25;
-    private static final int SAMPLES_PER_RADIUS = 3;
     private static final int PULSE_INTERVAL = 5;
     private static final long REHIT_COOLDOWN = 40L;
     private static final double PUFF_SPREAD = 0.45;
@@ -131,7 +130,7 @@ public final class SpellCloud extends AbstractSpellCarrier {
     }
 
     private List<SpellTarget> gatherBlockTargets(ServerLevel server, Vec3 centre, float radius, long now) {
-        int samples = SAMPLES_PER_RADIUS * Math.max(1, Math.round(radius));
+        int samples = Math.max(1, Math.round(radius));
         List<SpellTarget> targets = new ArrayList<>(samples);
         while (samples-- > 0) {
             SpellTarget hit = probe(server, centre, radius, now);
@@ -143,28 +142,18 @@ public final class SpellCloud extends AbstractSpellCarrier {
     }
 
     private @Nullable SpellTarget probe(ServerLevel server, Vec3 centre, float radius, long now) {
-        Vec3 offset = randomPointInSphere().scale(radius);
-        Vec3 landing = centre.add(offset);
-        BlockPos cell = BlockPos.containing(landing);
-        long key = cell.asLong();
-        if (blockCooldowns.containsKey(key) || server.getBlockState(cell).isAir()) {
+        Vec3 direction = new Vec3(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).normalize();
+        Vec3 end = centre.add(direction.scale(radius));
+        BlockHitResult hit = server.clip(new ClipContext(centre, end, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, this));
+        if (hit.getType() == HitResult.Type.MISS) {
+            return null;
+        }
+        long key = hit.getBlockPos().asLong();
+        if (blockCooldowns.containsKey(key)) {
             return null;
         }
         blockCooldowns.put(key, now + REHIT_COOLDOWN);
-        Direction facing = Direction.getApproximateNearest(offset).getOpposite();
-        return SpellTarget.of(new BlockHitResult(landing, facing, cell, false), offset);
-    }
-
-    private double signedUnit() {
-        return random.nextDouble() * 2.0 - 1.0;
-    }
-
-    private Vec3 randomPointInSphere() {
-        Vec3 candidate = new Vec3(signedUnit(), signedUnit(), signedUnit());
-        while (candidate.lengthSqr() > 1.0) {
-            candidate = new Vec3(signedUnit(), signedUnit(), signedUnit());
-        }
-        return candidate;
+        return SpellTarget.of(hit, direction);
     }
 
     private double gaussianSpread(double extent, double factor) {

@@ -4,7 +4,6 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.player.Player;
 
 final class PechAngerTargetGoal extends NearestAttackableTargetGoal<Player> {
-    private static final double RANGE = 10.0;
     private static final int CHECK_INTERVAL = 10;
 
     private final EntityPech pech;
@@ -17,10 +16,5 @@ final class PechAngerTargetGoal extends NearestAttackableTargetGoal<Player> {
     @Override
     public boolean canUse() {
         return this.pech.rageTicks() > 0 && super.canUse();
-    }
-
-    @Override
-    protected double getFollowDistance() {
-        return RANGE;
     }
 }

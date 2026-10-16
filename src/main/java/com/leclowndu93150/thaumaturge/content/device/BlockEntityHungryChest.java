@@ -59,7 +59,7 @@ public final class BlockEntityHungryChest extends ChestBlockEntity {
 
     private boolean swallow(Level level, BlockPos pos, ItemEntity item, RandomSource random) {
         ItemStack stack = item.getItem();
-        int remaining = InvHelper.insertStackAt(level, pos, Direction.UP, stack, false).getCount();
+        int remaining = InvHelper.insertAt(level, pos, Direction.UP, stack, false).getCount();
         int accepted = stack.getCount() - remaining;
         if (accepted <= 0) {
             return false;
@@ -67,7 +67,7 @@ public final class BlockEntityHungryChest extends ChestBlockEntity {
         if (remaining <= 0) {
             item.discard();
         } else {
-            stack.shrink(accepted);
+            item.setItem(stack.copyWithCount(remaining));
         }
         item.playSound(SoundEvents.GENERIC_EAT.value(), EAT_VOLUME, (random.nextFloat() - random.nextFloat()) * EAT_PITCH_SPREAD + EAT_PITCH_BASE);
         return true;

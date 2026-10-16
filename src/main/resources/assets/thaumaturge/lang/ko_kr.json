@@ -1544,7 +1544,7 @@
   "research.thaumaturge.plants.addendum_2": "§oCinderpearls§r<IMG>thaumaturge:textures/research/research5.png:0:0:128:128:.6</IMG>가장 뜨거운 기후에서만 발견되는 이 식물은 원소의 불꽃으로 타오른다. 채집하여 갈아내면 블레이즈 가루와 비슷한 고운 가루를 얻을 수 있다.",
   "research.thaumaturge.plants.addendum_3": "§oShimmerleaf§r<IMG>thaumaturge:textures/research/research4.png:128:0:128:128:.6</IMG>이 신비롭고 은은히 빛나는 꽃은 오직 Silverwood 나무의 그늘에서만 자란다. 채집하여 으깨면 수은을 얻을 수 있다.",
   "research.thaumaturge.plants.addendum_4": "§oVishroom§r<IMG>thaumaturge:textures/research/research5.png:0:128:128:128:.6</IMG>이 기이하고 은은히 빛나는 버섯은 오직 마법의 숲에서만 자라나는 것을 볼 수 있다.<BR>환각을 일으키는 성질이 있으니 너무 가까이 다가가지 않도록 주의해야 한다.",
-  "research.thaumaturge.plants.addendum_5": "마나 꼬투리는 마법의 숲에서 원목 아랫면에 매달려 자라는 기묘하고 작은 생장물이다. 꼬투리마다 아스펙트를 하나씩 품고 있으며, 천천히 익어 가면서 점점 더 밝게 빛난다. 다 익은 꼬투리를 따면 마나콩이 한두 개 나온다.<BR>나란히 익어 가는 꼬투리들은 서로 영향을 주고받는다. 아스펙트가 합쳐져 복합 아스펙트를 이루는 꼬투리 두 개 옆에서 자라는 꼬투리는 그 복합 아스펙트를 띠게 될 가능성이 높으니, 인내심만 있다면 원하는 아스펙트를 지닌 꼬투리를 길러 낼 수 있다.",
+  "research.thaumaturge.plants.addendum_5": "§o마나 꼬투리§r<IMG>thaumaturge:textures/research/research_manapod.png:0:0:128:128:.6</IMG>마나 꼬투리는 마법의 숲에서 원목 아랫면에 매달려 자라는 기묘하고 작은 생장물이다. 꼬투리마다 아스펙트를 하나씩 품고 있으며, 천천히 익어 가면서 점점 더 밝게 빛난다. 다 익은 꼬투리를 따면 마나콩이 한두 개 나온다.<BR>나란히 익어 가는 꼬투리들은 서로 영향을 주고받는다. 아스펙트가 합쳐져 복합 아스펙트를 이루는 꼬투리 두 개 옆에서 자라는 꼬투리는 그 복합 아스펙트를 띠게 될 가능성이 높으니, 인내심만 있다면 원하는 아스펙트를 지닌 꼬투리를 길러 낼 수 있다.",
   "research.thaumaturge.plants.addendum_6": "마나콩은 먹을 수는 있지만, 끼니로 삼고 싶지는 않다. 콩 하나를 먹을 때마다 짧고 예측할 수 없는 효과가 나타난다. 이로울 때도, 해로울 때도 있으며, 가끔은 정말로 몹시 해롭다. 이따금 먹고 나서 그 콩이 품은 아스펙트에 대해 무언가를 깨닫게 되기도 한다.<BR>더 키우려면 마법 생물 군계에서 원목 아랫면에 콩을 심으면 된다. 단, 그 아래에 빈 공간이 있어야 한다.",
   "research.thaumaturge.plants.stage_0": "Thaumaturge에게 유용한 독특한 식물들이 많이 있다. 발견하는 대로 하나하나 연구해 보아야겠다.",
   "research.thaumaturge.plants.title": "식물",

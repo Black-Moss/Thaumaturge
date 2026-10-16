@@ -6,7 +6,6 @@ import com.leclowndu93150.thaumaturge.registry.TTBiomeTags;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
 import com.mojang.serialization.MapCodec;
-import java.util.Arrays;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -38,8 +37,8 @@ public final class BlockManaPod extends BaseEntityBlock {
     private static final int BREAK_SPEED_BASE = BlockEntityManaPod.MAX_AGE + 1;
     private static final double SHAPE_MIN_XZ = 4.0;
     private static final double SHAPE_MAX_XZ = 12.0;
-    private static final double SHAPE_MAX_Y = 16.0;
-    private static final double[] SHAPE_MIN_Y = {12.0, 10.0, 8.0, 6.0, 5.0, 4.0, 3.0, 2.0};
+    private static final double SHAPE_TOP = 16.0;
+    private static final double[] SHAPE_BOTTOMS = {12.0, 10.0, 8.0, 6.0, 5.0, 4.0, 3.0, 2.0};
     private static final VoxelShape[] SHAPES = buildShapes();
 
     public BlockManaPod(Properties properties) {
@@ -48,11 +47,11 @@ public final class BlockManaPod extends BaseEntityBlock {
     }
 
     private static VoxelShape[] buildShapes() {
-        return Arrays.stream(SHAPE_MIN_Y).mapToObj(BlockManaPod::columnFrom).toArray(VoxelShape[]::new);
-    }
-
-    private static VoxelShape columnFrom(double minY) {
-        return Block.box(SHAPE_MIN_XZ, minY, SHAPE_MIN_XZ, SHAPE_MAX_XZ, SHAPE_MAX_Y, SHAPE_MAX_XZ);
+        VoxelShape[] shapes = new VoxelShape[SHAPE_BOTTOMS.length];
+        for (int age = 0; age < SHAPE_BOTTOMS.length; age++) {
+            shapes[age] = Block.box(SHAPE_MIN_XZ, SHAPE_BOTTOMS[age], SHAPE_MIN_XZ, SHAPE_MAX_XZ, SHAPE_TOP, SHAPE_MAX_XZ);
+        }
+        return shapes;
     }
 
     @Override

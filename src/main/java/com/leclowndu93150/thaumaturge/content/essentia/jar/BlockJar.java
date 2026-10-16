@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
+import com.leclowndu93150.thaumaturge.api.blocks.LabelTarget;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaJar;
 import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaStreamPort;
 import com.leclowndu93150.thaumaturge.content.essentia.storage.LabelledVesselActions;
@@ -34,7 +34,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jspecify.annotations.Nullable;
 
-public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaStreamPort, IEssentiaJar {
+public class BlockJar extends BaseEntityBlock implements LabelTarget, IEssentiaStreamPort, IEssentiaJar {
     public static final MapCodec<BlockJar> CODEC = simpleCodec(BlockJar::new);
     public static final VoxelShape SHAPE = Shapes.or(Block.box(3, 0, 3, 13, 12, 13), Block.box(5, 12, 5, 11, 14, 11));
 
@@ -50,13 +50,15 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
     }
 
     @Override
-    public boolean applyLabel(Player player, BlockPos pos, Direction face, ItemStack stack) {
-        Level level = player.level();
+    public boolean attachLabel(Level level, BlockPos pos, Direction face, Player player, ItemStack stack) {
+        if (face.getAxis().isVertical()) {
+            return false;
+        }
         BlockEntity found = level.getBlockEntity(pos);
         if (!(found instanceof BlockEntityJar jar)) {
             return false;
         }
-        ResourceKey<IAspect> label = LabelledVesselActions.aspectToLabel(stack, face, jar.aspectFilterKey(), jar.aspectKey(), jar.amount());
+        ResourceKey<IAspect> label = LabelledVesselActions.aspectToLabel(stack, jar.aspectFilterKey(), jar.aspectKey(), jar.amount());
         if (label != null) {
             jar.setAspectFilter(label);
             jar.setFacing(face);
@@ -159,7 +161,7 @@ public class BlockJar extends BaseEntityBlock implements ILabelable, IEssentiaSt
         }
         if (!brace.isEmpty() && !jar.isBlocked()) {
             installBrace(jar, brace, player, level, pos);
-        } else if (player.isShiftKeyDown()) {
+        } else if (player.isCrouching()) {
             dispose(jar, level, pos, hit.getDirection());
         } else {
             return InteractionResult.PASS;

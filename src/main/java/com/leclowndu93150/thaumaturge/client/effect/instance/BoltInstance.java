@@ -1,67 +1,93 @@
 package com.leclowndu93150.thaumaturge.client.effect.instance;
 
 import com.leclowndu93150.thaumaturge.client.effect.manager.IFXInstance;
-import java.util.ArrayList;
-import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 
 public final class BoltInstance implements IFXInstance {
-    static final int MAX_AGE = 3;
+    public static final int LIFE_TICKS = 3;
 
-    private static final float CHANNEL_MAX = 255.0F;
+    private static final float CHANNEL_SCALE = 255.0F;
+    private static final int AXES = 3;
+    private static final int CHANNELS = 4;
+    private static final double MIN_POINTS = 3.0;
+    private static final double MAX_POINTS = 512.0;
+    private static final double SWAY = 0.1;
+    private static final double WOBBLE_PER_TICK = 0.1;
+    private static final double[] WAVE_DIVISORS = {4.0, 3.0, 2.0};
     private static final int PHASE_STEPS = 50;
-    private static final int SEED_RANGE = 1000;
-    private static final int MIN_POINTS = 3;
-    private static final int MAX_POINTS = 512;
-    private static final float AMPLITUDE_PER_TICK = 0.1F;
-    private static final double PERIOD_X = 4.0;
-    private static final double PERIOD_Y = 3.0;
-    private static final double PERIOD_Z = 2.0;
-    private static final double JITTER = 0.1;
-    private static final int THIN_ONE_IN = 4;
+    private static final int THIN_ODDS = 4;
     private static final float THIN_STEP = 0.25F;
-    private static final float MIN_ALPHA = 0.1F;
+    private static final float MIN_OPACITY = 0.1F;
+    private static final double SHEATH_DIVISOR = 10.0;
+    private static final double CORE_DIVISOR = 30.0;
 
-    public final double startX;
-    public final double startY;
-    public final double startZ;
-    public final float colorR;
-    public final float colorG;
-    public final float colorB;
-    public final float width;
-    public final float length;
-
-    private final Vec3 span;
-    private final List<BoltNode> nodes;
+    private final Vec3 origin;
+    private final double dx;
+    private final double dy;
+    private final double dz;
+    private final double span;
+    private final float width;
+    private final float red;
+    private final float green;
+    private final float blue;
+    private final int count;
+    private final double[][] sway;
+    private final boolean[] thin;
+    private final double[][] points;
+    private final double[] sheathRadii;
+    private final double[] coreRadii;
+    private final float[][] sheathColours;
+    private final float[][] coreColours;
+    private double phase;
     private int age;
     private boolean expired;
 
-    public BoltInstance(double startX, double startY, double startZ, double targetX, double targetY, double targetZ, int color, float width) {
-        this.startX = startX;
-        this.startY = startY;
-        this.startZ = startZ;
-        this.colorR = ARGB.red(color) / CHANNEL_MAX;
-        this.colorG = ARGB.green(color) / CHANNEL_MAX;
-        this.colorB = ARGB.blue(color) / CHANNEL_MAX;
-        this.width = width;
-        this.span = new Vec3(targetX - startX, targetY - startY, targetZ - startZ);
-        this.length = (float) (this.span.length() * Math.PI);
-        RandomSource random = StreamInstance.currentRandom();
-        double phaseOffset = random.nextInt(PHASE_STEPS) * Math.PI;
-        int seed = random.nextInt(SEED_RANGE);
-        this.nodes = Float.isFinite(this.length) ? buildNodes(this.span, this.length, phaseOffset, RandomSource.create(seed)) : List.of();
+    public BoltInstance(double startX, double startY, double startZ, double tx, double ty, double tz, int color, float width) {
+        this.origin = new Vec3(startX, startY, startZ);
+        this.dx = tx - startX;
+        this.dy = ty - startY;
+        this.dz = tz - startZ;
+        this.width = width > 0.0F ? width : 1.0F;
+        this.red = ARGB.red(color) / CHANNEL_SCALE;
+        this.green = ARGB.green(color) / CHANNEL_SCALE;
+        this.blue = ARGB.blue(color) / CHANNEL_SCALE;
+        this.span = Math.sqrt(this.dx * this.dx + this.dy * this.dy + this.dz * this.dz);
+        boolean finite = Double.isFinite(this.span);
+        this.count = finite ? (int) Mth.clamp(Math.floor(this.span * Math.PI), MIN_POINTS, MAX_POINTS) : 0;
+        int total = finite ? this.count + 1 : 0;
+        this.sway = new double[this.count][AXES];
+        this.thin = new boolean[this.count];
+        this.points = new double[total][AXES];
+        this.sheathRadii = new double[total];
+        this.coreRadii = new double[total];
+        this.sheathColours = new float[total][CHANNELS];
+        this.coreColours = new float[total][CHANNELS];
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null || !finite) {
+            this.expired = true;
+            return;
+        }
+        RandomSource random = level.getRandom();
+        this.phase = random.nextInt(PHASE_STEPS) * Math.PI;
+        for (int i = 1; i < this.count - 1; i++) {
+            for (int axis = 0; axis < AXES; axis++) {
+                this.sway[i][axis] = random.triangle(0.0, SWAY);
+            }
+            this.thin[i] = random.nextInt(THIN_ODDS) == 0;
+        }
     }
 
     @Override
     public void tick() {
-        if (this.age >= MAX_AGE) {
+        if (this.age >= LIFE_TICKS) {
             this.expired = true;
-        } else {
-            this.age++;
         }
+        this.age++;
     }
 
     @Override
@@ -69,51 +95,70 @@ public final class BoltInstance implements IFXInstance {
         return this.expired;
     }
 
-    public List<PathStep> computePath(float partialTick) {
-        if (this.nodes.isEmpty()) {
-            return List.of();
+    public Vec3 origin() {
+        return this.origin;
+    }
+
+    public void shape(float partialTick) {
+        float lived = this.age + partialTick;
+        float opacity = Mth.clamp(1.0F - lived / LIFE_TICKS, MIN_OPACITY, 1.0F);
+        double amplitude = lived * WOBBLE_PER_TICK;
+        double stride = this.span * Math.PI / this.count;
+        int last = this.count - 1;
+        setPoint(0, 0.0, 0.0, 0.0);
+        for (int i = 1; i < last; i++) {
+            double along = (double) i / last;
+            double s = i * stride + this.phase;
+            double[] offset = this.sway[i];
+            double wx = amplitude * Math.sin(s / WAVE_DIVISORS[0]);
+            double wy = amplitude * Math.sin(s / WAVE_DIVISORS[1]);
+            double wz = amplitude * Math.sin(s / WAVE_DIVISORS[2]);
+            setPoint(i, this.dx * along + offset[0] + wx, this.dy * along + offset[1] + wy, this.dz * along + offset[2] + wz);
         }
-        List<PathStep> path = new ArrayList<>(this.nodes.size() + 2);
-        double amplitude = (this.age + partialTick) * AMPLITUDE_PER_TICK;
-        float thinWidth = (1.0F - this.age * THIN_STEP) * this.width;
-        path.add(new PathStep(0.0, 0.0, 0.0, this.width));
-        for (BoltNode node : this.nodes) {
-            double x = node.baseX() + amplitude * Math.sin(node.phase() / PERIOD_X) + node.jitterX();
-            double y = node.baseY() + amplitude * Math.sin(node.phase() / PERIOD_Y) + node.jitterY();
-            double z = node.baseZ() + amplitude * Math.sin(node.phase() / PERIOD_Z) + node.jitterZ();
-            path.add(new PathStep(x, y, z, node.thin() ? thinWidth : this.width));
+        setPoint(last, this.dx, this.dy, this.dz);
+        double[] inner = this.points[last - 1];
+        setPoint(this.count, this.dx * 2.0 - inner[0], this.dy * 2.0 - inner[1], this.dz * 2.0 - inner[2]);
+        float thinning = 1.0F - THIN_STEP * this.age;
+        for (int p = 0; p < this.points.length; p++) {
+            float shrink = p > 0 && p < last && this.thin[p] ? thinning : 1.0F;
+            this.sheathRadii[p] = this.width / SHEATH_DIVISOR * shrink;
+            this.coreRadii[p] = this.width / CORE_DIVISOR * shrink;
+            fill(this.sheathColours[p], opacity);
+            fill(this.coreColours[p], opacity);
         }
-        path.add(new PathStep(this.span.x, this.span.y, this.span.z, this.width));
-        return path;
     }
 
-    public float alpha(float partialTick) {
-        return Mth.clamp(1.0F - (this.age + partialTick) / MAX_AGE, MIN_ALPHA, 1.0F);
+    private void setPoint(int index, double x, double y, double z) {
+        double[] point = this.points[index];
+        point[0] = x;
+        point[1] = y;
+        point[2] = z;
     }
 
-    private static double jitter(RandomSource random) {
-        return JITTER * (random.nextDouble() - random.nextDouble());
+    private void fill(float[] colour, float alpha) {
+        colour[0] = this.red;
+        colour[1] = this.green;
+        colour[2] = this.blue;
+        colour[3] = alpha;
     }
 
-    private static List<BoltNode> buildNodes(Vec3 span, float length, double phaseOffset, RandomSource random) {
-        int steps = Mth.clamp((int) length, MIN_POINTS, MAX_POINTS);
-        float stride = length / steps;
-        List<BoltNode> nodes = new ArrayList<>(steps);
-        for (int i = 1; i < steps - 1; i++) {
-            double fraction = (double) i / steps;
-            double phase = i * stride + phaseOffset;
-            double jitterX = jitter(random);
-            double jitterY = jitter(random);
-            double jitterZ = jitter(random);
-            boolean thin = random.nextInt(THIN_ONE_IN) == 0;
-            nodes.add(new BoltNode(span.x * fraction, span.y * fraction, span.z * fraction, phase, jitterX, jitterY, jitterZ, thin));
-        }
-        return List.copyOf(nodes);
+    public double[][] points() {
+        return this.points;
     }
 
-    public record PathStep(double x, double y, double z, float width) {
+    public double[] sheathRadii() {
+        return this.sheathRadii;
     }
 
-    private record BoltNode(double baseX, double baseY, double baseZ, double phase, double jitterX, double jitterY, double jitterZ, boolean thin) {
+    public double[] coreRadii() {
+        return this.coreRadii;
+    }
+
+    public float[][] sheathColours() {
+        return this.sheathColours;
+    }
+
+    public float[][] coreColours() {
+        return this.coreColours;
     }
 }

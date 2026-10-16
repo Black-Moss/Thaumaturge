@@ -32,9 +32,6 @@ final class GridRecipePanel implements RecipePanel {
     private static final int SHAPELESS_LIMIT = GRID * GRID;
     private static final int SLOT_ORIGIN = -40;
     private static final int SLOT_STRIDE = 32;
-    private static final int BACKGROUND_V = 15;
-    private static final int BACKGROUND_HEIGHT = 52;
-    private static final int BACKGROUND_OFFSET = -26;
     private static final int OVERLAY_U = 68;
     private static final int OVERLAY_V = 76;
     private static final int OVERLAY_SIZE = 12;
@@ -72,7 +69,7 @@ final class GridRecipePanel implements RecipePanel {
     @Override
     public void render(GuiGraphicsExtractor graphics, PanelContext context, float rotation, int layer) {
         context.beginScaled(graphics, 0);
-        context.blitScaled(graphics, kind.u, BACKGROUND_V, kind.width, BACKGROUND_HEIGHT, BACKGROUND_OFFSET, BACKGROUND_OFFSET, PanelContext.WHITE);
+        context.blitBackdrop(graphics, kind.u, kind.width);
         if (kind.arcane) {
             context.blitScaled(graphics, OVERLAY_U, OVERLAY_V, OVERLAY_SIZE, OVERLAY_SIZE, OVERLAY_X, OVERLAY_Y, OVERLAY_TINT);
         }

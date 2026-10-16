@@ -38,15 +38,16 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
     private static final int MAX_AGE = 1200;
     private static final double LAUNCH_OFFSET = 0.6;
     private static final float NO_DIVERGENCE = 0.0F;
-    private static final double BOUNCE_DAMPING = 0.8;
+    private static final int HOMING_INTERVAL = 5;
+    private static final double HOMING_RANGE = 16.0;
+    private static final double HOMING_CONE_COS = 0.5;
+    private static final double HOMING_BLEND = 0.25;
+    private static final double PARALLEL_EPSILON = 1.0E-6;
+    private static final double BOUNCE_SPEED_KEPT = 0.8;
     private static final double BOUNCE_CLEARANCE = 0.05;
     private static final double BOUNCE_REST_SPEED = 0.15;
     private static final float BOUNCE_VOLUME = 0.25F;
     private static final float BOUNCE_PITCH = 1.5F;
-    private static final int HOMING_INTERVAL = 5;
-    private static final double HOMING_RANGE = 16.0;
-    private static final double HOMING_CONE_COS = 0.5;
-    private static final double HOMING_PULL = 0.25;
     private static final double TRAIL_SPREAD = 0.02;
 
     private final CarrierCharge charge = new CarrierCharge();
@@ -127,16 +128,14 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
 
     @Override
     public void tick() {
-        if (level() instanceof ServerLevel server) {
-            if (!(getOwner() instanceof LivingEntity master) || tickCount > MAX_AGE || charge.isSpent()) {
-                discard();
-                return;
-            }
-            if (homing) {
-                steer(server, master);
-            }
+        if (level() instanceof ServerLevel && (!(getOwner() instanceof LivingEntity) || tickCount > MAX_AGE || charge.isSpent())) {
+            discard();
+            return;
         }
         super.tick();
+        if (level() instanceof ServerLevel server && homing && !isRemoved() && getOwner() instanceof LivingEntity master) {
+            steer(server, master);
+        }
         if (level().isClientSide()) {
             emitTrail();
         }
@@ -156,8 +155,7 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
 
     @Override
     protected void onHit(HitResult result) {
-        if (bounces > 0 && result instanceof BlockHitResult block && block.getType() == HitResult.Type.BLOCK) {
-            bounce(block);
+        if (bounces > 0 && result instanceof BlockHitResult block && block.getType() == HitResult.Type.BLOCK && bounce(block)) {
             return;
         }
         if (charge.isSpent() || !(level() instanceof ServerLevel server)) {
@@ -178,6 +176,53 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
         discard();
     }
 
+    private boolean bounce(BlockHitResult hit) {
+        Direction face = hit.getDirection();
+        Vec3 velocity = getDeltaMovement();
+        double rx = face.getAxis() == Direction.Axis.X ? -velocity.x : velocity.x;
+        double ry = face.getAxis() == Direction.Axis.Y ? -velocity.y : velocity.y;
+        double rz = face.getAxis() == Direction.Axis.Z ? -velocity.z : velocity.z;
+        Vec3 reflected = new Vec3(rx, ry, rz).scale(BOUNCE_SPEED_KEPT);
+        bounces--;
+        setDeltaMovement(reflected);
+        Vec3 clear = hit.getLocation().add(face.getStepX() * BOUNCE_CLEARANCE, face.getStepY() * BOUNCE_CLEARANCE, face.getStepZ() * BOUNCE_CLEARANCE);
+        setPos(clear.x, clear.y, clear.z);
+        if (!level().isClientSide()) {
+            level().playSound(null, clear.x, clear.y, clear.z, SoundEvents.SLIME_BLOCK_HIT, SoundSource.NEUTRAL, BOUNCE_VOLUME, BOUNCE_PITCH);
+        }
+        if (reflected.length() < BOUNCE_REST_SPEED) {
+            bounces = 0;
+        }
+        return true;
+    }
+
+    private void steer(ServerLevel server, LivingEntity master) {
+        Vec3 velocity = getDeltaMovement();
+        if (quarry != null && !quarry.isAlive()) {
+            quarry = null;
+        }
+        if (tickCount % HOMING_INTERVAL == 0) {
+            refreshQuarry(server, master, velocity);
+        }
+        if (quarry != null) {
+            bendToward(quarry, velocity);
+        }
+    }
+
+    private void bendToward(LivingEntity target, Vec3 velocity) {
+        double speed = velocity.length();
+        Vec3 aim = target.getBoundingBox().getCenter().subtract(position());
+        if (speed < PARALLEL_EPSILON || aim.lengthSqr() < PARALLEL_EPSILON) {
+            return;
+        }
+        Vec3 blended = velocity.scale(1.0 / speed).add(aim.normalize().scale(HOMING_BLEND));
+        if (blended.lengthSqr() < PARALLEL_EPSILON) {
+            return;
+        }
+        setDeltaMovement(blended.normalize().scale(speed));
+        hurtMarked = true;
+    }
+
     private List<SpellTarget> splashTargets(ServerLevel server, Vec3 centre, @Nullable Entity struck) {
         CarrierPayload payload = charge.payload();
         if (!(splash > 0.0F) || payload == null) {
@@ -192,41 +237,6 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
         return caught;
     }
 
-    private void bounce(BlockHitResult hit) {
-        Direction face = hit.getDirection();
-        Direction.Axis axis = face.getAxis();
-        Vec3 incoming = getDeltaMovement();
-        double along = incoming.get(axis);
-        Vec3 outgoing = incoming.with(axis, along - 2.0 * along).scale(BOUNCE_DAMPING);
-        Vec3 resting = hit.getLocation().relative(face, BOUNCE_CLEARANCE);
-        setPos(resting.x, resting.y, resting.z);
-        setDeltaMovement(outgoing);
-        bounces--;
-        if (level() instanceof ServerLevel server) {
-            server.playSound(null, getX(), getY(), getZ(), SoundEvents.SLIME_BLOCK_HIT, SoundSource.NEUTRAL, BOUNCE_VOLUME, BOUNCE_PITCH);
-            if (outgoing.length() < BOUNCE_REST_SPEED) {
-                bounces = 0;
-            }
-            hurtMarked = true;
-        }
-    }
-
-    private void steer(ServerLevel server, LivingEntity master) {
-        Vec3 velocity = getDeltaMovement();
-        if (velocity.lengthSqr() == 0.0) {
-            return;
-        }
-        if (quarry != null && !quarry.isAlive()) {
-            quarry = null;
-        }
-        if (tickCount % HOMING_INTERVAL == 0) {
-            refreshQuarry(server, master, velocity);
-        }
-        if (quarry != null) {
-            bendToward(quarry.getBoundingBox().getCenter(), velocity);
-        }
-    }
-
     private void refreshQuarry(ServerLevel server, LivingEntity master, Vec3 velocity) {
         if (quarry != null && !SpellTargeting.canSee(server, position(), quarry, this)) {
             quarry = null;
@@ -234,13 +244,6 @@ public final class SpellProjectile extends ThrowableProjectile implements IEntit
         if (quarry == null) {
             quarry = acquire(server, master, velocity).orElse(null);
         }
-    }
-
-    private void bendToward(Vec3 goal, Vec3 velocity) {
-        Vec3 pull = goal.subtract(position()).normalize().scale(HOMING_PULL);
-        Vec3 heading = velocity.normalize().add(pull).normalize();
-        setDeltaMovement(heading.scale(velocity.length()));
-        hurtMarked = true;
     }
 
     private Optional<LivingEntity> acquire(ServerLevel server, LivingEntity master, Vec3 velocity) {

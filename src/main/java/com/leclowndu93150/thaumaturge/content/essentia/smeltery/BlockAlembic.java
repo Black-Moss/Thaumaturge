@@ -1,9 +1,9 @@
 package com.leclowndu93150.thaumaturge.content.essentia.smeltery;
 
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
-import com.leclowndu93150.thaumaturge.api.blocks.ILabelable;
+import com.leclowndu93150.thaumaturge.api.blocks.LabelTarget;
 import com.leclowndu93150.thaumaturge.api.essentia.EssentiaAccess;
-import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaTransport;
+import com.leclowndu93150.thaumaturge.api.essentia.IEssentiaConduit;
 import com.leclowndu93150.thaumaturge.content.device.DeviceShapes;
 import com.leclowndu93150.thaumaturge.content.essentia.storage.LabelledVesselActions;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
@@ -36,7 +36,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class BlockAlembic extends BaseEntityBlock implements ILabelable {
+public class BlockAlembic extends BaseEntityBlock implements LabelTarget {
     public static final BooleanProperty NORTH = BlockStateProperties.NORTH;
     public static final BooleanProperty EAST = BlockStateProperties.EAST;
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
@@ -113,8 +113,8 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
         if (!level.hasChunkAt(neighborPos)) {
             return false;
         }
-        IEssentiaTransport node = EssentiaAccess.transport(level, neighborPos, side.getOpposite());
-        return node != null && node.isConnectable(side.getOpposite());
+        IEssentiaConduit node = EssentiaAccess.conduit(level, neighborPos, side.getOpposite());
+        return node != null && node.connectsOn(side.getOpposite());
     }
 
     @Override
@@ -128,17 +128,20 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
     }
 
     @Override
-    public boolean applyLabel(Player player, BlockPos pos, Direction face, ItemStack stack) {
-        if (!(player.level().getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) {
+    public boolean attachLabel(Level level, BlockPos pos, Direction face, Player player, ItemStack stack) {
+        if (!(level.getBlockEntity(pos) instanceof BlockEntityAlembic alembic)) {
             return false;
         }
-        ResourceKey<IAspect> chosen = LabelledVesselActions.aspectToLabel(stack, face, alembic.aspectFilterKey(), alembic.aspectKey(), alembic.amount());
+        if (face.getAxis().isVertical()) {
+            return false;
+        }
+        ResourceKey<IAspect> chosen = LabelledVesselActions.aspectToLabel(stack, alembic.aspectFilterKey(), alembic.aspectKey(), alembic.amount());
         if (chosen == null) {
             return false;
         }
         alembic.setAspectFilter(chosen);
         alembic.aimSpout(face);
-        LabelledVesselActions.playLabelSound(player.level(), pos);
+        LabelledVesselActions.playLabelSound(level, pos);
         return true;
     }
 
@@ -150,7 +153,7 @@ public class BlockAlembic extends BaseEntityBlock implements ILabelable {
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
-        if (!player.isShiftKeyDown()) {
+        if (!player.isCrouching()) {
             return InteractionResult.PASS;
         }
         if (alembic.aspectFilterKey() != null && hit.getDirection() == alembic.spoutSide()) {

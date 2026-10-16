@@ -6,25 +6,32 @@ import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.recipe.IArcaneRecipe;
 import com.leclowndu93150.thaumaturge.client.screen.AbstractTTContainerScreen;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
+import com.leclowndu93150.thaumaturge.client.screen.TTTooltips;
 import com.leclowndu93150.thaumaturge.content.recipe.ThaumaturgeCraftingManager;
+import com.leclowndu93150.thaumaturge.content.recipe.workbench.ArcaneCraftingInput;
 import com.leclowndu93150.thaumaturge.content.wands.WandEconomy;
 import com.leclowndu93150.thaumaturge.content.wands.WandTooltips;
 import com.leclowndu93150.thaumaturge.content.workbench.MenuArcaneWorkbench;
 import com.leclowndu93150.thaumaturge.content.workbench.WorkbenchPayment;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.ARGB;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import org.jspecify.annotations.Nullable;
 
 public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneWorkbench> {
     private static final Identifier WAND_SLOT_TEXTURE = TTIds.rl("textures/gui/workbench_wand_slot.png");
@@ -33,10 +40,33 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
     private static final int WAND_SLOT_TEX_OFFSET_X = 10;
     private static final int WAND_SLOT_TEX_OFFSET_Y = 6;
     private static final int WAND_COST_Y_OFFSET = 129;
-    private static final int WAND_COST_HOVER_HEIGHT = 6;
+    private static final int TEXT_HOVER_ABOVE = 1;
+    private static final int TEXT_HOVER_BELOW = 6;
     private static final int WAND_COST_HOVER_MIN_HALF_WIDTH = 10;
     private static final int SLOT_SIZE = 16;
     private static final DecimalFormat WAND_COST_FORMAT = new DecimalFormat("#.##");
+
+    private static final int GLOW_U = 192;
+    private static final int GLOW_V = 0;
+    private static final int GLOW_SOURCE_SIZE = 64;
+    private static final int GLOW_SIZE = GLOW_SOURCE_SIZE / 2;
+    private static final int GLOW_ORIGIN = -GLOW_SIZE / 2;
+    private static final int GLOW_ALPHA = 128;
+    private static final float GLOW_SLOT_PHASE = 60.0F;
+    private static final float GLOW_TICKS_PER_RADIAN = 75.0F;
+    private static final float GLOW_PIVOT_X = 7.5F;
+    private static final float GLOW_PIVOT_Y = 8.0F;
+
+    private static final int VIS_TEXT_X = 168;
+    private static final int VIS_AVAILABLE_Y = 46;
+    private static final int VIS_COST_Y = 38;
+    private static final float TEXT_SCALE = 0.5F;
+    private static final int VIS_SHORT_COLOR = 0xFFEE6E6E;
+    private static final int VIS_ENOUGH_COLOR = 0xFF6E6EEE;
+    private static final int VIS_COST_COLOR = 0xFFC0FFFF;
+    private static final int WAND_COST_COLOR = 0xFFFFFFFF;
+    private static final int PERCENT = 100;
+    private static final String WAND_COST_SEPARATOR = " | ";
 
     public ArcaneWorkbenchScreen(MenuArcaneWorkbench menu, Inventory inventory, Component title) {
         super(menu, inventory, title, TTScreenTextures.ARCANE_WORKBENCH, 190, 234);
@@ -47,93 +77,156 @@ public class ArcaneWorkbenchScreen extends AbstractTTContainerScreen<MenuArcaneW
 
     @Override
     protected void extractBackgroundOverlay(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        int availableVis = menu.getCachedVis();
-        IArcaneRecipe recipe = ThaumaturgeCraftingManager.findMatchingArcaneRecipe(minecraft.level, menu.getCraftingInventory().asArcaneCraftInput(), minecraft.player);
-        WorkbenchPayment.Plan plan = null;
-        if (recipe != null && recipe.doesPassGate(minecraft.player)) {
-            plan = WorkbenchPayment.plan(recipe, menu.getCraftingInventory(), minecraft.player);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SLOT_TEXTURE, leftPos + MenuArcaneWorkbench.WAND_X - WAND_SLOT_TEX_OFFSET_X, topPos + MenuArcaneWorkbench.WAND_Y - WAND_SLOT_TEX_OFFSET_Y,
+                0.0F, 0.0F, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H);
+        LocalPlayer player = minecraft.player;
+        ClientLevel level = minecraft.level;
+        if (player == null || level == null) {
+            return;
         }
-        int requiredVis = plan == null ? 0 : plan.auraVis();
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-
-        graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SLOT_TEXTURE, x + MenuArcaneWorkbench.WAND_X - WAND_SLOT_TEX_OFFSET_X, y + MenuArcaneWorkbench.WAND_Y - WAND_SLOT_TEX_OFFSET_Y, 0.0F, 0.0F,
-                WAND_SLOT_TEX_W, WAND_SLOT_TEX_H, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H, WAND_SLOT_TEX_W, WAND_SLOT_TEX_H);
-
-        if (plan != null && !plan.crystalsToConsume().isEmpty()) {
-            for (AspectInstance instance : plan.crystalsToConsume().entries()) {
-                int color = instance.aspect().value().color();
-                int index = MenuArcaneWorkbench.PRIMAL_ORDER.indexOf(instance.aspect().getKey());
-                int slotX = x + MenuArcaneWorkbench.CRYSTAL_X[index];
-                int slotY = y + MenuArcaneWorkbench.CRYSTAL_Y[index];
-                graphics.pose().pushMatrix();
-                graphics.pose().translate(slotX + 7.5F, slotY + 8F);
-                graphics.pose().rotate(index * 60 + ((float) minecraft.getCameraEntity().tickCount / 75) % 360);
-                graphics.pose().scale(0.5f);
-                graphics.blit(RenderPipelines.GUI_TEXTURED, TTScreenTextures.ARCANE_WORKBENCH, -32, -32, 192, 0, 64, 64, 256, 256, ARGB.color(128, color));
-                graphics.pose().popMatrix();
-                if (mouseX >= slotX && mouseX < slotX + SLOT_SIZE && mouseY >= slotY && mouseY < slotY + SLOT_SIZE) {
-                    Component hint = Component.translatable("gui.thaumaturge.arcane_workbench.crystal_needed.tooltip", WandEconomy.CRYSTAL_SUBSTITUTE_VIS);
-                    ItemStack crystal = menu.getCraftingInventory().getItem(MenuArcaneWorkbench.CRYSTAL_SLOT_START + index);
-                    if (crystal.isEmpty()) {
-                        graphics.setTooltipForNextFrame(font, hint, mouseX, mouseY);
-                    } else {
-                        graphics.setTooltipForNextFrame(font, List.of(crystal.getHoverName(), hint), Optional.empty(), mouseX, mouseY);
-                    }
-                }
+        IArcaneRecipe recipe = currentRecipe(level, player);
+        WorkbenchPayment.Plan plan = recipe == null ? null : WorkbenchPayment.plan(recipe, menu.getCraftingInventory(), player);
+        int available = menu.getCachedVis();
+        int required = plan == null ? 0 : plan.auraVis();
+        if (recipe != null) {
+            drawCrystalGlows(graphics, plan, player, partialTick);
+        }
+        boolean visShort = available < required;
+        Component availableLine = TTTooltips.workbenchVisAvailable(available);
+        drawHalfText(graphics, availableLine, VIS_TEXT_X, VIS_AVAILABLE_Y, visShort ? VIS_SHORT_COLOR : VIS_ENOUGH_COLOR);
+        if (isOverHalfText(availableLine, VIS_TEXT_X, VIS_AVAILABLE_Y, 0, mouseX, mouseY)) {
+            graphics.setComponentTooltipForNextFrame(font, TTTooltips.workbenchVisAvailableTooltip(visShort), mouseX, mouseY);
+        }
+        if (recipe != null && plan != null && required > 0) {
+            Component costLine = costLine(recipe, plan);
+            drawHalfText(graphics, costLine, VIS_TEXT_X, VIS_COST_Y, VIS_COST_COLOR);
+            if (isOverHalfText(costLine, VIS_TEXT_X, VIS_COST_Y, 0, mouseX, mouseY)) {
+                graphics.setComponentTooltipForNextFrame(font, costTooltip(recipe, plan), mouseX, mouseY);
             }
         }
-
-        graphics.pose().pushMatrix();
-        graphics.pose().translate(x + 168, y + 46);
-        graphics.pose().scale(0.5f);
-        Component available = Component.translatable("gui.thaumaturge.arcane_workbench.vis_available", availableVis);
-        int availableWidth = font.width(available) / 2;
-        graphics.text(font, available, -availableWidth, 0, 0xFF000000 | (requiredVis > availableVis ? 15625838 : 7237358), false);
-        graphics.pose().popMatrix();
-
-        if (plan != null && requiredVis > 0) {
-            int baseVis = recipe.visCost();
-            Component required;
-            if (requiredVis < baseVis) {
-                int discountPercentage = Math.round(100.0F - requiredVis * 100.0F / baseVis);
-                required = Component.translatable("gui.thaumaturge.arcane_workbench.required_vis_discount", requiredVis, discountPercentage);
-            } else if (!plan.crystalsToConsume().isEmpty()) {
-                required = Component.translatable("gui.thaumaturge.arcane_workbench.required_vis_crude", requiredVis);
-            } else {
-                required = Component.translatable("gui.thaumaturge.arcane_workbench.required_vis", requiredVis);
-            }
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(x + 168, y + 38);
-            graphics.pose().scale(0.5f);
-            int requiredWidth = font.width(required) / 2;
-            graphics.text(font, required, -requiredWidth, 0, 0xFF000000 | 12648447, false);
-            graphics.pose().popMatrix();
+        if (recipe != null) {
+            showCrystalTooltip(graphics, plan, mouseX, mouseY);
         }
-
         if (plan != null && !plan.wandCentivis().isEmpty()) {
-            MutableComponent amounts = null;
-            for (Map.Entry<ResourceKey<IAspect>, Integer> entry : plan.wandCentivis().entrySet()) {
-                float cost = entry.getValue() / (float) WandEconomy.CENTIVIS_PER_VIS;
-                Component chunk = Component.literal(WAND_COST_FORMAT.format(cost)).withStyle(WandTooltips.primalColor(minecraft.level.registryAccess(), entry.getKey()));
-                if (amounts == null) {
-                    amounts = Component.empty().append(chunk);
-                } else {
-                    amounts.append(Component.literal(" | ").withStyle(ChatFormatting.DARK_GRAY)).append(chunk);
-                }
-            }
-            int lineCenterX = x + MenuArcaneWorkbench.WAND_X + 8;
-            int lineY = y + WAND_COST_Y_OFFSET;
-            graphics.pose().pushMatrix();
-            graphics.pose().translate(lineCenterX, lineY);
-            graphics.pose().scale(0.5f);
-            int amountsWidth = font.width(amounts) / 2;
-            graphics.text(font, amounts, -amountsWidth, 0, 0xFFFFFFFF, false);
-            graphics.pose().popMatrix();
-            int hoverHalfWidth = Math.max(amountsWidth / 2, WAND_COST_HOVER_MIN_HALF_WIDTH);
-            if (mouseX >= lineCenterX - hoverHalfWidth && mouseX < lineCenterX + hoverHalfWidth && mouseY >= lineY - 1 && mouseY < lineY + WAND_COST_HOVER_HEIGHT) {
-                graphics.setTooltipForNextFrame(font, Component.translatable("gui.thaumaturge.arcane_workbench.wand_pay.tooltip", WandEconomy.CRYSTAL_SUBSTITUTE_VIS), mouseX, mouseY);
-            }
+            drawWandPayment(graphics, level.registryAccess(), plan.wandCentivis(), mouseX, mouseY);
         }
+    }
+
+    private @Nullable IArcaneRecipe currentRecipe(ClientLevel level, LocalPlayer player) {
+        ArcaneCraftingInput input = menu.getCraftingInventory().asPositionedArcaneCraftInput().input();
+        if (input.width() == 0) {
+            return null;
+        }
+        return ThaumaturgeCraftingManager.findMatchingArcaneRecipe(level, input.withPlayer(player), player);
+    }
+
+    private void drawCrystalGlows(GuiGraphicsExtractor graphics, WorkbenchPayment.Plan plan, LocalPlayer player, float partialTick) {
+        Entity camera = minecraft.getCameraEntity();
+        float age = (camera == null ? player.tickCount : camera.tickCount) + partialTick;
+        for (AspectInstance entry : plan.crystalsToConsume().entries()) {
+            int slot = crystalSlot(entry);
+            if (slot < 0) {
+                continue;
+            }
+            int color = ARGB.color(GLOW_ALPHA, entry.aspect().value().color());
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(leftPos + MenuArcaneWorkbench.CRYSTAL_X[slot] + GLOW_PIVOT_X, topPos + MenuArcaneWorkbench.CRYSTAL_Y[slot] + GLOW_PIVOT_Y);
+            graphics.pose().rotate(slot * GLOW_SLOT_PHASE + age / GLOW_TICKS_PER_RADIAN);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, background(), GLOW_ORIGIN, GLOW_ORIGIN, GLOW_U, GLOW_V, GLOW_SIZE, GLOW_SIZE, GLOW_SOURCE_SIZE, GLOW_SOURCE_SIZE,
+                    TTScreenTextures.TEX_SIZE, TTScreenTextures.TEX_SIZE, color);
+            graphics.pose().popMatrix();
+        }
+    }
+
+    private void showCrystalTooltip(GuiGraphicsExtractor graphics, WorkbenchPayment.Plan plan, int mouseX, int mouseY) {
+        for (AspectInstance entry : plan.crystalsToConsume().entries()) {
+            int slot = crystalSlot(entry);
+            if (slot < 0) {
+                continue;
+            }
+            int x0 = leftPos + MenuArcaneWorkbench.CRYSTAL_X[slot];
+            int y0 = topPos + MenuArcaneWorkbench.CRYSTAL_Y[slot];
+            if (!isInside(x0, y0, x0 + SLOT_SIZE, y0 + SLOT_SIZE, mouseX, mouseY)) {
+                continue;
+            }
+            List<Component> lines = new ArrayList<>();
+            ItemStack crystal = menu.getCraftingInventory().getItem(MenuArcaneWorkbench.CRYSTAL_SLOT_START + slot);
+            if (!crystal.isEmpty()) {
+                lines.add(crystal.getHoverName());
+            }
+            lines.add(TTTooltips.workbenchCrystalNeeded(WandEconomy.CRYSTAL_SUBSTITUTE_VIS));
+            graphics.setComponentTooltipForNextFrame(font, lines, mouseX, mouseY);
+            return;
+        }
+    }
+
+    private static int crystalSlot(AspectInstance entry) {
+        ResourceKey<IAspect> key = entry.aspect().getKey();
+        return key == null ? -1 : MenuArcaneWorkbench.PRIMAL_ORDER.indexOf(key);
+    }
+
+    private static Component costLine(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
+        int vis = plan.auraVis();
+        int discount = discountPercent(recipe, plan);
+        if (discount > 0) {
+            return TTTooltips.workbenchVisCostDiscounted(vis, discount);
+        }
+        return plan.crystalsToConsume().isEmpty() ? TTTooltips.workbenchVisCost(vis) : TTTooltips.workbenchVisCostUnfocused(vis);
+    }
+
+    private static List<Component> costTooltip(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
+        int discount = discountPercent(recipe, plan);
+        if (discount > 0) {
+            return TTTooltips.workbenchVisCostDiscountedTooltip(discount);
+        }
+        if (plan.crystalsToConsume().isEmpty()) {
+            return TTTooltips.workbenchVisCostTooltip();
+        }
+        return TTTooltips.workbenchVisCostUnfocusedTooltip(Math.round((WandEconomy.CRAFT_AURA_SURCHARGE - 1.0F) * PERCENT));
+    }
+
+    private static int discountPercent(IArcaneRecipe recipe, WorkbenchPayment.Plan plan) {
+        int base = recipe.visCost();
+        if (base <= 0 || plan.auraVis() >= base) {
+            return 0;
+        }
+        return Math.round(PERCENT - plan.auraVis() * (float) PERCENT / base);
+    }
+
+    private void drawWandPayment(GuiGraphicsExtractor graphics, HolderLookup.Provider registries, Map<ResourceKey<IAspect>, Integer> wandCentivis, int mouseX, int mouseY) {
+        MutableComponent line = Component.empty();
+        boolean first = true;
+        for (Map.Entry<ResourceKey<IAspect>, Integer> entry : wandCentivis.entrySet()) {
+            if (!first) {
+                line.append(Component.literal(WAND_COST_SEPARATOR).withStyle(ChatFormatting.DARK_GRAY));
+            }
+            String amount = WAND_COST_FORMAT.format(entry.getValue() / (double) WandEconomy.CENTIVIS_PER_VIS);
+            line.append(Component.literal(amount).withStyle(WandTooltips.primalColor(registries, entry.getKey())));
+            first = false;
+        }
+        int centreX = MenuArcaneWorkbench.WAND_X + SLOT_SIZE / 2;
+        drawHalfText(graphics, line, centreX, WAND_COST_Y_OFFSET, WAND_COST_COLOR);
+        if (isOverHalfText(line, centreX, WAND_COST_Y_OFFSET, WAND_COST_HOVER_MIN_HALF_WIDTH, mouseX, mouseY)) {
+            graphics.setComponentTooltipForNextFrame(font, TTTooltips.workbenchWandPayment(WandEconomy.CRYSTAL_SUBSTITUTE_VIS), mouseX, mouseY);
+        }
+    }
+
+    private boolean isOverHalfText(Component text, int centreX, int top, int minHalfWidth, int mouseX, int mouseY) {
+        int halfWidth = Math.max(font.width(text) / 2 / 2, minHalfWidth);
+        int cx = leftPos + centreX;
+        int y = topPos + top;
+        return isInside(cx - halfWidth, y - TEXT_HOVER_ABOVE, cx + halfWidth, y + TEXT_HOVER_BELOW, mouseX, mouseY);
+    }
+
+    private static boolean isInside(int x0, int y0, int x1, int y1, int mouseX, int mouseY) {
+        return x0 <= mouseX && mouseX < x1 && y0 <= mouseY && mouseY < y1;
+    }
+
+    private void drawHalfText(GuiGraphicsExtractor graphics, Component text, int centreX, int top, int color) {
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(leftPos + centreX, topPos + top);
+        graphics.pose().scale(TEXT_SCALE, TEXT_SCALE);
+        graphics.text(font, text, -font.width(text) / 2, 0, color, false);
+        graphics.pose().popMatrix();
     }
 }

@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.content.entity.EntityCultist;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
@@ -47,10 +46,14 @@ public final class CultistPortals {
         arrival.snapTo(x, y, z, arrival.getYRot(), arrival.getXRot());
         EventHooks.finalizeMobSpawn(arrival, level, level.getCurrentDifficultyAt(arrival.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
         level.addFreshEntity(arrival);
-        if (arrival instanceof EntityCultist cultist) {
-            cultist.spawnCultistArrivalParticles();
+        if (arrival instanceof EntityCultist) {
+            level.broadcastEntityEvent(arrival, EntityCultist.ARRIVAL_EVENT);
         }
-        level.playSound(null, arrival.getX(), arrival.getY(), arrival.getZ(), TTSounds.WIND.get(), SoundSource.HOSTILE, ARRIVAL_VOLUME, ARRIVAL_PITCH);
+        arrival.playSound(TTSounds.WANDFAIL.get(), ARRIVAL_VOLUME, ARRIVAL_PITCH);
+    }
+
+    public static void pulse(ServerLevel level, Mob portal) {
+        level.broadcastEntityEvent(portal, PULSE_EVENT);
     }
 
     public static void touch(Mob portal, Player player, float damage) {

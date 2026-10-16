@@ -14,7 +14,7 @@ public final class GolemTrailParticle extends TTParticle {
     private static final float END_SIZE = 0.8F;
     private static final float ALPHA_SCALE = 0.3F;
     private static final float SPIN_SPEED = 1.0F;
-    private static final double WIND_SCALE = 0.001;
+    private static final double WIND_SCALE = 1.0E-3;
 
     private GolemTrailParticle(ClientLevel level, double x, double y, double z, double vx, double vy, double vz, ParticleSheet sheet) {
         super(level, x, y, z, vx, vy, vz, sheet);

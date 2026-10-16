@@ -11,6 +11,8 @@ import net.minecraft.world.phys.Vec3;
 
 public final class BillboardTextRenderer {
     private static final int BACKGROUND_NONE = 0;
+    private static final int TEXT_ORIGIN_X = 1;
+    private static final int WIDTH_HALVING = 2;
 
     private BillboardTextRenderer() {}
 
@@ -28,7 +30,7 @@ public final class BillboardTextRenderer {
         poseStack.translate(position.x - camera.x, position.y - camera.y, position.z - camera.z);
         poseStack.mulPose(Axis.YP.rotation(facing));
         poseStack.scale(-layout.textScale(), -layout.textScale(), layout.textScale());
-        float left = -font.width(line.text()) * layout.halfWidthFactor();
+        float left = TEXT_ORIGIN_X - font.width(line.text()) / WIDTH_HALVING;
         font.drawInBatch(line.text(), left, layout.baseline(), layout.textColor(), true, poseStack.last().pose(), buffers, Font.DisplayMode.SEE_THROUGH, BACKGROUND_NONE, LightCoordsUtil.FULL_BRIGHT);
         poseStack.popPose();
     }

@@ -1,8 +1,8 @@
 package com.leclowndu93150.thaumaturge.client;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
-import com.leclowndu93150.thaumaturge.api.infusion.IInfusionStabiliser;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
+import com.leclowndu93150.thaumaturge.api.infusion.AltarStabiliser;
 import com.leclowndu93150.thaumaturge.api.items.ChargeProfile;
 import com.leclowndu93150.thaumaturge.api.items.RechargeAccess;
 import com.leclowndu93150.thaumaturge.api.warp.WarpHelper;
@@ -89,14 +89,14 @@ public final class TTTooltipEvents {
         if (profile == null) {
             return null;
         }
-        return Component.translatable(CHARGE_KEY, RechargeAccess.getCharge(subject), profile.capacity()).withStyle(ChatFormatting.AQUA);
+        return Component.translatable(CHARGE_KEY, RechargeAccess.storedVis(subject), profile.capacity()).withStyle(ChatFormatting.AQUA);
     }
 
     private static boolean isUnlockedStabiliser(ItemStack subject, Player viewer) {
-        return subject.getItem() instanceof BlockItem blockItem && isStabiliser(blockItem.getBlock()) && KnowledgeAccess.of(viewer).isResearchComplete(UNLOCK_INFUSION);
+        return subject.getItem() instanceof BlockItem blockItem && isStabiliser(blockItem.getBlock()) && PlayerResearchAccess.of(viewer).hasCompleted(UNLOCK_INFUSION);
     }
 
     private static boolean isStabiliser(Block block) {
-        return block instanceof IInfusionStabiliser || block.defaultBlockState().is(TTBlockTags.INFUSION_STABILISERS);
+        return block instanceof AltarStabiliser || block.defaultBlockState().is(TTBlockTags.INFUSION_STABILISERS);
     }
 }

@@ -20,16 +20,20 @@ import net.minecraft.util.context.ContextKey;
 public final class HoverRingLayer extends RenderLayer<AvatarRenderState, PlayerModel> {
     public static final ContextKey<Boolean> HOVERING = new ContextKey<>(TTIds.rl("hovering"));
 
+    private static final float HALF_TURN = 180.0F;
+    private static final float HALF = 0.5F;
+    private static final float FRAME_HEIGHT = 1.0F / ParticleTextures.LIGHTNING_RING_FRAMES;
     private static final float RING_Y = 0.2F;
     private static final float RING_Z = 0.55F;
     private static final float OUTER_SIZE = 2.5F;
     private static final float INNER_SIZE = 1.5F;
     private static final float INNER_Z = 0.03F;
-    private static final float HALF_TURN = 180.0F;
-    private static final float HALF = 0.5F;
-    private static final int OUTER_COLOR = ARGB.colorFromFloat(1.0F, 1.0F, 1.0F, 1.0F);
-    private static final int INNER_COLOR = ARGB.colorFromFloat(1.0F, 1.0F, 0.5F, 1.0F);
-    private static final float FRAME_HEIGHT = 1.0F / ParticleTextures.LIGHTNING_RING_FRAMES;
+    private static final float INNER_RED = 1.0F;
+    private static final float INNER_GREEN = 0.5F;
+    private static final float INNER_BLUE = 1.0F;
+    private static final float INNER_ALPHA = 1.0F;
+    private static final int OUTER_COLOR = ARGB.white(255);
+    private static final int INNER_COLOR = ARGB.colorFromFloat(INNER_ALPHA, INNER_RED, INNER_GREEN, INNER_BLUE);
 
     public HoverRingLayer(RenderLayerParent<AvatarRenderState, PlayerModel> parent) {
         super(parent);

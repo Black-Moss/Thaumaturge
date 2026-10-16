@@ -55,7 +55,6 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
     private static final int COUNTBAR_H = 8;
     private static final int COUNT_LABEL_X = 83;
     private static final int COUNT_LABEL_Y = 196;
-    private static final int COUNT_LABEL_COLOR = 0xFF333333;
 
     private static final int REQUEST_X = 116;
     private static final int REQUEST_Y = 200;
@@ -70,10 +69,11 @@ public final class GolemLogisticsScreen extends AbstractTTContainerScreen<MenuGo
     private static final int SEARCH_HINT_X = 146;
     private static final int SEARCH_HINT_Y = 197;
     private static final int SEARCH_HINT_COLOR = 0xFF222222;
+    private static final int COUNT_LABEL_COLOR = 0xFF333333;
+    private static final float CLACK_VOLUME = 0.66F;
 
     private static final long REFRESH_INTERVAL_MS = 1000L;
     private static final int MIN_REQUEST = 1;
-    private static final float CLACK_VOLUME = 0.66F;
 
     private record PagingSpec(int x, int y, TTScrollButton.Direction direction, String name, int buttonId) {
     }

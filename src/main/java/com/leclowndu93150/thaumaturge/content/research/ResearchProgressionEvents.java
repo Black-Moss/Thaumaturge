@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.research;
 
 import com.leclowndu93150.thaumaturge.TTIds;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.crucible.CrucibleEvent;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.registry.TTItems;
@@ -19,8 +19,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.Filterable;
 import net.minecraft.stats.Stats;
 import net.minecraft.tags.BiomeTags;
-import net.minecraft.tags.TagKey;
 import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.LlamaSpit;
@@ -117,9 +117,9 @@ public final class ResearchProgressionEvents {
         }
         Optional<Identifier> craftedKey = BuiltInRegistries.ITEM.getResourceKey(stack.getItem()).map(ResourceKey::identifier).map(ResearchManager::craftedKey);
         PlayerKnowledge knowledge = knowledgeOf(player);
-        craftedKey.filter(key -> !knowledge.isResearchKnown(key)).ifPresent(key -> {
-            knowledge.addResearch(key);
-            knowledge.sync(player);
+        craftedKey.filter(key -> !knowledge.knows(key)).ifPresent(key -> {
+            knowledge.learn(key);
+            knowledge.queueSync(player);
         });
     }
 
@@ -134,7 +134,7 @@ public final class ResearchProgressionEvents {
 
     private static boolean dreamUnlocked(ServerPlayer player) {
         PlayerKnowledge knowledge = knowledgeOf(player);
-        return knowledge.isResearchKnown(CRYSTALS) && !knowledge.isResearchKnown(DREAM);
+        return knowledge.knows(CRYSTALS) && !knowledge.knows(DREAM);
     }
 
     private static void crystalPickup(ServerPlayer player) {
@@ -142,7 +142,7 @@ public final class ResearchProgressionEvents {
         if (awardIfNew(player, knowledge, CRYSTALS)) {
             tell(player, CRYSTALS_MESSAGE);
         }
-        Optional.of(player).filter(online -> ThaumaturgeCommonConfig.NO_SLEEP.get() && !knowledgeOf(online).isResearchKnown(DREAM)).ifPresent(ResearchProgressionEvents::grantDreamJournal);
+        Optional.of(player).filter(online -> ThaumaturgeCommonConfig.NO_SLEEP.get() && !knowledgeOf(online).knows(DREAM)).ifPresent(ResearchProgressionEvents::grantDreamJournal);
     }
 
     @SubscribeEvent
@@ -171,7 +171,7 @@ public final class ResearchProgressionEvents {
         }
         ServerPlayer player = online.get();
         PlayerKnowledge knowledge = knowledgeOf(player);
-        boolean auromancyPending = knowledge.isResearchKnown(UNLOCK_AUROMANCY) && !reached(knowledge, UNLOCK_AUROMANCY) && !knowledge.isResearchComplete(UNLOCK_AUROMANCY);
+        boolean auromancyPending = knowledge.knows(UNLOCK_AUROMANCY) && !reached(knowledge, UNLOCK_AUROMANCY) && !knowledge.hasCompleted(UNLOCK_AUROMANCY);
         if (auromancyPending) {
             checkAltitude(player, knowledge);
         }
@@ -223,15 +223,15 @@ public final class ResearchProgressionEvents {
     }
 
     private static PlayerKnowledge knowledgeOf(ServerPlayer player) {
-        return (PlayerKnowledge) KnowledgeAccess.of(player);
+        return (PlayerKnowledge) PlayerResearchAccess.of(player);
     }
 
     private static boolean reached(PlayerKnowledge knowledge, Identifier research) {
-        return knowledge.isResearchKnown(research, MINIMUM_STAGE) || knowledge.isResearchComplete(research);
+        return knowledge.hasReachedStage(research, MINIMUM_STAGE) || knowledge.hasCompleted(research);
     }
 
     private static boolean awardIfNew(ServerPlayer player, PlayerKnowledge knowledge, Identifier research) {
-        if (knowledge.isResearchKnown(research)) {
+        if (knowledge.knows(research)) {
             return false;
         }
         award(player, knowledge, research);
@@ -245,9 +245,9 @@ public final class ResearchProgressionEvents {
     }
 
     private static void award(ServerPlayer player, PlayerKnowledge knowledge, Identifier research) {
-        knowledge.addResearch(research);
+        knowledge.learn(research);
         knowledge.markComplete(research);
-        knowledge.sync(player);
+        knowledge.queueSync(player);
     }
 
     private static void actionBar(ServerPlayer player, String key) {
@@ -269,7 +269,7 @@ public final class ResearchProgressionEvents {
     private static WrittenBookContent dreamContent(ServerPlayer player) {
         List<Filterable<Component>> pages = BOOK_PAGE_KEYS.stream().map(ResearchProgressionEvents::page).toList();
         Filterable<String> title = Filterable.passThrough(Component.translatable(BOOK_TITLE_KEY).getString());
-        return new WrittenBookContent(title, player.getDisplayName().getString(), WrittenBookContent.MAX_GENERATION, pages, false);
+        return new WrittenBookContent(title, player.getPlainTextName(), WrittenBookContent.MAX_GENERATION, pages, false);
     }
 
     private static void grantDreamJournal(ServerPlayer player) {

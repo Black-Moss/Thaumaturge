@@ -7,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
@@ -16,6 +15,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.LivingEntity;
+import org.jspecify.annotations.Nullable;
 
 public final class EldritchGuardianRenderer extends MobRenderer<EntityEldritchGuardian, EldritchGuardianRenderState, EldritchGuardianModel> {
     private static final Identifier TEXTURE = TTIds.rl("textures/entity/eldritch_guardian.png");
@@ -66,8 +66,8 @@ public final class EldritchGuardianRenderer extends MobRenderer<EntityEldritchGu
     }
 
     @Override
-    protected RenderType getRenderType(EldritchGuardianRenderState state, boolean visible, boolean translucent, boolean glowing) {
-        return RenderTypes.entityTranslucent(getTextureLocation(state));
+    protected @Nullable RenderType getRenderType(EldritchGuardianRenderState state, boolean visible, boolean translucent, boolean glowing) {
+        return super.getRenderType(state, visible, true, glowing);
     }
 
     @Override

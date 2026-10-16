@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.screen.research;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.leclowndu93150.thaumaturge.api.research.IResearchCategory;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
 import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
@@ -34,7 +34,6 @@ final class BrowserSearch {
     private static final int HOVER_LEFT = 22;
     private static final int HOVER_RIGHT_OFFSET = 18;
     private static final int HOVER_HEIGHT = 8;
-    private static final int RESERVED_LINES = 1;
     private static final int MORE_X = 22;
     private static final int MORE_Y_GAP = 2;
     private static final int MORE_COLOR = 0xFFAAAAAA;
@@ -61,7 +60,7 @@ final class BrowserSearch {
 
     void rebuild(String query) {
         results.clear();
-        IPlayerKnowledge knowledge = model.knowledge();
+        PlayerResearch knowledge = model.knowledge();
         String needle = query.toLowerCase(Locale.ROOT);
         for (CategoryRef category : model.shownBuiltIn()) {
             addCategory(category, needle);
@@ -70,12 +69,12 @@ final class BrowserSearch {
             addCategory(category, needle);
         }
         for (EntryNode node : model.allEntries()) {
-            if (!knowledge.isResearchKnown(node.id())) {
+            if (!knowledge.knows(node.id())) {
                 continue;
             }
             add(Kind.ENTRY, Component.translatable(node.value().nameKey()).getString(), node.id(), needle);
             List<IResearchStage> stages = node.value().stages();
-            int index = Math.min(stages.size() - 1, knowledge.researchStage(node.id()) + RECIPE_STAGE_LOOKAHEAD);
+            int index = Math.min(stages.size() - 1, knowledge.stageOf(node.id()) + RECIPE_STAGE_LOOKAHEAD);
             if (index < 0 || index >= stages.size()) {
                 continue;
             }
@@ -117,7 +116,7 @@ final class BrowserSearch {
     }
 
     private static int visibleRows(int viewHeight) {
-        return Math.max(0, (viewHeight - FIRST_ROW_Y) / ROW_PITCH - RESERVED_LINES);
+        return Math.max(1, (viewHeight - FIRST_ROW_Y) / ROW_PITCH);
     }
 
     private void addCategory(CategoryRef category, String needle) {

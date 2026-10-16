@@ -7,6 +7,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -30,7 +31,7 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
     private static final double PUSH = 0.1;
     private static final double SPEED_CAP = 0.35;
     private static final double DAMPING = 0.9;
-    private static final double LIFT = 0.08;
+    private static final double HOVER = 0.08;
     private static final float IDLE_STREAM_CHANCE = 0.1F;
     private static final float STREAM_CHANCE = 0.6F;
 
@@ -97,6 +98,69 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
         }
     }
 
+    private void refuel(Level level, BlockPos pos) {
+        if (charge >= Math.max(REFUEL_THRESHOLD, reach.visCost())) {
+            return;
+        }
+        float received = AuraHelper.drainVis(level, pos, REFUEL_DRAW, false);
+        int gained = Math.round(received * CHARGE_PER_VIS);
+        if (gained > 0) {
+            charge += gained;
+            setChangedAndSync();
+        }
+    }
+
+    private int carry(Level level, BlockPos pos, Direction facing) {
+        AABB beam = new AABB(pos.relative(facing)).expandTowards(facing.getStepX() * (clearance - 1.0), facing.getStepY() * (clearance - 1.0), facing.getStepZ() * (clearance - 1.0));
+        List<Entity> riders = level.getEntities((Entity) null, beam, BlockEntityLevitator::canCarry);
+        int cost = reach.visCost();
+        int carried = 0;
+        for (Entity rider : riders) {
+            if (charge < cost) {
+                break;
+            }
+            charge -= cost;
+            carried++;
+            rider.resetFallDistance();
+            push(rider, facing);
+            if (level.isClientSide()) {
+                LevitatorMist.stream(level, pos, facing, STREAM_CHANCE);
+                LevitatorMist.cling(level, rider);
+            }
+        }
+        if (carried > 0 && !level.isClientSide()) {
+            setChanged();
+        }
+        return carried;
+    }
+
+    private static boolean canCarry(Entity entity) {
+        if (!entity.isAlive() || entity.isSpectator()) {
+            return false;
+        }
+        return entity instanceof ItemEntity || entity instanceof AbstractHorse || entity.isPushable();
+    }
+
+    private static void push(Entity rider, Direction facing) {
+        Vec3 motion = rider.getDeltaMovement();
+        if (facing == Direction.UP && rider.isShiftKeyDown()) {
+            if (motion.y < 0.0) {
+                rider.setDeltaMovement(motion.x, motion.y * DAMPING, motion.z);
+            }
+            return;
+        }
+        double x = motion.x + facing.getStepX() * PUSH;
+        double y = motion.y + facing.getStepY() * PUSH;
+        double z = motion.z + facing.getStepZ() * PUSH;
+        if (facing.getAxis() != Direction.Axis.Y && !rider.onGround()) {
+            if (y < 0.0) {
+                y *= DAMPING;
+            }
+            y += HOVER;
+        }
+        rider.setDeltaMovement(Mth.clamp(x, -SPEED_CAP, SPEED_CAP), Mth.clamp(y, -SPEED_CAP, SPEED_CAP), Mth.clamp(z, -SPEED_CAP, SPEED_CAP));
+    }
+
     private int measureClearance(Level level, BlockPos pos, Direction facing) {
         int range = reach.blocks();
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
@@ -109,59 +173,4 @@ public final class BlockEntityLevitator extends AbstractSyncedBlockEntity {
         return range;
     }
 
-    private void refuel(Level level, BlockPos pos) {
-        if (charge >= REFUEL_THRESHOLD) {
-            return;
-        }
-        int gain = (int) (AuraHelper.drainVis(level, pos, REFUEL_DRAW, false) * CHARGE_PER_VIS);
-        if (gain > 0) {
-            charge += gain;
-            setChangedAndSync();
-        }
-    }
-
-    private int carry(Level level, BlockPos pos, Direction facing) {
-        AABB column = new AABB(pos).expandTowards(facing.getStepX() * (double) clearance, facing.getStepY() * (double) clearance, facing.getStepZ() * (double) clearance);
-        List<Entity> candidates = level.getEntitiesOfClass(Entity.class, column, BlockEntityLevitator::canCarry);
-        int carried = 0;
-        for (Entity entity : candidates) {
-            if (charge <= 0) {
-                break;
-            }
-            push(entity, facing);
-            charge -= reach.visCost();
-            carried++;
-            if (level.isClientSide()) {
-                LevitatorMist.cling(level, entity);
-                LevitatorMist.stream(level, pos, facing, STREAM_CHANCE);
-            }
-        }
-        return carried;
-    }
-
-    private static boolean canCarry(Entity entity) {
-        if (!entity.isAlive() || entity.isSpectator()) {
-            return false;
-        }
-        return entity instanceof ItemEntity || entity instanceof AbstractHorse || entity instanceof Player || entity.isPushable();
-    }
-
-    private static void push(Entity entity, Direction facing) {
-        Vec3 velocity = entity.getDeltaMovement();
-        double x = velocity.x;
-        double y = velocity.y;
-        double z = velocity.z;
-        if (facing == Direction.UP && entity.isShiftKeyDown()) {
-            y = y < 0.0 ? y * DAMPING : y;
-        } else {
-            x = Math.clamp(x + facing.getStepX() * PUSH, -SPEED_CAP, SPEED_CAP);
-            y = Math.clamp(y + facing.getStepY() * PUSH, -SPEED_CAP, SPEED_CAP);
-            z = Math.clamp(z + facing.getStepZ() * PUSH, -SPEED_CAP, SPEED_CAP);
-            if (facing.getAxis().isHorizontal() && !entity.onGround()) {
-                y = (y < 0.0 ? y * DAMPING : y) + LIFT;
-            }
-        }
-        entity.setDeltaMovement(x, y, z);
-        entity.resetFallDistance();
-    }
 }

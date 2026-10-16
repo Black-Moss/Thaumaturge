@@ -185,6 +185,12 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
     }
 
     private void store(ServerLevel level, BlockPos pos, int amount) {
+        if (amount > 0) {
+            BlockState previous = level.getBlockState(pos);
+            if (!previous.isAir() && !previous.is(this)) {
+                level.destroyBlock(pos, false);
+            }
+        }
         level.setBlock(pos, amount > 0 ? gasBlockState(amount) : Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
         if (amount > 0) {
             scheduleFluxTick(level, pos);
@@ -258,7 +264,7 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
 
     @Override
     protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
-        if (!(level instanceof ServerLevel server) || !(entity instanceof LivingEntity living) || !isContactCell(level, pos, living) || isShielded(living)) {
+        if (!(level instanceof ServerLevel server) || !(entity instanceof LivingEntity living) || isShielded(living)) {
             return;
         }
         RandomSource random = server.getRandom();
@@ -270,14 +276,6 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
         PhysicalFlux.reduce(server, pos, 1);
     }
 
-    private static boolean isContactCell(Level level, BlockPos pos, LivingEntity living) {
-        BlockPos feet = living.blockPosition();
-        if (pos.equals(feet)) {
-            return true;
-        }
-        return !level.getBlockState(feet).is(TTBlocks.FLUX_GAS) && pos.equals(BlockPos.containing(living.getEyePosition()));
-    }
-
     private static boolean isShielded(LivingEntity living) {
         return MobTraits.isTainted(living) || living.is(EntityTypeTags.UNDEAD) || FluxImmunityHelper.isImmune(living) || living.hasEffect(TTMobEffects.VIS_EXHAUST)
                 || living.hasEffect(MobEffects.NAUSEA);
@@ -285,7 +283,7 @@ public final class BlockFluxGas extends Block implements PhysicalFluxBlock, Liqu
 
     private static MobEffectInstance visExhaust(int amount) {
         int amplifier = Math.min(VIS_EXHAUST_MAX_AMPLIFIER, (amount - 1) / VIS_EXHAUST_QUANTA_PER_LEVEL);
-        return new MobEffectInstance(TTMobEffects.VIS_EXHAUST, VIS_EXHAUST_TICKS, amplifier, false, true, false);
+        return new MobEffectInstance(TTMobEffects.VIS_EXHAUST, VIS_EXHAUST_TICKS, amplifier, true, true, false);
     }
 
     private static MobEffectInstance nausea(int amount) {

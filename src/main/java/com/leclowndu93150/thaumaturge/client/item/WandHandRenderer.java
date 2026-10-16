@@ -24,11 +24,15 @@ import net.neoforged.neoforge.client.event.RenderHandEvent;
 public final class WandHandRenderer {
     private static final float BASE_SCALE = 0.8F;
     private static final float ITEM_SCALE = 0.4F;
-    private static final float USE_TILT_MAX_TICKS = 3.0F;
-    private static final float USE_TILT_DEGREES = 60.0F;
-    private static final float WAVE_ROLL_PERIOD = 10.0F;
-    private static final float WAVE_PITCH_PERIOD = 15.0F;
-    private static final float WAVE_DEGREES = 10.0F;
+    private static final float USE_PIVOT_Y = 1.0F;
+    private static final float USE_BASE_PITCH_DEGREES = 10.0F;
+    private static final float USE_BASE_ROLL_DEGREES = 10.0F;
+    private static final float USE_TILT_DEGREES = -60.0F;
+    private static final float USE_TILT_TICKS = 3.0F;
+    private static final float USE_ROLL_SWAY_DEGREES = 10.0F;
+    private static final float USE_ROLL_SWAY_PERIOD = 10.0F;
+    private static final float USE_PITCH_SWAY_DEGREES = 10.0F;
+    private static final float USE_PITCH_SWAY_PERIOD = 15.0F;
 
     private WandHandRenderer() {}
 
@@ -118,13 +122,13 @@ public final class WandHandRenderer {
     }
 
     private static void applyUseWave(PoseStack poseStack, float mirror, float useTicks) {
-        float tilt = Math.min(useTicks, USE_TILT_MAX_TICKS);
-        poseStack.translate(0.0F, 1.0F, 0.0F);
-        poseStack.mulPose(Axis.XP.rotationDegrees(10.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * 10.0F));
-        poseStack.mulPose(Axis.XN.rotationDegrees(USE_TILT_DEGREES * (tilt / USE_TILT_MAX_TICKS)));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * Mth.sin(useTicks / WAVE_ROLL_PERIOD) * WAVE_DEGREES));
-        poseStack.mulPose(Axis.XP.rotationDegrees(Mth.sin(useTicks / WAVE_PITCH_PERIOD) * WAVE_DEGREES));
-        poseStack.translate(0.0F, -1.0F, 0.0F);
+        float tilt = USE_TILT_DEGREES * Math.min(useTicks, USE_TILT_TICKS) / USE_TILT_TICKS;
+        poseStack.translate(0.0F, USE_PIVOT_Y, 0.0F);
+        poseStack.mulPose(Axis.XP.rotationDegrees(USE_BASE_PITCH_DEGREES));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * USE_BASE_ROLL_DEGREES));
+        poseStack.mulPose(Axis.XP.rotationDegrees(tilt));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(mirror * USE_ROLL_SWAY_DEGREES * Mth.sin(useTicks / USE_ROLL_SWAY_PERIOD)));
+        poseStack.mulPose(Axis.XP.rotationDegrees(USE_PITCH_SWAY_DEGREES * Mth.sin(useTicks / USE_PITCH_SWAY_PERIOD)));
+        poseStack.translate(0.0F, -USE_PIVOT_Y, 0.0F);
     }
 }

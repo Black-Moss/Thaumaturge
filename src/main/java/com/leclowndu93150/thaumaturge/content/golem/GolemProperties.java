@@ -1,6 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.golem;
 
-import com.leclowndu93150.thaumaturge.api.capability.IPlayerKnowledge;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearch;
 import com.leclowndu93150.thaumaturge.api.golems.GolemTrait;
 import com.leclowndu93150.thaumaturge.api.golems.IGolemProperties;
 import com.leclowndu93150.thaumaturge.api.golems.parts.GolemAddon;
@@ -83,11 +83,11 @@ public final class GolemProperties implements IGolemProperties {
         return new GolemProperties(properties.material(), properties.head(), properties.arms(), properties.legs(), properties.addon(), properties.rank());
     }
 
-    public boolean isKnownBy(IPlayerKnowledge knowledge) {
+    public boolean isKnownBy(PlayerResearch knowledge) {
         List<List<Identifier>> requirements = List.of(material.research(), head.research(), arms.research(), legs.research(), addon.research());
         for (List<Identifier> research : requirements) {
             for (Identifier id : research) {
-                if (!knowledge.isResearchComplete(id)) {
+                if (!knowledge.hasCompleted(id)) {
                     return false;
                 }
             }

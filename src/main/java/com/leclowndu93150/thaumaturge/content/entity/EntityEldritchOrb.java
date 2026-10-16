@@ -4,7 +4,6 @@ import com.leclowndu93150.thaumaturge.registry.TTEntities;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -54,7 +53,7 @@ public class EntityEldritchOrb extends ThrowableProjectile {
     @Override
     protected void onHit(HitResult hit) {
         super.onHit(hit);
-        if (!(this.level() instanceof ServerLevel level) || !(this.getOwner() instanceof LivingEntity owner) || !owner.isAlive()) {
+        if (!(this.level() instanceof ServerLevel level) || !(this.getOwner() instanceof LivingEntity owner)) {
             return;
         }
         float damage = (float) owner.getAttributeValue(Attributes.ATTACK_DAMAGE) * DAMAGE_FACTOR;
@@ -62,9 +61,11 @@ public class EntityEldritchOrb extends ThrowableProjectile {
             victim.hurtServer(level, level.damageSources().indirectMagic(this, owner), damage);
             victim.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, WEAKNESS_TICKS, 0));
         }
-        RandomSource random = this.getRandom();
-        level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.LAVA_EXTINGUISH, SoundSource.HOSTILE, SOUND_VOLUME,
-                SOUND_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * SOUND_PITCH_SPREAD);
+        if (!this.isSilent()) {
+            RandomSource random = this.getRandom();
+            level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.LAVA_EXTINGUISH, this.getSoundSource(), SOUND_VOLUME,
+                    SOUND_PITCH_BASE + (random.nextFloat() - random.nextFloat()) * SOUND_PITCH_SPREAD);
+        }
         this.discard();
     }
 }

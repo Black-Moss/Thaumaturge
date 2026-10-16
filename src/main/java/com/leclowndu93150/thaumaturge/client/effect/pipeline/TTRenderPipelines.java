@@ -79,6 +79,10 @@ public final class TTRenderPipelines {
             .withSampler("Sampler0").withSampler("Sampler2").withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT)).withCull(false)
             .withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS).withDepthStencilState(DepthStencilState.DEFAULT).build();
 
+    public static final RenderPipeline ENTITY_TRANSLUCENT_NO_DEPTH_WRITE = RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET).withLocation(TTIds.rl("pipeline/entity_translucent_no_depth_write"))
+            .withShaderDefine("ALPHA_CUTOUT", 0.1F).withShaderDefine("PER_FACE_LIGHTING").withSampler("Sampler1").withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT)).withCull(false)
+            .withDepthStencilState(TEST_NO_WRITE).build();
+
     public static final RenderPipeline ENTITY_ADDITIVE_EMISSIVE = RenderPipeline.builder(RenderPipelines.MATRICES_FOG_SNIPPET).withLocation(TTIds.rl("pipeline/entity_additive_emissive"))
             .withVertexShader("core/entity").withFragmentShader("core/entity").withShaderDefine("EMISSIVE").withShaderDefine("NO_OVERLAY").withShaderDefine("NO_CARDINAL_LIGHTING")
             .withSampler("Sampler0").withColorTargetState(new ColorTargetState(TC_ADDITIVE)).withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS).withDepthStencilState(TEST_NO_WRITE)
@@ -95,6 +99,7 @@ public final class TTRenderPipelines {
     @SubscribeEvent
     static void register(RegisterRenderPipelinesEvent event) {
         event.registerPipeline(FX_ADDITIVE);
+        event.registerPipeline(ENTITY_TRANSLUCENT_NO_DEPTH_WRITE);
         event.registerPipeline(FX_ADDITIVE_ALPHA_TEST);
         event.registerPipeline(RIFT_GLOW);
         event.registerPipeline(RIFT_GLOW_NO_DEPTH);

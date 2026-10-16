@@ -18,6 +18,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
+import org.jspecify.annotations.Nullable;
 
 public final class MindSpiderRenderer extends MobRenderer<EntityMindSpider, MindSpiderRenderState, SpiderModel> {
     private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/entity/spider/spider.png");
@@ -63,8 +64,8 @@ public final class MindSpiderRenderer extends MobRenderer<EntityMindSpider, Mind
     }
 
     @Override
-    protected RenderType getRenderType(MindSpiderRenderState state, boolean visible, boolean translucent, boolean glowing) {
-        return RenderTypes.entityTranslucent(getTextureLocation(state));
+    protected @Nullable RenderType getRenderType(MindSpiderRenderState state, boolean visible, boolean translucent, boolean glowing) {
+        return super.getRenderType(state, visible, true, glowing);
     }
 
     @Override

@@ -27,6 +27,7 @@ public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStrea
     public static final EssentiaStreamManager INSTANCE = new EssentiaStreamManager();
 
     private static final Map<String, EssentiaStreamInstance> ACTIVE = new HashMap<>();
+    private static final List<EssentiaStreamInstance> STREAMS = new ArrayList<>();
 
     private EssentiaStreamManager() {}
 
@@ -35,11 +36,12 @@ public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStrea
     public static void spawn(double sx, double sy, double sz, double tx, double ty, double tz, int color, int count, float scale, int extend, double my) {
         String key = key(sx, sy, sz, tx, ty, tz, color);
         EssentiaStreamInstance existing = ACTIVE.get(key);
-        if (existing != null && !existing.isExpired()) {
-            existing.extend(extend);
+        if (existing != null && !existing.isExpired() && existing.extend(extend)) {
             return;
         }
-        ACTIVE.put(key, routed(new Vec3(sx, sy, sz), new Vec3(tx, ty, tz), color, count, scale, extend, my));
+        EssentiaStreamInstance stream = routed(new Vec3(sx, sy, sz), new Vec3(tx, ty, tz), color, count, scale, extend, my);
+        STREAMS.add(stream);
+        ACTIVE.put(key, stream);
     }
 
     private static EssentiaStreamInstance routed(Vec3 from, Vec3 to, int color, int count, float scale, int extend, double my) {
@@ -100,29 +102,31 @@ public final class EssentiaStreamManager extends AbstractFXManager<EssentiaStrea
     @Override
     public void clear() {
         ACTIVE.clear();
+        STREAMS.clear();
     }
 
     @Override
     public void tickAll(ClientLevel level) {
-        Iterator<Map.Entry<String, EssentiaStreamInstance>> it = ACTIVE.entrySet().iterator();
+        Iterator<EssentiaStreamInstance> it = STREAMS.iterator();
         while (it.hasNext()) {
-            Map.Entry<String, EssentiaStreamInstance> e = it.next();
-            e.getValue().tick();
-            if (e.getValue().isExpired())
+            EssentiaStreamInstance stream = it.next();
+            stream.tick();
+            if (stream.isExpired())
                 it.remove();
         }
+        ACTIVE.values().removeIf(EssentiaStreamInstance::isExpired);
     }
 
     @Override
     public void renderAll(PoseStack poseStack, Camera camera, float partialTick) {
-        if (ACTIVE.isEmpty())
+        if (STREAMS.isEmpty())
             return;
         MultiBufferSource.BufferSource bufferSource = Minecraft.getInstance().renderBuffers().bufferSource();
         VertexConsumer consumer = bufferSource.getBuffer(EssentiaStreamRenderType.RENDER_TYPE);
         double cx = camera.position().x;
         double cy = camera.position().y;
         double cz = camera.position().z;
-        for (EssentiaStreamInstance inst : ACTIVE.values()) {
+        for (EssentiaStreamInstance inst : STREAMS) {
             StreamInstance.Snapshot snap = inst.snapshot(partialTick);
             if (snap == null)
                 continue;

@@ -68,6 +68,10 @@ public final class EntityFallingTaint extends Entity implements IEntityWithCompl
 
     @Override
     public void tick() {
+        super.tick();
+        if (this.isRemoved()) {
+            return;
+        }
         if (this.tile.isAir()) {
             this.discard();
             return;

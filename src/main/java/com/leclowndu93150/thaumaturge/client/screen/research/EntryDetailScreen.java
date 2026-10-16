@@ -1,7 +1,7 @@
 package com.leclowndu93150.thaumaturge.client.screen.research;
 
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
-import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
+import com.leclowndu93150.thaumaturge.api.capability.PlayerResearchAccess;
 import com.leclowndu93150.thaumaturge.api.capability.ResearchFlag;
 import com.leclowndu93150.thaumaturge.api.research.IResearchEntry;
 import com.leclowndu93150.thaumaturge.api.research.IResearchStage;
@@ -45,8 +45,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import org.jspecify.annotations.Nullable;
 import org.joml.Matrix3x2fStack;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
 public final class EntryDetailScreen extends AbstractTTScreen {
@@ -143,14 +143,18 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         int displayedStage = model.displayedStage(player);
         int progressStage = model.progressStage(player);
         List<ResearchAddendum> addenda = model.unlockedAddenda(player);
-        model.replacePages(composePages(player, displayedStage, progressStage, addenda));
+        model.replacePages(composePages(player, displayedStage, addenda));
         model.markBuilt(displayedStage, progressStage, addenda.size());
     }
 
-    private List<PageParser.Page> composePages(@Nullable Player player, int displayedStage, int progressStage, List<ResearchAddendum> addenda) {
+    private List<PageParser.Page> composePages(@Nullable Player player, int displayedStage, List<ResearchAddendum> addenda) {
         IResearchStage shown = model.stages().get(displayedStage);
-        int knowledgeTypes = KnowledgeGridRenderer.activeTypeCount(player);
-        return PageTextLayout.compose(font, model.entryId(), shown, addenda, knowledgeTypes, model.stages().size(), progressStage);
+        int knowledgeRows = showsKnowledgeGrid(player) ? KnowledgeGridRenderer.activeTypeCount(player) : 0;
+        return PageTextLayout.compose(font, shown, addenda, knowledgeRows, model.stages().size(), model.progressStage(player));
+    }
+
+    private boolean showsKnowledgeGrid(@Nullable Player player) {
+        return model.isKnowledgeTypesEntry() && EntryDetailModel.knowsResearch(player, EntryDetailModel.KNOWLEDGE_TYPES_RESEARCH);
     }
 
     @Override
@@ -184,7 +188,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         if (insertOpen) {
             hits.clear();
         }
-        if (EntryDetailModel.knowsResearch(player, EntryDetailModel.KNOWLEDGE_TYPES_RESEARCH) && model.isKnowledgeTypesEntry()) {
+        if (model.leftPage() == 0 && showsKnowledgeGrid(player)) {
             KnowledgeGridRenderer.drawInPage(graphics, frame, pageMouseX, pageMouseY);
         }
         drawInsert(graphics, frame, stage, mouseX, mouseY);
@@ -482,7 +486,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         public void submitStageCompletion() {
             Player player = localPlayer();
             Identifier id = model.entryId();
-            model.beginHold(KnowledgeAccess.of(player).researchStage(id), player.level().getGameTime());
+            model.beginHold(PlayerResearchAccess.of(player).stageOf(id), player.level().getGameTime());
             ClientPacketDistributor.sendToServer(new ServerboundAdvanceStagePayload(id));
             player.playSound(TTSounds.WRITE.get(), WRITE.volume(), WRITE.pitch());
         }

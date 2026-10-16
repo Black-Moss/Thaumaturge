@@ -22,7 +22,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.jspecify.annotations.Nullable;
@@ -37,14 +36,8 @@ public final class EntryIconRenderer {
     private static final int RED_SHIFT = 16;
     private static final int GREEN_SHIFT = 8;
     private static final int COMPLETE_COLOR = 0xFFFFFFFF;
-    private static final int UNKNOWN_COLOR = 0xFF4D4D4D;
-    private static final int LOCKED_TEXTURE_TINT = 0xFF333333;
     private static final int WHITE = 0xFFFFFFFF;
     private static final int LOCKED_ITEM_OVERLAY = 0x7F000000;
-    private static final int WARP_TINT = 0xE5540070;
-    private static final long PULSE_PERIOD_MILLIS = 600L;
-    private static final float PULSE_BASE = 0.75F;
-    private static final float PULSE_AMPLITUDE = 0.25F;
     private static final float CHANNEL_MAX = 255.0F;
     private static final int FRAME_SIZE = 32;
     private static final int FRAME_OFFSET = 8;
@@ -65,14 +58,22 @@ public final class EntryIconRenderer {
     private static final int AURA_FRAME = 64;
     private static final int AURA_SHEET = 2048;
     private static final int AURA_GRID = 32;
-    private static final int AURA_FIRST_FRAME = 160;
     private static final long ICON_CYCLE_TICKS = 20L;
-    private static final int LOCKED_FOCUS_ALPHA = 50;
-    private static final int FOCUS_ALPHA = 220;
     private static final int FOCUS_BASE_SIZE = 24;
     private static final float FOCUS_BACK_SCALE = 0.9F;
     private static final int FOCUS_GLYPH_DIVISOR = 2;
-    private static final long TEXTURE_FRAME_MILLIS = 150L;
+    private static final long PULSE_PERIOD_MILLIS = 840L;
+    private static final float PULSE_BASE = 0.76F;
+    private static final float PULSE_AMPLITUDE = 0.24F;
+    private static final int UNKNOWN_COLOR = 0xFF575757;
+    private static final int LOCKED_TEXTURE_TINT = 0xFF1C1A20;
+    private static final int WARP_TINT = 0xA88A3FD6;
+    private static final int AURA_ROW = 9;
+    private static final long AURA_FRAME_MILLIS = 65L;
+    private static final long AURA_TURN_MILLIS = 26000L;
+    private static final long TEXTURE_FRAME_MILLIS = 190L;
+    private static final int FOCUS_ALPHA = 245;
+    private static final int LOCKED_FOCUS_ALPHA = 60;
 
     public enum Status {
         UNKNOWN, IN_PROGRESS, COMPLETE
@@ -92,18 +93,31 @@ public final class EntryIconRenderer {
     }
 
     public static int pulseColor() {
-        int grey = greyLevel(pulsePhase());
-        return grey | grey << GREEN_SHIFT | grey << RED_SHIFT | OPAQUE << ALPHA_SHIFT;
+        int level = greyLevel(pulsePhase());
+        return OPAQUE << ALPHA_SHIFT | level << RED_SHIFT | level << GREEN_SHIFT | level;
     }
 
     private static float pulsePhase() {
         long elapsed = Util.getMillis() % PULSE_PERIOD_MILLIS;
-        return elapsed / (float) PULSE_PERIOD_MILLIS;
+        return (float) elapsed / PULSE_PERIOD_MILLIS;
     }
 
     private static int greyLevel(float phase) {
-        float brightness = PULSE_AMPLITUDE * Mth.sin((float) (2.0 * Math.PI * phase)) + PULSE_BASE;
-        return Mth.clamp(Math.round(brightness * CHANNEL_MAX), 0, OPAQUE);
+        float wave = (Mth.sin(phase * Mth.TWO_PI) + 1.0F) / 2.0F;
+        return Mth.clamp(Math.round((PULSE_BASE + PULSE_AMPLITUDE * wave) * CHANNEL_MAX), 0, OPAQUE);
+    }
+
+    public static void drawForbidden(GuiGraphicsExtractor graphics, int x, int y) {
+        long now = Util.getMillis();
+        int frame = (int) (now / AURA_FRAME_MILLIS % AURA_GRID);
+        float angle = (float) (now % AURA_TURN_MILLIS) / AURA_TURN_MILLIS * Mth.TWO_PI;
+        int half = AURA_SIZE / 2;
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) (x + ICON_CENTER_OFFSET), (float) (y + ICON_CENTER_OFFSET));
+        graphics.pose().rotate(angle);
+        graphics.blit(TTRenderPipelines.GUI_TEXTURED_ADDITIVE, NODE_TEXTURE, -half, -half, (float) (frame * AURA_FRAME), (float) (AURA_ROW * AURA_FRAME), AURA_SIZE, AURA_SIZE, AURA_FRAME, AURA_FRAME,
+                AURA_SHEET, AURA_SHEET, WARP_TINT);
+        graphics.pose().popMatrix();
     }
 
     public static void render(GuiGraphicsExtractor graphics, int x, int y, IResearchEntry entry, Status status, ItemStack stack, boolean hasWarp, boolean newResearch, boolean newPage, int ticks) {
@@ -179,19 +193,6 @@ public final class EntryIconRenderer {
         float alpha = (locked ? LOCKED_FOCUS_ALPHA : FOCUS_ALPHA) / CHANNEL_MAX;
         ResourceKey<SpellPart> key = ResourceKey.create(SpellPart.REGISTRY_KEY, elementId);
         SpellPartIcons.draw(graphics, level.registryAccess(), key, x + ICON_CENTER_OFFSET, y + ICON_CENTER_OFFSET, back, glyph, FOCUS_BASE_SIZE, alpha);
-    }
-
-    public static void drawForbidden(GuiGraphicsExtractor graphics, int x, int y) {
-        Player player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
-        int frame = AURA_FIRST_FRAME + player.tickCount % AURA_GRID;
-        float u = (frame % AURA_GRID) * AURA_FRAME;
-        float v = (frame / AURA_GRID) * AURA_FRAME;
-        int half = AURA_SIZE / 2;
-        graphics.blit(TTRenderPipelines.GUI_TEXTURED_ADDITIVE, NODE_TEXTURE, x + ICON_CENTER_OFFSET - half, y + ICON_CENTER_OFFSET - half, u, v, AURA_SIZE, AURA_SIZE, AURA_FRAME, AURA_FRAME,
-                AURA_SHEET, AURA_SHEET, WARP_TINT);
     }
 
     private static @Nullable ResearchRequirement leadingRequirement(IResearchEntry entry) {

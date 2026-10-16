@@ -9,9 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.AnimationState;
 import net.minecraft.world.entity.Entity;
@@ -42,29 +40,28 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
     private static final SoundEvent AMBIENT_SOUND = SoundEvents.BAT_AMBIENT;
     private static final SoundEvent HURT_SOUND = SoundEvents.BAT_HURT;
     private static final SoundEvent DEATH_SOUND = SoundEvents.BAT_DEATH;
-    private static final float SOUND_VOLUME = 0.1F;
-    private static final double VERTICAL_DAMPING = 0.6;
     private static final double TARGET_RANGE = 12.0;
-    private static final int ROOST_REROLL_ODDS = 30;
     private static final double ROOST_ARRIVAL = 2.0;
     private static final int ROOST_SPAN = 6;
-    private static final int ROOST_WIDTH = 2 * ROOST_SPAN + 1;
     private static final int ROOST_DEPTH_BELOW = 2;
     private static final int ROOST_HEIGHT = 6;
     private static final double STRIKE_REACH = 2.5;
     private static final double STRIKE_WIDTH_FACTOR = 1.1;
     private static final int STRIKE_COOLDOWN = 40;
     private static final float STRIKE_COST = 1.0F;
-    private static final float STRIKE_VOLUME = 0.5F;
-    private static final float STRIKE_PITCH_BASE = 0.9F;
-    private static final float STRIKE_PITCH_RANGE = 0.2F;
     private static final double CRUISE_HORIZONTAL = 0.5;
     private static final double CRUISE_VERTICAL = 0.7;
+    private static final double VERTICAL_DAMPING = 0.6;
     private static final double STEER_RATE = 0.1;
     private static final float FORWARD_INPUT = 0.5F;
     private static final float QUARTER_TURN = 90.0F;
-    private static final float DEGREES_PER_RADIAN = 180.0F / (float) Math.PI;
+    private static final int ROOST_REROLL_ODDS = 30;
     private static final double AURA_SPREAD = 0.125;
+    private static final float SOUND_VOLUME = 0.1F;
+    private static final float STRIKE_VOLUME = 0.5F;
+    private static final float STRIKE_PITCH_BASE = 0.9F;
+    private static final float STRIKE_PITCH_RANGE = 0.2F;
+    private static final float DEGREES_PER_RADIAN = 180.0F / (float) Math.PI;
 
     public final AnimationState flyAnimationState = new AnimationState();
 
@@ -181,30 +178,41 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
     }
 
     @Override
-    public void tick() {
-        super.tick();
-        setDeltaMovement(getDeltaMovement().multiply(1.0, VERTICAL_DAMPING, 1.0));
-        flyAnimationState.startIfStopped(tickCount);
-        if (!level().isClientSide() && shouldExpire()) {
-            discard();
-        }
-        if (level().isClientSide()) {
-            emitAura();
-        }
-    }
-
-    @Override
     public boolean isIgnoringBlockTriggers() {
         return true;
     }
 
+    @Override
+    protected void doPush(Entity entity) {
+        if (!allies) {
+            super.doPush(entity);
+        }
+    }
+
+    @Override
+    public void tick() {
+        if (!level().isClientSide() && shouldExpire()) {
+            discard();
+            return;
+        }
+        super.tick();
+        setDeltaMovement(getDeltaMovement().multiply(1.0, VERTICAL_DAMPING, 1.0));
+        if (level().isClientSide()) {
+            flyAnimationState.startIfStopped(tickCount);
+            emitAura();
+        }
+    }
+
     private void emitAura() {
-        Vec3 jitter = new Vec3(random.nextGaussian(), random.nextGaussian(), random.nextGaussian()).scale(AURA_SPREAD).add(0.0, getBbHeight() / 2.0, 0.0);
-        CarrierPayload.particle(level(), charge.look(), position().add(jitter), Vec3.ZERO);
+        double x = getX() + random.nextGaussian() * AURA_SPREAD;
+        double y = getY() + getBbHeight() / 2.0 + random.nextGaussian() * AURA_SPREAD;
+        double z = getZ() + random.nextGaussian() * AURA_SPREAD;
+        Vec3 at = new Vec3(x, y, z);
+        CarrierPayload.particle(level(), charge.look(), at, Vec3.ZERO);
     }
 
     private boolean shouldExpire() {
-        return level().getDifficulty() == Difficulty.PEACEFUL || tickCount > MAX_AGE || charge.isSpent() || getOwner() == null;
+        return tickCount > MAX_AGE || charge.isSpent() || getOwner() == null;
     }
 
     @Override
@@ -235,9 +243,50 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
         fly(aim);
         double reach = Math.max(STRIKE_REACH, STRIKE_WIDTH_FACTOR * target.getBbWidth());
         boolean ready = tickCount >= strikeReadyAt;
-        if (ready && getBoundingBox().getCenter().distanceTo(aim) <= reach && hasLineOfSight(target)) {
-            strike(level, aim);
+        if (ready && distanceTo(target) < reach && hasLineOfSight(target)) {
+            strike(level, target, aim);
         }
+    }
+
+    private void strike(ServerLevel level, LivingEntity target, Vec3 aim) {
+        strikeReadyAt = tickCount + STRIKE_COOLDOWN;
+        Vec3 heading = aim.subtract(position());
+        charge.resume(level, List.of(SpellTarget.entity(target, heading)));
+        float pitch = STRIKE_PITCH_BASE + random.nextFloat() * STRIKE_PITCH_RANGE;
+        playSound(HURT_SOUND, STRIKE_VOLUME, pitch);
+        float left = getHealth() - STRIKE_COST;
+        if (left > 0.0F) {
+            setHealth(left);
+        } else {
+            kill(level);
+        }
+    }
+
+    private void fly(Vec3 goal) {
+        Vec3 motion = getDeltaMovement();
+        double pullX = (Math.signum(goal.x - getX()) * CRUISE_HORIZONTAL - motion.x) * STEER_RATE;
+        double pullY = (Math.signum(goal.y - getY()) * CRUISE_VERTICAL - motion.y) * STEER_RATE;
+        double pullZ = (Math.signum(goal.z - getZ()) * CRUISE_HORIZONTAL - motion.z) * STEER_RATE;
+        Vec3 next = motion.add(pullX, pullY, pullZ);
+        setDeltaMovement(next);
+        float yaw = (float) Mth.atan2(next.z, next.x) * DEGREES_PER_RADIAN - QUARTER_TURN;
+        setYRot(yaw);
+        setYHeadRot(yaw);
+        yBodyRot = yaw;
+        zza = FORWARD_INPUT;
+    }
+
+    private Vec3 roostGoal(ServerLevel level) {
+        if (roost != null && (!level.isEmptyBlock(roost) || roost.getY() <= level.getMinY())) {
+            roost = null;
+        }
+        if (roost == null || roost.closerToCenterThan(position(), ROOST_ARRIVAL) || random.nextInt(ROOST_REROLL_ODDS) == 0) {
+            int dx = random.nextInt(ROOST_SPAN + 1) - random.nextInt(ROOST_SPAN + 1);
+            int dy = random.nextInt(ROOST_HEIGHT) - ROOST_DEPTH_BELOW;
+            int dz = random.nextInt(ROOST_SPAN + 1) - random.nextInt(ROOST_SPAN + 1);
+            roost = BlockPos.containing(getX() + dx, getY() + dy, getZ() + dz);
+        }
+        return Vec3.atCenterOf(roost);
     }
 
     private boolean valid(LivingEntity candidate) {
@@ -247,36 +296,4 @@ public final class SpellBat extends Monster implements TraceableEntity, IEntityW
         return allies || !(candidate instanceof Player player && player.getAbilities().invulnerable);
     }
 
-    private Vec3 roostGoal(ServerLevel level) {
-        BlockPos current = roost;
-        if (current != null && (!level.isEmptyBlock(current) || current.getY() <= level.getMinY())) {
-            current = null;
-        }
-        if (current == null || random.nextInt(ROOST_REROLL_ODDS) == 0 || current.closerToCenterThan(position(), ROOST_ARRIVAL)) {
-            current = blockPosition().offset(random.nextInt(ROOST_WIDTH) - ROOST_SPAN, random.nextInt(ROOST_HEIGHT) - ROOST_DEPTH_BELOW, random.nextInt(ROOST_WIDTH) - ROOST_SPAN);
-        }
-        roost = current;
-        return Vec3.atCenterOf(current);
-    }
-
-    private void fly(Vec3 goal) {
-        Vec3 velocity = getDeltaMovement();
-        Vec3 steered = velocity.add((Math.signum(goal.x - getX()) * CRUISE_HORIZONTAL - velocity.x) * STEER_RATE, (Math.signum(goal.y - getY()) * CRUISE_VERTICAL - velocity.y) * STEER_RATE,
-                (Math.signum(goal.z - getZ()) * CRUISE_HORIZONTAL - velocity.z) * STEER_RATE);
-        setDeltaMovement(steered);
-        float heading = (float) Mth.atan2(steered.z, steered.x) * DEGREES_PER_RADIAN - QUARTER_TURN;
-        zza = FORWARD_INPUT;
-        setYRot(getYRot() + Mth.wrapDegrees(heading - getYRot()));
-    }
-
-    private void strike(ServerLevel level, Vec3 aim) {
-        strikeReadyAt = tickCount + STRIKE_COOLDOWN;
-        charge.resume(level, List.of(SpellTarget.entity(prey, aim.subtract(position()))));
-        level.playSound(null, getX(), getY(), getZ(), SoundEvents.BAT_HURT, SoundSource.HOSTILE, STRIKE_VOLUME, STRIKE_PITCH_BASE + random.nextFloat() * STRIKE_PITCH_RANGE);
-        if (getHealth() - STRIKE_COST <= 0.0F) {
-            kill(level);
-        } else {
-            setHealth(getHealth() - STRIKE_COST);
-        }
-    }
 }

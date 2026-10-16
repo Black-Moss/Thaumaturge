@@ -11,12 +11,12 @@ public final class FocusCloudParticle extends TTParticle {
     private static final int LIFETIME_BASE = 20;
     private static final int LIFETIME_RANGE = 10;
     private static final float FRICTION = 0.99F;
+    private static final float SIZE_UNIT = 0.1F;
     private static final float START_SIZE_BASE = 5.0F;
     private static final float END_SIZE_BASE = 10.0F;
-    private static final float SIZE_UNIT = 0.1F;
     private static final float PEAK_ALPHA = 0.66F;
     private static final float SPIN_SPEED = 0.25F;
-    private static final double WIND_SCALE = 0.001;
+    private static final double WIND_SCALE = 1.0E-3;
 
     private final float startSize;
     private final float endSize;

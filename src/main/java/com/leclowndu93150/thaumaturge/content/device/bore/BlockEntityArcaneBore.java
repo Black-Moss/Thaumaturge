@@ -31,6 +31,7 @@ public final class BlockEntityArcaneBore extends AbstractSyncedBlockEntity imple
     public static final float EYE_HEIGHT = 0.8125F;
 
     private static final float MAX_HEAD_PITCH = 90.0F;
+    private static final double CENTER = 0.5;
     private static final double EJECT_DISTANCE = 0.75;
 
     private final ArcaneBoreCore core = new ArcaneBoreCore();
@@ -56,13 +57,12 @@ public final class BlockEntityArcaneBore extends AbstractSyncedBlockEntity imple
     public static void clientTick(Level level, BlockPos pos, BlockState state, BlockEntityArcaneBore bore) {
         bore.prevYaw = bore.yaw;
         bore.prevPitch = bore.pitch;
-        BlockPos target = bore.digTarget;
-        if (target != null) {
-            bore.aimBore(target.getX() + 0.5, target.getY(), target.getZ() + 0.5, ArcaneBoreCore.IDLE_YAW_STEP, ArcaneBoreCore.DIG_PITCH_STEP);
+        if (bore.digging && bore.digTarget != null) {
+            ArcaneBoreCore.aimDig(bore, bore.digTarget);
             return;
         }
         Direction facing = bore.boreFacing();
-        bore.aimBore(pos.getX() + 0.5 + facing.getStepX(), pos.getY() + facing.getStepY(), pos.getZ() + 0.5 + facing.getStepZ(), ArcaneBoreCore.IDLE_YAW_STEP, ArcaneBoreCore.IDLE_PITCH_STEP);
+        bore.aimBore(pos.getX() + CENTER + facing.getStepX(), pos.getY() + facing.getStepY(), pos.getZ() + CENTER + facing.getStepZ(), ArcaneBoreCore.IDLE_YAW_STEP, ArcaneBoreCore.IDLE_PITCH_STEP);
     }
 
     public float renderYaw(float partialTicks) {

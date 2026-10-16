@@ -18,12 +18,12 @@ public final class BlockEntityTubeOneway extends BlockEntityTube {
     }
 
     @Override
-    public boolean canInputFrom(Direction face) {
+    public boolean receivesOn(Direction face) {
         return face != null && face != flowSide().getOpposite() && isSideOpen(face);
     }
 
     @Override
-    public boolean canOutputTo(Direction face) {
+    public boolean releasesOn(Direction face) {
         return face != null && face == flowSide().getOpposite() && isSideOpen(face);
     }
 

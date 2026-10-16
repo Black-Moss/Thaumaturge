@@ -33,14 +33,17 @@ public final class EldritchCapRenderer<T extends BlockEntity> implements BlockEn
     private static final float CENTER = 0.5F;
     private static final float UPRIGHT_DEGREES = 90.0F;
     private static final int MAX_EYES = 4;
-    private static final float EYE_SIDE_DEGREES = 90.0F;
-    private static final float EYE_BASE_YAW = 90.0F;
-    private static final float EYE_HEIGHT = 0.2F;
-    private static final float EYE_REACH = 0.46F;
-    private static final float EYE_TILT_DEGREES = -18.0F;
-    private static final float ITEM_SCALE = 0.5128205F;
-    private static final float EYE_LIFT = 0.075F;
     private static final float FLIP_DEGREES = 180.0F;
+    private static final float EYE_SIDE_DEGREES = 90.0F;
+    private static final float EYE_FIRST_SIDE_DEGREES = 90.0F;
+    private static final float EYE_HEIGHT = 0.2F;
+    private static final float RIM_HEIGHT = 0.041F;
+    private static final float RIM_REACH = 0.497F;
+    private static final float SIDE_SLOPE = 0.249F;
+    private static final float EYE_TILT_DEGREES = 14.0F;
+    private static final float EYE_STANDOFF = 0.02F;
+    private static final float EYE_SCALE = 0.5128205F;
+    private static final float EYE_REACH = RIM_REACH - (EYE_HEIGHT - RIM_HEIGHT) * SIDE_SLOPE;
     private static final int OUTLINE_NONE = 0;
     private static final int DISPLAY_SEED = 0;
 
@@ -107,12 +110,13 @@ public final class EldritchCapRenderer<T extends BlockEntity> implements BlockEn
     }
 
     private static void placeEye(PoseStack poseStack, int side) {
-        poseStack.translate(CENTER, 0.0F, CENTER);
-        poseStack.mulPose(Axis.YP.rotationDegrees(EYE_BASE_YAW + side * EYE_SIDE_DEGREES));
-        poseStack.translate(0.0F, EYE_HEIGHT, EYE_REACH);
-        poseStack.mulPose(Axis.XP.rotationDegrees(EYE_TILT_DEGREES));
-        poseStack.scale(ITEM_SCALE, ITEM_SCALE, ITEM_SCALE);
-        poseStack.translate(0.0F, EYE_LIFT, 0.0F);
+        poseStack.translate(CENTER, EYE_HEIGHT, CENTER);
+        poseStack.mulPose(Axis.YP.rotationDegrees(EYE_FIRST_SIDE_DEGREES + side * EYE_SIDE_DEGREES));
+        poseStack.translate(0.0F, 0.0F, EYE_REACH);
+        poseStack.mulPose(Axis.XN.rotationDegrees(EYE_TILT_DEGREES));
+        poseStack.translate(0.0F, 0.0F, EYE_STANDOFF);
         poseStack.mulPose(Axis.YP.rotationDegrees(FLIP_DEGREES));
+        poseStack.scale(EYE_SCALE, EYE_SCALE, EYE_SCALE);
     }
+
 }

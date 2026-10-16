@@ -79,7 +79,8 @@ public class SpaScreen extends AbstractTTContainerScreen<MenuSpa> {
             int tint = -1;
             if (model.tintSource() != null) {
                 BlockState fluidBlock = fluid.defaultFluidState().createLegacyBlock();
-                tint = ARGB.opaque(model.tintSource().color(fluidBlock));
+                Minecraft mc = Minecraft.getInstance();
+                tint = ARGB.opaque(mc.level != null && mc.player != null ? model.tintSource().colorInWorld(fluidBlock, mc.level, mc.player.blockPosition()) : model.tintSource().color(fluidBlock));
             }
             for (int a = 0; a < FLUID_SEGMENTS; a++) {
                 graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x + FLUID_X, y + FLUID_Y + a * FLUID_WIDTH, FLUID_WIDTH, FLUID_WIDTH, tint);

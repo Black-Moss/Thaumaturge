@@ -22,8 +22,12 @@ public final class InfusionToolMatchers {
     private static final String TOKEN_HOE = "hoe";
     private static final String TOKEN_ARMOR = "armor";
     private static final String TOKEN_RECHARGEABLE = "rechargeable";
-    private static final String TOKEN_CHARGABLE = "chargable";
-    private static final Map<EquipmentSlot, String> SLOT_TOKEN_OVERRIDES = Map.of(EquipmentSlot.HEAD, "helm", EquipmentSlot.FEET, "boots");
+    private static final String TOKEN_HEAD = "head";
+    private static final String TOKEN_CHEST = "chest";
+    private static final String TOKEN_LEGS = "legs";
+    private static final String TOKEN_BOOTS = "boots";
+    private static final Map<EquipmentSlot, String> SLOT_TOKENS = Map.of(EquipmentSlot.HEAD, TOKEN_HEAD, EquipmentSlot.CHEST, TOKEN_CHEST, EquipmentSlot.LEGS, TOKEN_LEGS, EquipmentSlot.FEET,
+            TOKEN_BOOTS);
     private static final Map<String, Predicate<ItemStack>> MATCHERS = buildMatchers();
 
     private InfusionToolMatchers() {}
@@ -48,12 +52,7 @@ public final class InfusionToolMatchers {
         matchers.put(TOKEN_HOE, stack -> stack.is(ItemTags.HOES));
         matchers.put(TOKEN_ARMOR, stack -> stack.has(DataComponents.EQUIPPABLE));
         matchers.put(TOKEN_RECHARGEABLE, RechargeAccess::isRechargeable);
-        matchers.put(TOKEN_CHARGABLE, RechargeAccess::isRechargeable);
-        for (EquipmentSlot slot : EquipmentSlot.values()) {
-            if (slot.getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
-                matchers.put(SLOT_TOKEN_OVERRIDES.getOrDefault(slot, slot.getName()), stack -> equippedIn(stack, slot));
-            }
-        }
+        SLOT_TOKENS.forEach((slot, token) -> matchers.put(token, stack -> equippedIn(stack, slot)));
         return Map.copyOf(matchers);
     }
 

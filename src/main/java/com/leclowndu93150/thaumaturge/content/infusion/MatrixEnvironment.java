@@ -32,7 +32,8 @@ public record MatrixEnvironment(List<BlockPos> pedestals, int cycleTime, float c
         List<InfusionModifier> modifiers = Stream.of(fromPedestals, fromPillars, fromUpgrades).flatMap(stream -> stream).filter(Objects::nonNull).toList();
         int cycle = BASE_CYCLE_TIME;
         float cost = BASE_COST_MULTIPLIER;
-        float stability = InfusionStabilitySurvey.survey(level, matrix).stabilityReplenish();
+        InfusionStabilitySurvey.Result stabilisers = InfusionStabilitySurvey.survey(level, matrix);
+        float stability = stabilisers.stabilityReplenish();
         for (InfusionModifier entry : modifiers) {
             cycle += entry.cycleTime();
             cost += entry.cost();

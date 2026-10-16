@@ -5,7 +5,6 @@ import com.leclowndu93150.thaumaturge.content.research.DeviceGate;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
 import java.util.function.Consumer;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
@@ -55,7 +54,7 @@ public final class ItemHandMirror extends Item {
         if (!level.isClientSide()) {
             stack.set(TTDataComponents.MIRROR_LINK.get(), GlobalPos.of(level.dimension(), pos));
             level.playSound(null, pos, TTSounds.JAR.get(), SoundSource.BLOCKS, LINK_VOLUME, LINK_PITCH);
-            player.sendSystemMessage(Component.translatable(LINKED_KEY).withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+            player.sendSystemMessage(Component.translatable(LINKED_KEY));
         }
         return InteractionResult.SUCCESS;
     }
@@ -70,7 +69,7 @@ public final class ItemHandMirror extends Item {
             return InteractionResult.PASS;
         }
         if (!DeviceGate.passes(player, RESEARCH)) {
-            return InteractionResult.SUCCESS;
+            return InteractionResult.SUCCESS_SERVER;
         }
         ItemStack stack = player.getItemInHand(hand);
         GlobalPos link = stack.get(TTDataComponents.MIRROR_LINK.get());
@@ -110,7 +109,7 @@ public final class ItemHandMirror extends Item {
     }
 
     private static void breakLink(ItemStack mirror, ServerPlayer player) {
-        Component notice = Component.translatable(MISSING_KEY).withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC);
+        Component notice = Component.translatable(MISSING_KEY);
         mirror.remove(TTDataComponents.MIRROR_LINK.get());
         BlockPos at = player.blockPosition();
         player.level().playSound(null, at, TTSounds.ZAP.get(), SoundSource.PLAYERS, BREAK_VOLUME, BREAK_PITCH);
@@ -131,6 +130,6 @@ public final class ItemHandMirror extends Item {
         }
         BlockPos pos = link.pos();
         String dimension = link.dimension().identifier().toString();
-        builder.accept(Component.translatable(LINKED_TO_KEY, pos.getX(), pos.getY(), pos.getZ(), dimension).withStyle(ChatFormatting.DARK_PURPLE));
+        builder.accept(Component.translatable(LINKED_TO_KEY, pos.getX(), pos.getY(), pos.getZ(), dimension));
     }
 }

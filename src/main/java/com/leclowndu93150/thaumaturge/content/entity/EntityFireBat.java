@@ -22,7 +22,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
@@ -36,7 +35,7 @@ import org.jspecify.annotations.Nullable;
 
 public final class EntityFireBat extends Monster {
     private static final EntityDataAccessor<Boolean> HANGING = SynchedEntityData.defineId(EntityFireBat.class, EntityDataSerializers.BOOLEAN);
-    private static final TargetingConditions HANG_DISTURBANCE = TargetingConditions.forNonCombat().range(4.0);
+    private static final double HANG_WAKE_RANGE = 4.0;
     private static final String HANG_KEY = "hang";
     private static final String DAMAGE_BONUS_KEY = "damBonus";
     private static final String LIFETIME_KEY = "SummonLife";
@@ -206,7 +205,7 @@ public final class EntityFireBat extends Monster {
     }
 
     private void hangOrLeave(ServerLevel level, boolean ceiling) {
-        if (!ceiling || level.getNearestPlayer(HANG_DISTURBANCE, this) != null) {
+        if (!ceiling || level.getNearestPlayer(this, HANG_WAKE_RANGE) != null) {
             takeOff(level);
             return;
         }

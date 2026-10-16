@@ -7,11 +7,11 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 
 public final class LevitatorMistParticle extends TTParticle {
-    private static final int LIFETIME_BASE = 200;
-    private static final int LIFETIME_RANGE = 100;
     private static final float RED = 0.5F;
     private static final float GREEN = 0.5F;
     private static final float BLUE = 0.2F;
+    private static final int LIFETIME_BASE = 200;
+    private static final int LIFETIME_RANGE = 100;
     private static final float START_SIZE = 0.2F;
     private static final float END_SIZE = 0.5F;
     private static final float ALPHA_SCALE = 0.3F;
