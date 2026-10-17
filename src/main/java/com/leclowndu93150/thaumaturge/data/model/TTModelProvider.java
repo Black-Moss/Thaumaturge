@@ -11,6 +11,7 @@ import com.leclowndu93150.thaumaturge.client.model.GolemBuilderItemSpecialRender
 import com.leclowndu93150.thaumaturge.client.model.GolemItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.JarBrainItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.JarItemSpecialRenderer;
+import com.leclowndu93150.thaumaturge.client.model.ResearchTableItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.JarNodeItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.NitorItemSpecialRenderer;
 import com.leclowndu93150.thaumaturge.client.model.NodeStabilizerItemSpecialRenderer;
@@ -1233,8 +1234,10 @@ public final class TTModelProvider extends ModelProvider {
                         .select(ResearchTablePart.EXT, BlockModelGenerators.plainVariant(ext))).with(PropertyDispatch.modify(BlockResearchTable.FACING).generate(TTModelProvider::northYRotation)));
         Matrix4f mainItem = new Matrix4f().translate(BLOCK_CENTER, BLOCK_CENTER, BLOCK_CENTER).scale(RESEARCH_TABLE_ITEM_SCALE).translate(-BLOCK_CENTER, -BLOCK_CENTER, 0.0F);
         Matrix4f extItem = new Matrix4f(mainItem).translate(0.0F, 0.0F, -1.0F).mul(northYTransformation(Direction.SOUTH).getMatrixCopy());
-        itemModels.itemModelOutput.accept(block.asItem(), ItemModelUtils.composite(new CuboidItemModelWrapper.Unbaked(main, Optional.of(new Transformation(mainItem)), List.of()),
-                new CuboidItemModelWrapper.Unbaked(ext, Optional.of(new Transformation(extItem)), List.of())));
+        itemModels.itemModelOutput.accept(block.asItem(),
+                ItemModelUtils.composite(new CuboidItemModelWrapper.Unbaked(main, Optional.of(new Transformation(mainItem)), List.of()),
+                        new CuboidItemModelWrapper.Unbaked(ext, Optional.of(new Transformation(extItem)), List.of()),
+                        new SpecialModelWrapper.Unbaked(main, Optional.of(new Transformation(mainItem)), new ResearchTableItemSpecialRenderer.Unbaked())));
     }
 
     private void registerJarBrain(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {

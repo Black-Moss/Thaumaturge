@@ -31,6 +31,8 @@ public class TTModelsHandlers {
 
     public static final Identifier NITOR_MODEL_ID = TTIds.rl("nitor");
 
+    public static final Identifier RESEARCH_TABLE_MODEL_ID = TTIds.rl("research_table");
+
     public static final Identifier WAND_IS_STAFF_PROPERTY_ID = TTIds.rl("wand_is_staff");
 
     public static final Identifier MESH_LOADER_ID = TTIds.rl("mesh");
@@ -47,6 +49,7 @@ public class TTModelsHandlers {
         event.register(WAND_MODEL_ID, WandItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(NODE_STABILIZER_MODEL_ID, NodeStabilizerItemSpecialRenderer.Unbaked.MAP_CODEC);
         event.register(NITOR_MODEL_ID, NitorItemSpecialRenderer.Unbaked.MAP_CODEC);
+        event.register(RESEARCH_TABLE_MODEL_ID, ResearchTableItemSpecialRenderer.Unbaked.MAP_CODEC);
     }
 
     @SubscribeEvent

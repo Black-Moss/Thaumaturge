@@ -33,14 +33,10 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
     private static final Identifier INKWELL_TEXTURE = TTIds.rl("textures/entity/research_inkwell.png");
     private static final Identifier SCROLL_TEXTURE = TTIds.rl("textures/entity/restable2.png");
     private static final Identifier QUILL_TEXTURE = TTIds.rl("textures/entity/tablequill.png");
-    private static final Identifier PARCHMENT_TEXTURE = TTIds.rl("textures/misc/parchment.png");
     private static final int WHITE = 0xFFFFFFFF;
     private static final int OPAQUE = 0xFF000000;
     private static final int DEFAULT_NOTE_COLOR = 0x999999;
-    private static final float CENTER = 0.5F;
-    private static final float FRAME_HEIGHT = 1.0F;
     private static final float HALF_TURN = 180.0F;
-    private static final float EXTENSION_SIDE_YAW = 90.0F;
     private static final float BOUNDS_MARGIN = 0.5F;
     private static final float INKWELL_X = -0.28125F;
     private static final float INKWELL_Z = 0.28125F;
@@ -51,14 +47,6 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
     private static final float QUILL_SCALE = 0.5F;
     private static final float QUILL_THICKNESS = 0.025F;
     private static final int QUILL_TEXELS = 16;
-    private static final float SHEET_X = 0.12F;
-    private static final float SHEET_Z = 0.32F;
-    private static final float SHEET_WIDTH = 0.48F;
-    private static final float SHEET_LENGTH = 0.56F;
-    private static final float SHEET_BASE_HEIGHT = 1.008F;
-    private static final float SHEET_STEP = 0.013F;
-    private static final float[] SHEET_TILTS = {-6.0F, 8.0F, 14.0F, -3.0F, 11.0F};
-    private static final float LAY_FLAT = -90.0F;
     private static final float RIBBON_SCALE = 1.2F;
 
     private final ResearchTableModel model;
@@ -99,17 +87,12 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
     public void submit(ResearchTableRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         int light = state.lightCoords;
         poseStack.pushPose();
-        poseStack.translate(CENTER, FRAME_HEIGHT, CENTER);
-        BlockFacingPose.northBased(poseStack, state.facing);
-        poseStack.mulPose(Axis.YP.rotationDegrees(EXTENSION_SIDE_YAW));
-        poseStack.mulPose(Axis.XP.rotationDegrees(HALF_TURN));
+        ResearchTableTop.pose(poseStack, state.facing);
         if (state.hasTools) {
             submitInkwell(poseStack, collector, light);
             submitQuill(poseStack, collector, light);
         }
-        for (int sheet = 0; sheet < SHEET_TILTS.length; sheet++) {
-            submitSheet(poseStack, collector, SHEET_BASE_HEIGHT + sheet * SHEET_STEP, SHEET_TILTS[sheet], light);
-        }
+        ResearchTableTop.submitSheets(poseStack, collector, light);
         if (state.hasNote) {
             collector.submitModelPart(model.scrollTube, poseStack, RenderTypes.entityCutout(SCROLL_TEXTURE), light, OverlayTexture.NO_OVERLAY, null);
             poseStack.pushPose();
@@ -140,33 +123,16 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
         poseStack.popPose();
     }
 
-    private static void submitSheet(PoseStack poseStack, SubmitNodeCollector collector, float heightAboveBase, float tilt, int light) {
-        poseStack.pushPose();
-        poseStack.translate(SHEET_X, FRAME_HEIGHT - heightAboveBase, SHEET_Z);
-        poseStack.mulPose(Axis.YP.rotationDegrees(tilt));
-        poseStack.mulPose(Axis.XP.rotationDegrees(LAY_FLAT));
-        poseStack.scale(SHEET_WIDTH, SHEET_LENGTH, 1.0F);
-        collector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(PARCHMENT_TEXTURE), (pose, buffer) -> sheet(pose, buffer, light));
-        poseStack.popPose();
-    }
-
-    private static void sheet(PoseStack.Pose pose, VertexConsumer buffer, int light) {
-        vertex(pose, buffer, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, -1.0F, light);
-        vertex(pose, buffer, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, -1.0F, light);
-        vertex(pose, buffer, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, -1.0F, light);
-        vertex(pose, buffer, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F, light);
-    }
-
     private static void quill(PoseStack.Pose pose, VertexConsumer buffer, int light) {
         float back = -QUILL_THICKNESS;
-        vertex(pose, buffer, 0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, light);
-        vertex(pose, buffer, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, light);
-        vertex(pose, buffer, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, light);
-        vertex(pose, buffer, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, light);
-        vertex(pose, buffer, 0.0F, 1.0F, back, 1.0F, 0.0F, 0.0F, 0.0F, -1.0F, light);
-        vertex(pose, buffer, 1.0F, 1.0F, back, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F, light);
-        vertex(pose, buffer, 1.0F, 0.0F, back, 0.0F, 1.0F, 0.0F, 0.0F, -1.0F, light);
-        vertex(pose, buffer, 0.0F, 0.0F, back, 1.0F, 1.0F, 0.0F, 0.0F, -1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, 1.0F, back, 1.0F, 0.0F, 0.0F, 0.0F, -1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, 1.0F, back, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, 0.0F, back, 0.0F, 1.0F, 0.0F, 0.0F, -1.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, 0.0F, back, 1.0F, 1.0F, 0.0F, 0.0F, -1.0F, light);
         for (int texel = 0; texel < QUILL_TEXELS; texel++) {
             columnWalls(pose, buffer, texel, back, light);
             rowWalls(pose, buffer, texel, back, light);
@@ -177,32 +143,28 @@ public final class ResearchTableRenderer implements BlockEntityRenderer<BlockEnt
         float left = (float) column / QUILL_TEXELS;
         float right = (float) (column + 1) / QUILL_TEXELS;
         float u = 1.0F - left - 0.5F / QUILL_TEXELS;
-        vertex(pose, buffer, left, 0.0F, back, u, 1.0F, -1.0F, 0.0F, 0.0F, light);
-        vertex(pose, buffer, left, 0.0F, 0.0F, u, 1.0F, -1.0F, 0.0F, 0.0F, light);
-        vertex(pose, buffer, left, 1.0F, 0.0F, u, 0.0F, -1.0F, 0.0F, 0.0F, light);
-        vertex(pose, buffer, left, 1.0F, back, u, 0.0F, -1.0F, 0.0F, 0.0F, light);
-        vertex(pose, buffer, right, 1.0F, back, u, 0.0F, 1.0F, 0.0F, 0.0F, light);
-        vertex(pose, buffer, right, 1.0F, 0.0F, u, 0.0F, 1.0F, 0.0F, 0.0F, light);
-        vertex(pose, buffer, right, 0.0F, 0.0F, u, 1.0F, 1.0F, 0.0F, 0.0F, light);
-        vertex(pose, buffer, right, 0.0F, back, u, 1.0F, 1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, left, 0.0F, back, u, 1.0F, -1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, left, 0.0F, 0.0F, u, 1.0F, -1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, left, 1.0F, 0.0F, u, 0.0F, -1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, left, 1.0F, back, u, 0.0F, -1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, right, 1.0F, back, u, 0.0F, 1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, right, 1.0F, 0.0F, u, 0.0F, 1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, right, 0.0F, 0.0F, u, 1.0F, 1.0F, 0.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, right, 0.0F, back, u, 1.0F, 1.0F, 0.0F, 0.0F, light);
     }
 
     private static void rowWalls(PoseStack.Pose pose, VertexConsumer buffer, int row, float back, int light) {
         float bottom = (float) row / QUILL_TEXELS;
         float top = (float) (row + 1) / QUILL_TEXELS;
         float v = 1.0F - bottom - 0.5F / QUILL_TEXELS;
-        vertex(pose, buffer, 0.0F, top, 0.0F, 1.0F, v, 0.0F, 1.0F, 0.0F, light);
-        vertex(pose, buffer, 1.0F, top, 0.0F, 0.0F, v, 0.0F, 1.0F, 0.0F, light);
-        vertex(pose, buffer, 1.0F, top, back, 0.0F, v, 0.0F, 1.0F, 0.0F, light);
-        vertex(pose, buffer, 0.0F, top, back, 1.0F, v, 0.0F, 1.0F, 0.0F, light);
-        vertex(pose, buffer, 1.0F, bottom, 0.0F, 0.0F, v, 0.0F, -1.0F, 0.0F, light);
-        vertex(pose, buffer, 0.0F, bottom, 0.0F, 1.0F, v, 0.0F, -1.0F, 0.0F, light);
-        vertex(pose, buffer, 0.0F, bottom, back, 1.0F, v, 0.0F, -1.0F, 0.0F, light);
-        vertex(pose, buffer, 1.0F, bottom, back, 0.0F, v, 0.0F, -1.0F, 0.0F, light);
-    }
-
-    private static void vertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float y, float z, float u, float v, float nx, float ny, float nz, int light) {
-        buffer.addVertex(pose, x, y, z).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, top, 0.0F, 1.0F, v, 0.0F, 1.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, top, 0.0F, 0.0F, v, 0.0F, 1.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, top, back, 0.0F, v, 0.0F, 1.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, top, back, 1.0F, v, 0.0F, 1.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, bottom, 0.0F, 0.0F, v, 0.0F, -1.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, bottom, 0.0F, 1.0F, v, 0.0F, -1.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 0.0F, bottom, back, 1.0F, v, 0.0F, -1.0F, 0.0F, light);
+        ResearchTableTop.vertex(pose, buffer, 1.0F, bottom, back, 0.0F, v, 0.0F, -1.0F, 0.0F, light);
     }
 
     private static Direction facingOf(BlockState state) {
