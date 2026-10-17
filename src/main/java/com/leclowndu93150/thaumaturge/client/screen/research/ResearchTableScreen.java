@@ -503,8 +503,8 @@ public final class ResearchTableScreen extends AbstractTTContainerScreen<MenuRes
         Component line1 = Component.translatable("gui.thaumaturge.research_table.no_ink.1");
         int x = leftPos + SHEET_X + SHEET_SIZE / 2;
         int y = topPos + INK_WARN_Y;
-        graphics.text(font, line0, x - font.width(line0) / 2, y - font.lineHeight, 0xFFFF5555, true);
-        graphics.text(font, line1, x - font.width(line1) / 2, y, 0xFFFF5555, true);
+        graphics.text(font, line0, x - font.width(line0) / 2, y - font.lineHeight, 0xFFFF5555, false);
+        graphics.text(font, line1, x - font.width(line1) / 2, y, 0xFFFF5555, false);
     }
 
     private void drawSlotHints(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
