@@ -18,11 +18,11 @@ public final class EntityCausalityCollapser extends AbstractThrownCharge {
 
     private static final float BLAST_POWER = 2.0F;
     private static final double RIFT_REACH = 3.0;
-    private static final int TRAIL_COLOR = 0xF07A1E;
+    private static final int TRAIL_COLOR = 0x9A6AAE;
     private static final float TRAIL_SHADE = 0.3F;
     private static final float TRAIL_ALPHA = 0.55F;
     private static final float TRAIL_SCALE = 3.0F;
-    private static final ChargeTrail EMBER_TRAIL = new ChargeTrail(TRAIL_COLOR, TRAIL_SHADE, TRAIL_ALPHA, TRAIL_SCALE);
+    private static final ChargeTrail COLLAPSE_TRAIL = new ChargeTrail(TRAIL_COLOR, TRAIL_SHADE, TRAIL_ALPHA, TRAIL_SCALE);
 
     public EntityCausalityCollapser(EntityType<? extends EntityCausalityCollapser> type, Level level) {
         super(type, level);
@@ -44,7 +44,7 @@ public final class EntityCausalityCollapser extends AbstractThrownCharge {
 
     @Override
     protected ChargeTrail trail() {
-        return EMBER_TRAIL;
+        return COLLAPSE_TRAIL;
     }
 
     @Override
