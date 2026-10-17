@@ -29,6 +29,7 @@ public final class BlockJarBrain extends BaseEntityBlock {
     private static final int MAX_RELEASE = 63;
     private static final float CLICK_VOLUME = 0.2F;
     private static final float CLICK_PITCH = 1.0F;
+    private static final float ENCHANTING_POWER_PER_JAR = 5.0F;
 
     public BlockJarBrain(BlockBehaviour.Properties properties) {
         super(properties);
@@ -47,6 +48,11 @@ public final class BlockJarBrain extends BaseEntityBlock {
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
         return BlockJar.SHAPE;
+    }
+
+    @Override
+    public float getEnchantPowerBonus(BlockState state, BlockGetter level, BlockPos pos) {
+        return ENCHANTING_POWER_PER_JAR;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.entity.TTModelLayers;
 import com.leclowndu93150.thaumaturge.client.model.entity.BrainModel;
 import com.leclowndu93150.thaumaturge.client.model.entity.JarBrineModel;
+import com.leclowndu93150.thaumaturge.client.render.TTVolumeRenderTypes;
 import com.leclowndu93150.thaumaturge.content.essentia.jar.BlockEntityJarBrain;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
@@ -13,10 +14,12 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.sprite.SpriteGetter;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
@@ -33,11 +36,14 @@ public final class JarBrainRenderer implements BlockEntityRenderer<BlockEntityJa
     private static final float XP_PERIOD = 5.0F;
     private static final float QUARTER_TURN = 90.0F;
     private static final float HALF_TURN = 180.0F;
+    private static final int LIQUID_TINT = 0xFF8CFF4A;
 
     private final BrainModel brain;
     private final JarBrineModel brine;
+    private final SpriteGetter sprites;
 
     public JarBrainRenderer(BlockEntityRendererProvider.Context context) {
+        this.sprites = context.sprites();
         this.brain = new BrainModel(context.bakeLayer(TTModelLayers.BRAIN));
         this.brine = new JarBrineModel(context.bakeLayer(TTModelLayers.JAR_BRINE));
     }
@@ -58,6 +64,7 @@ public final class JarBrainRenderer implements BlockEntityRenderer<BlockEntityJa
         state.bobOffset = BOB_AMPLITUDE * Mth.sin(time / BOB_PERIOD) + BOB_AMPLITUDE;
         state.ageInTicks = time;
         state.xpResponse = Mth.sin(time / XP_PERIOD) * jar.xp() / BlockEntityJarBrain.XP_MAX;
+        state.storedXp = jar.xp();
     }
 
     @Override
@@ -69,10 +76,14 @@ public final class JarBrainRenderer implements BlockEntityRenderer<BlockEntityJa
         poseStack.scale(BRAIN_SCALE, BRAIN_SCALE, BRAIN_SCALE);
         collector.submitModel(brain, state, poseStack, BRAIN_TEXTURE, state.lightCoords, OverlayTexture.NO_OVERLAY, 0, state.breakProgress);
         poseStack.popPose();
+        if (state.storedXp > 0) {
+            TextureAtlasSprite glow = sprites.get(JarRenderer.ANIMATED_GLOW_SPRITE);
+            JarRenderer.submitFluid(state.storedXp, BlockEntityJarBrain.XP_MAX, LIQUID_TINT, LightCoordsUtil.FULL_BRIGHT, glow, TTVolumeRenderTypes.emissiveBlockAtlas(), poseStack, collector);
+        }
         poseStack.pushPose();
         poseStack.translate(CENTER, BRINE_ANCHOR_Y, CENTER);
         poseStack.mulPose(Axis.XP.rotationDegrees(HALF_TURN));
-        collector.submitModelPart(brine.root, poseStack, RenderTypes.entityTranslucent(BRINE_TEXTURE), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
+        collector.submitModelPart(brine.root, poseStack, TTVolumeRenderTypes.entityTranslucentTestOnly(BRINE_TEXTURE), state.lightCoords, OverlayTexture.NO_OVERLAY, null);
         poseStack.popPose();
     }
 }

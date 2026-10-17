@@ -1584,6 +1584,7 @@ public final class TTEnglishProvider extends LanguageProvider {
         addJadeMode("everfull_urns", "Everfull Urns");
         addJadeMode("infernal_furnaces", "Infernal Furnaces");
         addJadeMode("focal_manipulators", "Focal Manipulators");
+        addJadeMode("brain_jars", "Brains in Jars");
         add("config.jade.thaumaturge", "Thaumcraft");
         add("config.jade.plugin_thaumaturge.display", "Thaumcraft Overlay Information");
         add("jade.thaumaturge.essentia.none", "Essentia: None");
@@ -1624,6 +1625,7 @@ public final class TTEnglishProvider extends LanguageProvider {
         add("jade.thaumaturge.focal.no_focus", "No focus inserted");
         add("jade.thaumaturge.relay.linked", "Linked");
         add("jade.thaumaturge.golem.xp", "Experience: %s / %s");
+        add("jade.thaumaturge.brain_jar.stored_xp", "Experience: %s / %s");
         add("jade.thaumaturge.aspect_amount", "%s x%s");
         add("jade.thaumaturge.aspect_separator", ", ");
         add("jade.thaumaturge.node.type.normal", "Aura Node");

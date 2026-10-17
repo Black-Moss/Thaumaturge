@@ -22,6 +22,7 @@ public final class TTRenderPipelines {
     private static final BlendFunction TC_ADDITIVE = new BlendFunction(SourceFactor.SRC_ALPHA, DestFactor.ONE);
     private static final Identifier FX_FRAGMENT = TTIds.rl("core/tc_fx");
     private static final float FX_ALPHA_TEST_THRESHOLD = 1.0F / 255.0F;
+    private static final float ENTITY_ALPHA_CUTOUT = 0.1F;
     private static final DepthStencilState TEST_NO_WRITE = new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false);
     private static final DepthStencilState ALWAYS_NO_WRITE = new DepthStencilState(CompareOp.ALWAYS_PASS, false);
 
@@ -89,6 +90,10 @@ public final class TTRenderPipelines {
             .withSampler("Sampler0").withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT)).withVertexFormat(DefaultVertexFormat.ENTITY, VertexFormat.Mode.QUADS)
             .withDepthStencilState(ALWAYS_NO_WRITE).withCull(false).build();
 
+    public static final RenderPipeline ENTITY_TRANSLUCENT_TEST_ONLY = RenderPipeline.builder(RenderPipelines.ENTITY_SNIPPET).withLocation(TTIds.rl("pipeline/entity_translucent_test_only"))
+            .withShaderDefine("ALPHA_CUTOUT", ENTITY_ALPHA_CUTOUT).withShaderDefine("PER_FACE_LIGHTING").withSampler("Sampler1").withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
+            .withCull(false).withDepthStencilState(TEST_NO_WRITE).build();
+
     public static final RenderPipeline GUI_TEXTURED_ADDITIVE = RenderPipeline.builder(RenderPipelines.GUI_TEXTURED_SNIPPET).withLocation(TTIds.rl("pipeline/gui_textured_additive"))
             .withColorTargetState(new ColorTargetState(TC_ADDITIVE)).build();
 
@@ -111,6 +116,7 @@ public final class TTRenderPipelines {
         event.registerPipeline(ENTITY_TRANSLUCENT_FLAT);
         event.registerPipeline(ENTITY_ADDITIVE_EMISSIVE);
         event.registerPipeline(ENTITY_TRANSLUCENT_NO_DEPTH);
+        event.registerPipeline(ENTITY_TRANSLUCENT_TEST_ONLY);
     }
 
     private TTRenderPipelines() {}
