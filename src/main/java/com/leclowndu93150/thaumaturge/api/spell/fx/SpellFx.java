@@ -40,12 +40,14 @@ public interface SpellFx {
     void arc(Vec3 from, Vec3 to, int color, float width);
 
     /**
-     * A straight beam between two points.
+     * A straight beam between two points. A struck beam shows a brief flare at the end point, and the
+     * flare can outlive the requested ticks by up to the flare length of 6 ticks.
      *
-     * @param from  the start
-     * @param to    the end
-     * @param color the packed {@code 0xRRGGBB} tint
-     * @param ticks how long the beam lingers
+     * @param from   the start
+     * @param to     the end
+     * @param color  the packed {@code 0xRRGGBB} tint
+     * @param ticks  how long the beam lingers
+     * @param struck whether the beam hit an entity or a block, which makes the end point show the flare
      */
-    void beam(Vec3 from, Vec3 to, int color, int ticks);
+    void beam(Vec3 from, Vec3 to, int color, int ticks, boolean struck);
 }

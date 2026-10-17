@@ -805,9 +805,10 @@ public final class Effects {
         private int type;
         private float endMod = BEAM_END_MODIFIER;
         private boolean reverse;
+        private boolean struck;
 
         ClientboundStreamEffectPayload toPayload(Vec3 start, Vec3 end, int sourceId, boolean drill) {
-            return ClientboundStreamEffectPayload.beam(start.x, start.y, start.z, end.x, end.y, end.z, color, age, type, endMod, reverse, sourceId, drill);
+            return ClientboundStreamEffectPayload.beam(start.x, start.y, start.z, end.x, end.y, end.z, color, age, type, endMod, reverse, sourceId, drill, struck);
         }
     }
 
@@ -851,6 +852,11 @@ public final class Effects {
 
         public BeamWand reverse(boolean reverse) {
             settings.reverse = reverse;
+            return this;
+        }
+
+        public BeamWand struck(boolean struck) {
+            settings.struck = struck;
             return this;
         }
 
@@ -900,6 +906,11 @@ public final class Effects {
 
         public DrillBeam reverse(boolean reverse) {
             settings.reverse = reverse;
+            return this;
+        }
+
+        public DrillBeam struck(boolean struck) {
+            settings.struck = struck;
             return this;
         }
 

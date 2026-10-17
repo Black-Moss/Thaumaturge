@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.client.effect.instance;
 
 import com.leclowndu93150.thaumaturge.client.effect.instance.beam.BeamAnchor;
 import com.leclowndu93150.thaumaturge.client.effect.instance.beam.BeamPose;
+import com.leclowndu93150.thaumaturge.client.effect.instance.beam.BeamSourceKey;
 import com.leclowndu93150.thaumaturge.client.effect.manager.IFXInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -20,41 +21,44 @@ public final class BeamInstance implements IFXInstance {
     private static final float PEAK_OPACITY = 0.4F;
     private static final float SCROLL_RATE = 0.2F;
     private static final float SCROLL_PERIOD_RATE = 0.1F;
+    private static final int FLARE_TICKS = 6;
 
-    private final Vec3 target;
+    private final BeamSourceKey sourceKey;
     private final float[] tint;
-    private final int maxAge;
-    private final int beamType;
     private final float endMod;
     private final boolean reverse;
-    private final int sourceEntityId;
-    private final boolean withSource;
 
+    private Vec3 target;
+    private int maxAge;
+    private int flareTicks;
     private BeamPose latest;
     private BeamPose earlier;
     private int age;
     private boolean expired;
 
-    public BeamInstance(double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, int color, int maxAge, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource) {
+    public BeamInstance(double sourceX, double sourceY, double sourceZ, double targetX, double targetY, double targetZ, int color, int maxAge, int beamType, float endMod, boolean reverse, int sourceEntityId, boolean withSource, boolean struck) {
         this.target = new Vec3(targetX, targetY, targetZ);
         this.tint = new float[]{ARGB.red(color) / CHANNEL_SCALE, ARGB.green(color) / CHANNEL_SCALE, ARGB.blue(color) / CHANNEL_SCALE};
         this.maxAge = maxAge;
-        this.beamType = beamType;
         this.endMod = endMod;
         this.reverse = reverse;
-        this.sourceEntityId = sourceEntityId;
-        this.withSource = withSource;
-        this.latest = BeamPose.between(new Vec3(sourceX, sourceY, sourceZ), this.target);
+        this.flareTicks = struck ? FLARE_TICKS : 0;
+        Vec3 launch = new Vec3(sourceX, sourceY, sourceZ);
+        this.sourceKey = new BeamSourceKey(beamType, withSource, sourceEntityId, launch);
+        this.latest = BeamPose.between(launch, this.target);
         this.earlier = this.latest;
     }
 
     @Override
     public void tick() {
-        LivingEntity anchor = BeamAnchor.find(this.sourceEntityId);
+        if (this.flareTicks > 0) {
+            this.flareTicks--;
+        }
         this.earlier = this.latest;
-        this.latest = BeamPose.between(anchor != null ? BeamAnchor.chestPoint(anchor) : this.earlier.source(), this.target);
-        this.expired = this.age >= this.maxAge;
-        if (!this.expired) {
+        this.latest = poseFrom(this.earlier.source());
+        boolean finished = this.age >= this.maxAge;
+        this.expired = finished && this.flareTicks == 0;
+        if (!finished) {
             this.age++;
         }
     }
@@ -64,8 +68,28 @@ public final class BeamInstance implements IFXInstance {
         return this.expired;
     }
 
+    public boolean mergesWith(BeamInstance other) {
+        return this.sourceKey.matches(other.sourceKey);
+    }
+
+    public void absorb(BeamInstance newer) {
+        this.target = newer.target;
+        this.maxAge = Math.max(this.maxAge, this.age + newer.maxAge);
+        this.flareTicks = Math.max(this.flareTicks, newer.flareTicks);
+        this.expired = false;
+        this.latest = poseFrom(this.latest.source());
+    }
+
+    public boolean flareActive() {
+        return this.flareTicks > 0;
+    }
+
+    public float flareFraction(float partialTick) {
+        return ramp(this.flareTicks - partialTick, FLARE_TICKS);
+    }
+
     public int beamType() {
-        return this.beamType;
+        return this.sourceKey.beamType();
     }
 
     public float length() {
@@ -105,15 +129,15 @@ public final class BeamInstance implements IFXInstance {
     }
 
     public boolean entityAnchored() {
-        return this.sourceEntityId != BeamPayloadIds.NO_ENTITY;
+        return this.sourceKey.anchorEntityId() != BeamPayloadIds.NO_ENTITY;
     }
 
     public boolean withSource() {
-        return this.withSource;
+        return this.sourceKey.withSource();
     }
 
     public Vec3 sourcePos(float partialTick) {
-        LivingEntity anchor = BeamAnchor.find(this.sourceEntityId);
+        LivingEntity anchor = BeamAnchor.find(this.sourceKey.anchorEntityId());
         return anchor != null ? BeamAnchor.handSpan(anchor, partialTick).lerp(partialTick) : this.earlier.source().lerp(this.latest.source(), partialTick);
     }
 
@@ -149,6 +173,11 @@ public final class BeamInstance implements IFXInstance {
         long clock = level == null ? 0L : level.getGameTime();
         long wrapped = clock % (FULL_CIRCLE_DEGREES / SPIN_DEGREES_PER_TICK);
         return wrapped * SPIN_DEGREES_PER_TICK + SPIN_DEGREES_PER_TICK * partialTick;
+    }
+
+    private BeamPose poseFrom(Vec3 fallbackSource) {
+        LivingEntity anchor = BeamAnchor.find(this.sourceKey.anchorEntityId());
+        return BeamPose.between(anchor != null ? BeamAnchor.chestPoint(anchor) : fallbackSource, this.target);
     }
 
     private static float ramp(float value, float duration) {

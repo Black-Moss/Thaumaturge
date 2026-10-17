@@ -47,9 +47,9 @@ final class SpellFxBatch implements SpellFx {
     }
 
     @Override
-    public void beam(Vec3 from, Vec3 to, int color, int ticks) {
+    public void beam(Vec3 from, Vec3 to, int color, int ticks, boolean struck) {
         if (arcs++ < MAX_ARCS) {
-            Effects.drillBeam(level, from).to(to).color(color).age(ticks).send();
+            Effects.drillBeam(level, from).to(to).color(color).age(ticks).struck(struck).send();
         }
     }
 

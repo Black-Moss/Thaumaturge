@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.effect.manager;
 
+import com.leclowndu93150.thaumaturge.client.effect.geometry.BeamSpriteQuad;
 import com.leclowndu93150.thaumaturge.client.effect.geometry.PolyCone;
 import com.leclowndu93150.thaumaturge.client.effect.instance.ArcInstance;
 import com.leclowndu93150.thaumaturge.client.effect.instance.BeamInstance;
@@ -19,6 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
@@ -49,6 +51,11 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     private static final float GLOW_OPACITY = 0.8F;
     private static final float GLOW_FADE_STEP = 0.2F;
     private static final int FADE_TICKS = 4;
+    private static final int FLARE_ROW = 25;
+    private static final int FLARE_FRAMES = 16;
+    private static final float FLARE_HALF_SIZE = 0.3F;
+    private static final float FLARE_OPACITY = 1.0F;
+    private static final float FLARE_WHITE_MIX = 0.5F;
 
     private BeamManager() {}
 
@@ -61,6 +68,12 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
     }
 
     public static void addBeam(BeamInstance beam) {
+        for (BeamInstance live : BEAMS) {
+            if (live.mergesWith(beam)) {
+                live.absorb(beam);
+                return;
+            }
+        }
         BEAMS.add(beam);
     }
 
@@ -203,6 +216,9 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
             if (beam.withSource()) {
                 drawGlow(poseStack, nodeConsumer, camera, beam, partialTick);
             }
+            if (beam.flareActive()) {
+                drawImpactFlare(poseStack, nodeConsumer, camera, beam, partialTick);
+            }
         }
         buffers.endBatch(nodeType);
     }
@@ -249,21 +265,21 @@ public final class BeamManager extends AbstractFXManager<IFXInstance> {
         if (opacity <= 0.0F) {
             return;
         }
-        Vec3 source = beam.sourcePos(partialTick);
-        Vec3 cameraPos = camera.position();
-        float u0 = (float) (beam.age() % GLOW_GRID) / GLOW_GRID;
-        float u1 = u0 + 1.0F / GLOW_GRID;
-        float v0 = (float) GLOW_ROW / GLOW_GRID;
-        float v1 = (float) (GLOW_ROW + 1) / GLOW_GRID;
-        poseStack.pushPose();
-        poseStack.translate(source.x - cameraPos.x, source.y - cameraPos.y, source.z - cameraPos.z);
-        poseStack.mulPose(camera.rotation());
-        Matrix4f matrix = poseStack.last().pose();
-        vertex(consumer, matrix, -GLOW_HALF_SIZE, -GLOW_HALF_SIZE, 0.0F, u1, v1, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-        vertex(consumer, matrix, -GLOW_HALF_SIZE, GLOW_HALF_SIZE, 0.0F, u1, v0, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-        vertex(consumer, matrix, GLOW_HALF_SIZE, GLOW_HALF_SIZE, 0.0F, u0, v0, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-        vertex(consumer, matrix, GLOW_HALF_SIZE, -GLOW_HALF_SIZE, 0.0F, u0, v1, beam.colorR(), beam.colorG(), beam.colorB(), opacity);
-        poseStack.popPose();
+        BeamSpriteQuad.draw(poseStack, consumer, camera, beam.sourcePos(partialTick), GLOW_HALF_SIZE, GLOW_ROW, beam.age() % GLOW_GRID, BeamSpriteQuad.Mirroring.HORIZONTAL, beam.colorR(),
+                beam.colorG(), beam.colorB(), opacity);
+    }
+
+    private static void drawImpactFlare(PoseStack poseStack, VertexConsumer consumer, Camera camera, BeamInstance beam, float partialTick) {
+        float halfSize = FLARE_HALF_SIZE * beam.flareFraction(partialTick);
+        if (halfSize <= 0.0F) {
+            return;
+        }
+        BeamSpriteQuad.draw(poseStack, consumer, camera, beam.targetPos(partialTick), halfSize, FLARE_ROW, beam.age() % FLARE_FRAMES, BeamSpriteQuad.Mirroring.NONE, towardWhite(beam.colorR()),
+                towardWhite(beam.colorG()), towardWhite(beam.colorB()), FLARE_OPACITY);
+    }
+
+    private static float towardWhite(float channel) {
+        return Mth.clamp(channel + (1.0F - channel) * FLARE_WHITE_MIX, 0.0F, 1.0F);
     }
 
     private static void vertex(VertexConsumer consumer, Matrix4f matrix, double x, double y, double z, float u, float v, float red, float green, float blue, float alpha) {
