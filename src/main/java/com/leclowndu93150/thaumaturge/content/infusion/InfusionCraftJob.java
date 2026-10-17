@@ -31,7 +31,7 @@ public final class InfusionCraftJob {
     public InfusionCraftJob(List<ItemStack> ingredients, AspectList essentia, AspectList quotedEssentia, ItemStack result, ItemStack catalyst, int instability, Optional<UUID> player) {
         this.ingredients = new ArrayList<>(ingredients);
         this.essentia = essentia;
-        this.quotedEssentia = quotedEssentia;
+        this.quotedEssentia = quotedEssentia.isEmpty() ? essentia : quotedEssentia;
         this.result = result;
         this.catalyst = catalyst;
         this.instability = instability;
