@@ -12,13 +12,14 @@ import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 public final class ResearchTableItemSpecialRenderer implements NoDataSpecialModelRenderer {
-    private static final Direction ITEM_FACING = Direction.SOUTH;
+    private static final Direction ITEM_FACING = Direction.NORTH;
     private static final float[][] EXTENT_CORNERS = {{0.0F, 1.0F, -1.0F}, {1.0F, 1.1F, 1.0F}};
 
     @Override
     public void submit(PoseStack poseStack, SubmitNodeCollector collector, int lightCoords, int overlayCoords, boolean hasFoil, int outlineColor) {
         poseStack.pushPose();
         ResearchTableTop.pose(poseStack, ITEM_FACING);
+        ResearchTableTop.turnSheetsAround(poseStack);
         ResearchTableTop.submitSheets(poseStack, collector, lightCoords);
         poseStack.popPose();
     }
