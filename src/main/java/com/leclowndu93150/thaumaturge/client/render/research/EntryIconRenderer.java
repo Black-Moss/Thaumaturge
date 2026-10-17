@@ -8,6 +8,7 @@ import com.leclowndu93150.thaumaturge.api.research.ResearchIcon;
 import com.leclowndu93150.thaumaturge.api.research.ResearchRequirement;
 import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import com.leclowndu93150.thaumaturge.client.effect.pipeline.TTRenderPipelines;
+import com.leclowndu93150.thaumaturge.client.item.TintedGuiItems;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.client.screen.casters.SpellPartIcons;
 import com.mojang.blaze3d.textures.GpuTexture;
@@ -40,7 +41,7 @@ public final class EntryIconRenderer {
     private static final int UNKNOWN_COLOR = 0xFF4D4D4D;
     private static final int LOCKED_TEXTURE_TINT = 0xFF333333;
     private static final int WHITE = 0xFFFFFFFF;
-    private static final int LOCKED_ITEM_OVERLAY = 0x7F000000;
+    private static final int LOCKED_ITEM_TINT = 0xFF808080;
     private static final int WARP_TINT = 0xE5540070;
     private static final long PULSE_PERIOD_MILLIS = 600L;
     private static final float PULSE_BASE = 0.75F;
@@ -162,10 +163,7 @@ public final class EntryIconRenderer {
             return;
         }
         if (icon instanceof ItemStack stack && !stack.isEmpty()) {
-            graphics.item(stack, x, y);
-            if (locked) {
-                graphics.fill(x, y, x + ICON_REFERENCE_SIZE, y + ICON_REFERENCE_SIZE, LOCKED_ITEM_OVERLAY);
-            }
+            TintedGuiItems.item(graphics, stack, x, y, locked ? LOCKED_ITEM_TINT : TintedGuiItems.NO_TINT);
         }
     }
 

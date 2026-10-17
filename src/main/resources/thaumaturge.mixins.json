@@ -20,6 +20,7 @@
   ],
   "client": [
     "client.gui.GuiGraphicsExtractorAccessor",
+    "client.gui.GuiGraphicsExtractorMixin",
     "client.multiplayer.ClientLevelMixin",
     "client.lighting.BlockLightEngineMixin",
     "client.renderer.GameRendererInvoker",
@@ -27,6 +28,7 @@
     "client.renderer.entity.LivingEntityRenderStateMixin",
     "client.renderer.entity.LivingEntityRendererMixin",
     "client.renderer.entity.layers.HumanoidArmorLayerAccessor",
+    "client.renderer.item.ItemStackRenderStateAccessor",
     "iris.pathways.HandRendererMixin",
     "jei.gui.ingredients.IngredientFilterAccessor",
     "jei.gui.ingredients.IngredientFilterApiAccessor",
