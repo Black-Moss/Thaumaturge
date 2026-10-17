@@ -32,6 +32,9 @@ public final class TravellerBootsItem extends Item {
     private static final float GROUND_ACCELERATION = 0.05F;
     private static final float WATER_ACCELERATION_DIVISOR = 4.0F;
     private static final float WATER_AIR_ACCELERATION = 0.025F;
+    private static final float VANILLA_AIR_CONTROL = 0.02F;
+    private static final float BOOSTED_AIR_CONTROL = 0.05F;
+    private static final float AIR_CONTROL_BONUS = BOOSTED_AIR_CONTROL - VANILLA_AIR_CONTROL;
     private static final Identifier STEP_MODIFIER_ID = TTIds.rl("traveller_step");
     private static final Identifier JUMP_MODIFIER_ID = TTIds.rl("traveller_jump");
     private static final Vec3 FORWARD = new Vec3(0.0, 0.0, 1.0);
@@ -69,15 +72,37 @@ public final class TravellerBootsItem extends Item {
     }
 
     public static void clientMovementTick(Player player, ItemStack boots) {
-        if (RechargeAccess.getCharge(boots) <= 0 || player.getAbilities().flying || player.zza <= 0.0F) {
+        if (RechargeAccess.getCharge(boots) <= 0 || player.getAbilities().flying || player.isPassenger()) {
             return;
         }
-        boolean inWater = player.isInWater();
         if (player.onGround()) {
-            player.moveRelative(inWater ? GROUND_ACCELERATION / WATER_ACCELERATION_DIVISOR : GROUND_ACCELERATION, FORWARD);
-        } else if (inWater) {
-            player.moveRelative(WATER_AIR_ACCELERATION, FORWARD);
+            pushOnGround(player);
+        } else if (player.isInWater()) {
+            pushInWater(player);
+        } else {
+            pushInAir(player);
         }
+    }
+
+    private static void pushOnGround(Player player) {
+        if (player.zza <= 0.0F) {
+            return;
+        }
+        player.moveRelative(player.isInWater() ? GROUND_ACCELERATION / WATER_ACCELERATION_DIVISOR : GROUND_ACCELERATION, FORWARD);
+    }
+
+    private static void pushInWater(Player player) {
+        if (player.zza <= 0.0F) {
+            return;
+        }
+        player.moveRelative(WATER_AIR_ACCELERATION, FORWARD);
+    }
+
+    private static void pushInAir(Player player) {
+        if (player.xxa == 0.0F && player.zza == 0.0F) {
+            return;
+        }
+        player.moveRelative(AIR_CONTROL_BONUS, new Vec3(player.xxa, 0.0, player.zza));
     }
 
     private static void upkeepEnergy(ItemStack stack, ServerPlayer player) {
