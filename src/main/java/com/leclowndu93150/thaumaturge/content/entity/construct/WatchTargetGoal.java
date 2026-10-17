@@ -3,63 +3,62 @@ package com.leclowndu93150.thaumaturge.content.entity.construct;
 import java.util.EnumSet;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import org.jspecify.annotations.Nullable;
 
 public final class WatchTargetGoal extends Goal {
-    private static final int MIN_WATCH_TICKS = 40;
-    private static final int EXTRA_WATCH_TICKS = 41;
-    private static final float YAW_TURN_SPEED = 30.0F;
-    private static final double FOLLOW_RANGE_SQR = EntityTurretCrossbow.FOLLOW_RANGE * EntityTurretCrossbow.FOLLOW_RANGE;
+    private static final int MIN_LOOK_TICKS = 40;
+    private static final int LOOK_TICK_SPREAD = 40;
+    private static final float YAW_SPEED = 10.0F;
 
-    private final Mob watcher;
     private @Nullable LivingEntity watched;
-    private int remainingTicks;
+    private int lookTime;
+    private final Mob mob;
 
-    public WatchTargetGoal(Mob watcher) {
-        this.watcher = watcher;
+    public WatchTargetGoal(Mob mob) {
         setFlags(EnumSet.of(Goal.Flag.LOOK));
+        this.mob = mob;
     }
 
     @Override
     public boolean canUse() {
-        LivingEntity target = watcher.getTarget();
-        if (target == null) {
-            return false;
+        remember(mob.getTarget());
+        return watched != null;
+    }
+
+    private void remember(@Nullable LivingEntity candidate) {
+        if (candidate != null) {
+            watched = candidate;
         }
-        watched = target;
-        return true;
     }
 
     @Override
     public boolean canContinueToUse() {
-        LivingEntity subject = watched;
-        return remainingTicks > 0 && subject != null && subject.isAlive() && watcher.distanceToSqr(subject) <= FOLLOW_RANGE_SQR;
+        if (lookTime <= 0 || watched == null) {
+            return false;
+        }
+        double range = mob.getAttributeValue(Attributes.FOLLOW_RANGE);
+        return watched.isAlive() && mob.distanceToSqr(watched) <= range * range;
     }
 
     @Override
     public void start() {
-        remainingTicks = MIN_WATCH_TICKS + watcher.getRandom().nextInt(EXTRA_WATCH_TICKS);
-    }
-
-    @Override
-    public void stop() {
-        watched = null;
-        remainingTicks = 0;
-    }
-
-    @Override
-    public boolean requiresUpdateEveryTick() {
-        return true;
+        lookTime = MIN_LOOK_TICKS + mob.getRandom().nextInt(LOOK_TICK_SPREAD);
     }
 
     @Override
     public void tick() {
         LivingEntity subject = watched;
-        if (subject == null) {
-            return;
+        if (subject != null) {
+            double eyeY = subject.getY() + subject.getEyeHeight();
+            mob.getLookControl().setLookAt(subject.getX(), eyeY, subject.getZ(), YAW_SPEED, mob.getMaxHeadXRot());
         }
-        remainingTicks--;
-        watcher.getLookControl().setLookAt(subject.getX(), subject.getEyeY(), subject.getZ(), YAW_TURN_SPEED, watcher.getMaxHeadXRot());
+        lookTime--;
+    }
+
+    @Override
+    public void stop() {
+        watched = null;
     }
 }

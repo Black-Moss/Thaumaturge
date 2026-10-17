@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.entity;
 
+import com.leclowndu93150.thaumaturge.api.taint.ITaintBlock;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
 import com.leclowndu93150.thaumaturge.content.taint.TaintHelper;
 import com.leclowndu93150.thaumaturge.content.taint.block.BlockTaintFibre;
@@ -46,7 +47,11 @@ public final class TaintacleAmbush {
     }
 
     private static boolean standsInTaint(ServerLevel level, LivingEntity prey) {
-        return TaintHelper.isTaintBlock(level.getBlockState(prey.blockPosition())) || TaintHelper.isTaintBlock(level.getBlockState(prey.getOnPos()));
+        return isTaintBlock(level, prey.blockPosition()) || isTaintBlock(level, prey.getOnPos());
+    }
+
+    private static boolean isTaintBlock(ServerLevel level, BlockPos pos) {
+        return level.getBlockState(pos).getBlock() instanceof ITaintBlock;
     }
 
     private static boolean raiseUnder(ServerLevel level, LivingEntity prey, RandomSource random) {

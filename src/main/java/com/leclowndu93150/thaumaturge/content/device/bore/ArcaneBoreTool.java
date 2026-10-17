@@ -7,7 +7,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
-import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantable;
@@ -52,31 +51,31 @@ public final class ArcaneBoreTool {
     }
 
     public static int digRadius(ItemStack stack) {
-        Enchantable enchantable = stack.get(DataComponents.ENCHANTABLE);
-        int fromEnchantability = enchantable == null ? 0 : enchantable.value() / ENCHANTABILITY_DIVISOR;
-        int fromDestructive = RADIUS_PER_DESTRUCTIVE * InfusionEnchantmentHelper.level(stack, InfusionEnchantment.DESTRUCTIVE);
-        return Math.max(MIN_RADIUS, fromEnchantability + fromDestructive);
+        int radius = 0;
+        if (isPickaxe(stack)) {
+            Enchantable enchantable = stack.get(DataComponents.ENCHANTABLE);
+            int base = enchantable == null ? 0 : enchantable.value() / ENCHANTABILITY_DIVISOR;
+            radius = base + RADIUS_PER_DESTRUCTIVE * InfusionEnchantmentHelper.level(stack, InfusionEnchantment.DESTRUCTIVE);
+        }
+        return radius <= 1 ? MIN_RADIUS : radius;
     }
 
     public static int digDepth(ItemStack stack) {
-        int burrowing = InfusionEnchantmentHelper.level(stack, InfusionEnchantment.BURROWING);
-        return DEPTH_PER_RADIUS * digRadius(stack) + DEPTH_PER_BURROWING * burrowing;
+        return DEPTH_PER_RADIUS * digRadius(stack) + DEPTH_PER_BURROWING * InfusionEnchantmentHelper.level(stack, InfusionEnchantment.BURROWING);
     }
 
     public static int fortune(Level level, ItemStack stack) {
-        if (stack.isEmpty() || silkTouch(level, stack)) {
+        if (!valid(stack)) {
             return 0;
         }
-        int sounding = InfusionEnchantmentHelper.level(stack, InfusionEnchantment.SOUNDING);
-        return Math.max(enchantLevel(level, stack, Enchantments.FORTUNE), sounding);
+        return Math.max(enchantLevel(level, stack, Enchantments.FORTUNE), InfusionEnchantmentHelper.level(stack, InfusionEnchantment.SOUNDING));
     }
 
     public static int digSpeed(Level level, ItemStack stack, BlockState state) {
-        if (stack.isEmpty()) {
+        if (!valid(stack)) {
             return 0;
         }
-        int toolSpeed = Mth.floor(stack.getDestroySpeed(state) / SPEED_DIVISOR);
-        return toolSpeed + enchantLevel(level, stack, Enchantments.EFFICIENCY);
+        return (int) (stack.getDestroySpeed(state) / SPEED_DIVISOR) + enchantLevel(level, stack, Enchantments.EFFICIENCY);
     }
 
     public static int refining(ItemStack stack) {
