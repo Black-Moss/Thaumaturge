@@ -1,9 +1,11 @@
 package com.leclowndu93150.thaumaturge.client.item;
 
+import com.leclowndu93150.thaumaturge.api.aspect.AspectCapabilities;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectIndexAccess;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectInstance;
 import com.leclowndu93150.thaumaturge.api.aspect.AspectList;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
+import com.leclowndu93150.thaumaturge.api.aspect.IAspectContainer;
 import com.leclowndu93150.thaumaturge.api.capability.KnowledgeAccess;
 import com.leclowndu93150.thaumaturge.api.nodes.NodeModifier;
 import com.leclowndu93150.thaumaturge.api.research.scan.ScanKeys;
@@ -113,10 +115,14 @@ public final class ThaumometerLensRenderer {
         }
         BlockState state = level.getBlockState(pos);
         ItemStack pick = ScanningManager.stackOf(player, target);
-        if (pick.isEmpty()) {
-            return Readout.plain(state.getBlock().getName(), AspectList.EMPTY);
+        Component name = pick.isEmpty() || !state.getFluidState().isEmpty() ? state.getBlock().getName() : pick.getHoverName();
+        IAspectContainer container = level.getCapability(AspectCapabilities.CONTAINER, pos, null);
+        if (container != null && !container.getAspects().isEmpty()) {
+            return Readout.plain(name, container.getAspects());
         }
-        Component name = state.getFluidState().isEmpty() ? pick.getHoverName() : state.getBlock().getName();
+        if (pick.isEmpty()) {
+            return Readout.plain(name, AspectList.EMPTY);
+        }
         return Readout.plain(name, knownOrEmpty(player, ScanKeys.item(pick.getItem()), () -> AspectIndexAccess.index().of(pick)));
     }
 
