@@ -200,7 +200,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     private static void submitLabel(JarRenderState state, Identifier iconTexture, PoseStack poseStack, SubmitNodeCollector collector) {
         Direction facing = state.facing;
         Plate plate = PLATES_BY_HORIZONTAL_INDEX[facing.getAxis().isHorizontal() ? facing.get2DDataValue() : FALLBACK_PLATE_INDEX];
-        float tilt = (state.blockPos.getX() + facing.ordinal()) % TILT_PERIOD - TILT_BIAS;
+        float tilt = Math.floorMod(state.blockPos.getX() + facing.ordinal(), TILT_PERIOD) - TILT_BIAS;
         int light = state.lightCoords;
         int iconColour = state.filterColor;
         poseStack.pushPose();

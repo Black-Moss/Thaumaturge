@@ -36,6 +36,7 @@ public class EntityGolemOrb extends ThrowableProjectile {
     private static final float SOUND_VOLUME = 1.0F;
     private static final float SOUND_PITCH_BASE = 1.0F;
     private static final float SOUND_PITCH_SPREAD = 0.2F;
+    private static final float PICK_RADIUS = 0.5F;
 
     private @Nullable LivingEntity target;
 
@@ -64,6 +65,26 @@ public class EntityGolemOrb extends ThrowableProjectile {
     @Override
     protected double getDefaultGravity() {
         return 0.0;
+    }
+
+    @Override
+    public boolean isPickable() {
+        return true;
+    }
+
+    @Override
+    public float getPickRadius() {
+        return PICK_RADIUS;
+    }
+
+    @Override
+    protected boolean canHitEntity(Entity entity) {
+        return !(entity instanceof EntityGolemOrb) && super.canHitEntity(entity);
+    }
+
+    @Override
+    public boolean shouldBeSaved() {
+        return false;
     }
 
     @Override

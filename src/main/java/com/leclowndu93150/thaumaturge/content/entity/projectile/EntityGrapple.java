@@ -77,6 +77,9 @@ public final class EntityGrapple extends ThrowableProjectile {
             return;
         }
         if (owner == null) {
+            if (!level().isClientSide()) {
+                remove(Entity.RemovalReason.DISCARDED);
+            }
             return;
         }
         if (level().isClientSide()) {

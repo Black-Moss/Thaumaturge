@@ -51,6 +51,7 @@ public class BlockCrucible extends BaseEntityBlock {
     private static final List<InsideBlockEffectType> CONTACT_EFFECTS = List.of(InsideBlockEffectType.EXTINGUISH, InsideBlockEffectType.CLEAR_FREEZE);
     private static final int TANK_SLOT = 0;
     private static final int ANALOG_STEPS = 14;
+    private static final int MAX_SIGNAL = 15;
     private static final int CONTACT_INTERVAL = 10;
     private static final float CONTACT_VOLUME = 0.4F;
     private static final float CONTACT_PITCH_BASE = 2.0F;
@@ -184,6 +185,6 @@ public class BlockCrucible extends BaseEntityBlock {
         if (total <= 0) {
             return 0;
         }
-        return Mth.floor((float) total / BlockEntityCrucible.MAX_ASPECT * ANALOG_STEPS) + 1;
+        return Math.min(MAX_SIGNAL, Mth.floor((float) total / BlockEntityCrucible.MAX_ASPECT * ANALOG_STEPS) + 1);
     }
 }

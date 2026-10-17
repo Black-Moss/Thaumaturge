@@ -32,11 +32,12 @@ final class AspectChipGrid {
         sorted.sort(Comparator.comparing(AspectChipGrid::sortKey));
         int count = sorted.size();
         int lastRow = count == 0 ? 0 : (count - 1) / perRow;
+        int lastRowCount = count % perRow;
         int top = anchorY - HALF_CELL * lastRow;
         for (int i = 0; i < count; i++) {
             int column = i % perRow;
             int row = i / perRow;
-            int shift = row == lastRow && (lastRow > DEFAULT_ROW_LIMIT || count < perRow) ? (perRow - count % perRow) * HALF_CELL : 0;
+            int shift = row == lastRow && lastRowCount != 0 && (lastRow > DEFAULT_ROW_LIMIT || count < perRow) ? (perRow - lastRowCount) * HALF_CELL : 0;
             chips.add(new Chip(sorted.get(i).aspect(), sorted.get(i).amount(), anchorX + CELL * column + shift, top + CELL * row));
         }
     }

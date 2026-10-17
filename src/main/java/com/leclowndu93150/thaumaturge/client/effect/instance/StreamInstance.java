@@ -27,6 +27,7 @@ public abstract class StreamInstance implements IFXInstance {
     private static final float CHANNEL_SCALE = 255.0F;
     private static final float RADIUS_SCATTER = 0.15F;
     private static final double ARRIVAL_EPSILON = 0.000001;
+    private static final double PULL_DISTANCE_FLOOR = 0.05;
     private static final double PULSE_FLOOR = 0.75;
     private static final double PULSE_DEPTH = 0.25;
     private static final double PULSE_DIVISOR = 2.0;
@@ -127,7 +128,7 @@ public abstract class StreamInstance implements IFXInstance {
         double distance = this.step.distance();
         restrainMotion(distance);
         if (distance > ARRIVAL_EPSILON) {
-            double pull = pullStrength(distance) / Math.min(1.0, distance);
+            double pull = pullStrength(distance) / Math.max(PULL_DISTANCE_FLOOR, Math.min(1.0, distance));
             double jitterX = steerJitter(level);
             double jitterY = steerJitter(level);
             double jitterZ = steerJitter(level);

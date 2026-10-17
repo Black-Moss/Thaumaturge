@@ -9,6 +9,7 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -79,7 +80,8 @@ public class SpaScreen extends AbstractTTContainerScreen<MenuSpa> {
             int tint = -1;
             if (model.tintSource() != null) {
                 BlockState fluidBlock = fluid.defaultFluidState().createLegacyBlock();
-                tint = ARGB.opaque(model.tintSource().color(fluidBlock));
+                ClientLevel level = Minecraft.getInstance().level;
+                tint = ARGB.opaque(level != null ? model.tintSource().colorInWorld(fluidBlock, level, spa.getBlockPos()) : model.tintSource().color(fluidBlock));
             }
             for (int a = 0; a < FLUID_SEGMENTS; a++) {
                 graphics.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x + FLUID_X, y + FLUID_Y + a * FLUID_WIDTH, FLUID_WIDTH, FLUID_WIDTH, tint);

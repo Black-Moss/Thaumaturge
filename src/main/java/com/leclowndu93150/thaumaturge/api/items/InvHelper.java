@@ -297,15 +297,9 @@ public final class InvHelper {
         if (handler == null || wanted.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        int needed = wanted.getCount();
-        int removed = 0;
+        int removed;
         try (Transaction transaction = Transaction.openRoot()) {
-            for (int slot = 0; slot < handler.size() && removed < needed; slot++) {
-                ItemResource resource = handler.getResource(slot);
-                if (!resource.isEmpty() && areItemStacksEqual(wanted, resource.toStack(), filter)) {
-                    removed += handler.extract(slot, resource, needed - removed, transaction);
-                }
-            }
+            removed = extractMatching(handler, wanted, filter, wanted.getCount(), transaction);
             if (!simulate) {
                 transaction.commit();
             }
@@ -396,8 +390,8 @@ public final class InvHelper {
     }
 
     /**
-     * Removes the stack's count from the neighbours other than the one above, in direction order. A partial removal is not undone
-     * when the pool runs out.
+     * Removes the stack's count from the neighbours other than the one above, in direction order. The call is all or nothing: when
+     * the neighbours cannot cover the whole count, nothing is removed.
      *
      * @param level the level
      * @param pos   the origin position
@@ -406,9 +400,12 @@ public final class InvHelper {
      */
     public static boolean consumeFromAdjacentChests(Level level, BlockPos pos, ItemStack stack) {
         List<Removal> plan = new ArrayList<>();
-        boolean covered = planAdjacentRemovals(level, pos, stack, plan) <= 0;
+        int uncovered = planAdjacentRemovals(level, pos, stack, plan);
+        if (uncovered > 0) {
+            return false;
+        }
         applyPlan(plan);
-        return covered;
+        return true;
     }
 
     /**
@@ -449,39 +446,21 @@ public final class InvHelper {
         if (!skipCheck && !isPlayerCarryingAmount(player, wanted, tags)) {
             return false;
         }
-        InvFilter filter = playerFilter(wanted, tags);
-        List<ItemStack> inventory = player.getInventory().getNonEquipmentItems();
-        int remaining = wanted.getCount();
-        for (int slot : MAIN_INVENTORY_SLOTS) {
-            if (remaining <= 0) {
-                break;
-            }
-            ItemStack held = inventory.get(slot);
-            if (held.isEmpty() || !areItemStacksEqual(held, wanted, filter)) {
-                continue;
-            }
-            int taken = Math.min(remaining, held.getCount());
-            if (taken >= held.getCount()) {
-                inventory.set(slot, ItemStack.EMPTY);
-            } else {
-                held.shrink(taken);
-            }
-            remaining -= taken;
-        }
-        return remaining <= 0;
+        return drainSlots(player.getInventory().getNonEquipmentItems(), wanted, playerFilter(wanted, tags)) <= 0;
     }
 
     /**
      * Succeeds only when each stack, judged alone, is fully available in the adjacent containers or fully in the player's inventory
-     * with tags on. Unless simulating, each stack is then consumed from the containers, and from the player when the containers fall
-     * short; a shortfall may already have removed part of the stack from the containers.
+     * with tags on. Unless simulating, each stack is then consumed from the containers, and the part the containers cannot cover is
+     * taken from the player. The draw is all or nothing across every stack: when the combined demand exceeds what the containers and
+     * the player hold, nothing is removed.
      *
      * @param level    the level
      * @param pos      the origin position
      * @param player   the player
      * @param simulate whether to only report availability
      * @param stacks   the stacks to consume
-     * @return false, with nothing touched, when any stack is unavailable; otherwise true
+     * @return false, with nothing touched, when any stack is unavailable or the combined demand cannot be covered; otherwise true
      */
     public static boolean consumeItemsFromAdjacentInventoryOrPlayer(Level level, BlockPos pos, Player player, boolean simulate, ItemStack... stacks) {
         for (ItemStack stack : stacks) {
@@ -489,15 +468,27 @@ public final class InvHelper {
                 return false;
             }
         }
-        if (!simulate) {
+        if (simulate) {
+            return true;
+        }
+        List<ItemStack> playerSlots = copyOfSlots(player.getInventory().getNonEquipmentItems());
+        List<ItemStack> playerShortfalls = new ArrayList<>();
+        try (Transaction transaction = Transaction.openRoot()) {
             for (ItemStack stack : stacks) {
-                List<Removal> plan = new ArrayList<>();
-                int uncovered = planAdjacentRemovals(level, pos, stack, plan);
-                if (uncovered > 0) {
-                    plan.add(new PlayerRemoval(player, stack));
+                int uncovered = extractAdjacent(level, pos, stack, transaction);
+                if (uncovered <= 0) {
+                    continue;
                 }
-                applyPlan(plan);
+                ItemStack shortfall = stack.copyWithCount(uncovered);
+                if (drainSlots(playerSlots, shortfall, playerFilter(shortfall, true)) > 0) {
+                    return false;
+                }
+                playerShortfalls.add(shortfall);
             }
+            transaction.commit();
+        }
+        for (ItemStack shortfall : playerShortfalls) {
+            consumePlayerItem(player, shortfall, true, true);
         }
         return true;
     }
@@ -515,6 +506,63 @@ public final class InvHelper {
     private static InvFilter playerFilter(ItemStack wanted, boolean tags) {
         int variant = (wanted.isComponentsPatchEmpty() ? PLAYER_FILTER_COMPONENTS_BIT : 0) | (tags ? PLAYER_FILTER_TAGS_BIT : 0);
         return PLAYER_FILTERS[variant];
+    }
+
+    private static int extractMatching(ResourceHandler<ItemResource> handler, ItemStack wanted, InvFilter filter, int needed, Transaction transaction) {
+        int removed = 0;
+        for (int slot = 0; slot < handler.size() && removed < needed; slot++) {
+            ItemResource resource = handler.getResource(slot);
+            if (!resource.isEmpty() && areItemStacksEqual(wanted, resource.toStack(), filter)) {
+                removed += handler.extract(slot, resource, needed - removed, transaction);
+            }
+        }
+        return removed;
+    }
+
+    private static int extractAdjacent(Level level, BlockPos pos, ItemStack stack, Transaction transaction) {
+        int remaining = stack.getCount();
+        for (Direction direction : Direction.values()) {
+            if (remaining <= 0) {
+                break;
+            }
+            if (direction == Direction.UP) {
+                continue;
+            }
+            ResourceHandler<ItemResource> handler = getItemHandlerAt(level, pos.relative(direction), direction.getOpposite());
+            if (handler != null) {
+                remaining -= extractMatching(handler, stack, BASE_TAGS, remaining, transaction);
+            }
+        }
+        return remaining;
+    }
+
+    private static int drainSlots(List<ItemStack> inventory, ItemStack wanted, InvFilter filter) {
+        int remaining = wanted.getCount();
+        for (int slot : MAIN_INVENTORY_SLOTS) {
+            if (remaining <= 0) {
+                break;
+            }
+            ItemStack held = inventory.get(slot);
+            if (held.isEmpty() || !areItemStacksEqual(held, wanted, filter)) {
+                continue;
+            }
+            int taken = Math.min(remaining, held.getCount());
+            if (taken >= held.getCount()) {
+                inventory.set(slot, ItemStack.EMPTY);
+            } else {
+                held.shrink(taken);
+            }
+            remaining -= taken;
+        }
+        return remaining;
+    }
+
+    private static List<ItemStack> copyOfSlots(List<ItemStack> slots) {
+        List<ItemStack> copy = new ArrayList<>(slots.size());
+        for (ItemStack slotStack : slots) {
+            copy.add(slotStack.copy());
+        }
+        return copy;
     }
 
     private static int planAdjacentRemovals(Level level, BlockPos pos, ItemStack stack, List<Removal> plan) {
@@ -608,13 +656,6 @@ public final class InvHelper {
         @Override
         public void apply() {
             removeStackFrom(handler, stack, BASE_TAGS, false);
-        }
-    }
-
-    private record PlayerRemoval(Player player, ItemStack stack) implements Removal {
-        @Override
-        public void apply() {
-            consumePlayerItem(player, stack, true, true);
         }
     }
 

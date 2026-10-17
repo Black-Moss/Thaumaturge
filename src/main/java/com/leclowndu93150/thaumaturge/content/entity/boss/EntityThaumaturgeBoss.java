@@ -40,6 +40,7 @@ import org.jspecify.annotations.Nullable;
 
 public class EntityThaumaturgeBoss extends Monster {
     private static final EntityDataAccessor<Integer> DATA_ANGER = SynchedEntityData.defineId(EntityThaumaturgeBoss.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> DATA_EMERGENCE = SynchedEntityData.defineId(EntityThaumaturgeBoss.class, EntityDataSerializers.INT);
     private static final int CALM = 0;
     private static final boolean DESPAWNS_WHEN_FAR = false;
     private static final boolean PICKS_UP_LOOT = false;
@@ -129,6 +130,7 @@ public class EntityThaumaturgeBoss extends Monster {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_ANGER, CALM);
+        builder.define(DATA_EMERGENCE, 0);
     }
 
     public int rageTicks() {
@@ -140,7 +142,7 @@ public class EntityThaumaturgeBoss extends Monster {
     }
 
     public int emergenceTicks() {
-        return spawnTimer;
+        return level().isClientSide() ? entityData.get(DATA_EMERGENCE) : spawnTimer;
     }
 
     protected boolean usesLegacyEnrage() {
@@ -179,7 +181,7 @@ public class EntityThaumaturgeBoss extends Monster {
     public void tick() {
         super.tick();
         rage.tick();
-        if (isEmerging()) {
+        if (spawnTimer > 0) {
             spawnTimer--;
         }
         if (level() instanceof ServerLevel server) {
@@ -194,7 +196,7 @@ public class EntityThaumaturgeBoss extends Monster {
     }
 
     private boolean isEmerging() {
-        return spawnTimer > 0;
+        return emergenceTicks() > 0;
     }
 
     private boolean isDue(int interval) {
@@ -202,6 +204,7 @@ public class EntityThaumaturgeBoss extends Monster {
     }
 
     private void runServerCadence(ServerLevel server) {
+        entityData.set(DATA_EMERGENCE, Math.max(0, spawnTimer));
         float regen = passiveHealing();
         if (isDue(PASSIVE_HEAL_INTERVAL) && regen > 0.0F) {
             heal(regen);
@@ -260,7 +263,7 @@ public class EntityThaumaturgeBoss extends Monster {
             }
         }
         int incumbent = current == null ? 0 : aggro.get(current.getId());
-        if (current != null && tally.overtakes(current, incumbent)) {
+        if (current != null && tally.overtakes(current, incumbent) && canAttack(tally.leader)) {
             setTarget(tally.leader);
         }
         if (!LabyrinthHelper.isLabyrinthBound(this)) {

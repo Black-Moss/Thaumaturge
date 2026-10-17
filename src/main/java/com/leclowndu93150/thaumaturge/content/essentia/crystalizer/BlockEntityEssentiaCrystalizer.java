@@ -312,6 +312,11 @@ public final class BlockEntityEssentiaCrystalizer extends BlockEntity implements
     }
 
     @Override
+    public int takeEssentia(Holder<IAspect> wanted, int count, Direction side, boolean simulate) {
+        return NOTHING_MOVED;
+    }
+
+    @Override
     public boolean isConnectable(Direction face) {
         return isInputSide(face);
     }

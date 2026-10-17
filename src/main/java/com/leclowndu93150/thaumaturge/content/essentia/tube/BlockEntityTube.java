@@ -340,12 +340,17 @@ public class BlockEntityTube extends AbstractSyncedBlockEntity implements IEssen
 
     @Override
     public int takeEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        if (amount < MIN_TRANSFER || face == null || !isSideOpen(face) || !cell.hasUnit() || !cell.holds(aspect)) {
+        if (amount < MIN_TRANSFER || face == null || !canOutputTo(face) || !cell.hasUnit() || !cell.holds(aspect)) {
             return 0;
         }
         cell = TubeCell.EMPTY;
         setChanged();
         return TubeCell.CAPACITY;
+    }
+
+    @Override
+    public int spaceFor(Holder<IAspect> aspect, Direction face) {
+        return face != null && isSideOpen(face) && !cell.isOccupied() ? TubeCell.CAPACITY : 0;
     }
 
     @Override

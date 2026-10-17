@@ -1,6 +1,7 @@
 package com.leclowndu93150.thaumaturge.content.essentia.jar;
 
 import com.leclowndu93150.thaumaturge.content.blockentity.AbstractSyncedBlockEntity;
+import com.leclowndu93150.thaumaturge.mixin.world.entity.ExperienceOrbAccessor;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import com.leclowndu93150.thaumaturge.registry.TTDataComponents;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
@@ -132,7 +133,7 @@ public final class BlockEntityJarBrain extends AbstractSyncedBlockEntity {
         boolean collected = false;
         RandomSource random = level.getRandom();
         for (ExperienceOrb orb : level.getEntitiesOfClass(ExperienceOrb.class, new AABB(worldPosition).inflate(COLLECT_MARGIN))) {
-            xp += orb.getValue();
+            xp += orb.getValue() * ((ExperienceOrbAccessor) orb).thaumaturge$getCount();
             level.playSound(null, orb.getX(), orb.getY(), orb.getZ(), SoundEvents.GENERIC_EAT, SoundSource.BLOCKS, EAT_VOLUME,
                     EAT_BASE_PITCH + (random.nextFloat() - random.nextFloat()) * EAT_PITCH_SPREAD);
             orb.discard();

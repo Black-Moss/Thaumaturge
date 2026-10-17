@@ -502,6 +502,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
     @Override
     public void setProperties(IGolemProperties properties) {
         storeProperties(GolemProperties.of(properties));
+        recomputeStats();
     }
 
     public int getRankXp() {
@@ -582,7 +583,7 @@ public class EntityThaumaturgeGolem extends EntityOwnedConstruct implements IGol
         if (storedHome.isEmpty()) {
             storedHome = LegacyGolemSave.readHome(input);
         }
-        setHomeTo(storedHome.orElse(BlockPos.ZERO), GolemStatSheet.HOME_RADIUS);
+        setHomeTo(storedHome.orElse(blockPosition()), GolemStatSheet.HOME_RADIUS);
     }
 
     boolean hasTrait(DeferredHolder<GolemTrait, GolemTrait> trait) {

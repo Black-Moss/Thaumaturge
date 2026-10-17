@@ -77,7 +77,7 @@ public final class HarvestBehavior implements ISealBehavior {
     public void tick(ServerLevel level, ISealEntity seal) {
         int step = clock.advance();
         if (step % MAINTENANCE_PERIOD == 0) {
-            pruneSites(seal);
+            pruneSites(level, seal);
             harvests.dropFinished(level);
         }
         if (step % SCAN_PERIOD != 0) {
@@ -145,9 +145,11 @@ public final class HarvestBehavior implements ISealBehavior {
         return task != null && !task.isEnded() && TaskBoard.of(level).isLive(task.id());
     }
 
-    private void pruneSites(ISealEntity seal) {
+    private void pruneSites(ServerLevel level, ISealEntity seal) {
         AABB area = SealArea.bounds(seal);
-        sites.values().removeIf(site -> isOutside(area, site));
+        if (sites.values().removeIf(site -> isOutside(area, site))) {
+            seal.markChanged(level);
+        }
     }
 
     private static boolean isOutside(AABB area, ReplantSite site) {
@@ -182,6 +184,7 @@ public final class HarvestBehavior implements ISealBehavior {
         golem.swingArm();
         if (seal.setting(REPLANT) && !seed.isEmpty() && level.getBlockState(pos).isAir()) {
             planReplant(level, task, pos, grown, seed);
+            seal.markChanged(level);
         }
     }
 

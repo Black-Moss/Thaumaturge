@@ -107,8 +107,8 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
             poseStack.popPose();
         }
         BlockPos pos = state.blockPos;
-        boolean alongZ = facing.getAxis() == Direction.Axis.Z;
-        collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> writeDoor(pose, buffer, pos, alongZ));
+        Direction.Axis axis = facing.getAxis();
+        collector.submitCustomGeometry(poseStack, EldritchPortalSurface.SURFACE, (pose, buffer) -> writeDoor(pose, buffer, pos, axis));
     }
 
     @Override
@@ -135,11 +135,11 @@ public final class EldritchLockRenderer implements BlockEntityRenderer<BlockEnti
         };
     }
 
-    private static void writeDoor(PoseStack.Pose pose, VertexConsumer buffer, BlockPos pos, boolean alongZ) {
-        if (alongZ) {
-            EldritchPortalSurface.quad(pose, buffer, pos, DOOR_NEAR, DOOR_NEAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR, DOOR_PLANE, DOOR_FAR, DOOR_FAR, DOOR_PLANE, DOOR_FAR, DOOR_NEAR, DOOR_PLANE);
-        } else {
-            EldritchPortalSurface.quad(pose, buffer, pos, DOOR_PLANE, DOOR_NEAR, DOOR_NEAR, DOOR_PLANE, DOOR_FAR, DOOR_NEAR, DOOR_PLANE, DOOR_FAR, DOOR_FAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR);
+    private static void writeDoor(PoseStack.Pose pose, VertexConsumer buffer, BlockPos pos, Direction.Axis axis) {
+        switch (axis) {
+            case Z -> EldritchPortalSurface.quad(pose, buffer, pos, DOOR_NEAR, DOOR_NEAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR, DOOR_PLANE, DOOR_FAR, DOOR_FAR, DOOR_PLANE, DOOR_FAR, DOOR_NEAR, DOOR_PLANE);
+            case X -> EldritchPortalSurface.quad(pose, buffer, pos, DOOR_PLANE, DOOR_NEAR, DOOR_NEAR, DOOR_PLANE, DOOR_FAR, DOOR_NEAR, DOOR_PLANE, DOOR_FAR, DOOR_FAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR);
+            case Y -> EldritchPortalSurface.quad(pose, buffer, pos, DOOR_NEAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR, DOOR_PLANE, DOOR_NEAR, DOOR_FAR, DOOR_PLANE, DOOR_FAR, DOOR_NEAR, DOOR_PLANE, DOOR_FAR);
         }
     }
 

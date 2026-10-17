@@ -62,6 +62,9 @@ public final class BlockEntityLampFertility extends BlockEntity implements Essen
     }
 
     private void pairAnimals(Level level, BlockPos pos) {
+        if (charges < PAIRING_COST) {
+            return;
+        }
         List<Animal> nearby = level.getEntitiesOfClass(Animal.class, new AABB(pos).inflate(PAIRING_RANGE));
         Map<EntityType<?>, Long> population = nearby.stream().collect(Collectors.groupingBy(Animal::getType, Collectors.counting()));
         Couple couple = findCouple(nearby, population);

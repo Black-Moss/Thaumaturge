@@ -3,7 +3,12 @@ package com.leclowndu93150.thaumaturge.client.hud;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.api.aspect.TTAspects;
 import com.leclowndu93150.thaumaturge.api.casters.ICaster;
+import com.leclowndu93150.thaumaturge.api.casters.IFocusBlockPicker;
+import com.leclowndu93150.thaumaturge.api.spell.Spell;
+import com.leclowndu93150.thaumaturge.api.spell.SpellNode;
 import com.leclowndu93150.thaumaturge.api.spell.SpellSummary;
+import com.leclowndu93150.thaumaturge.api.spell.Spells;
+import com.leclowndu93150.thaumaturge.api.spell.part.SpellPart;
 import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeClientConfig;
 import com.leclowndu93150.thaumaturge.content.spell.item.FocusItems;
@@ -84,6 +89,7 @@ public final class CasterHudOverlay implements GuiLayer {
     private static final long SNAPSHOT_INTERVAL_MS = 1000L;
     private static final int[] PREVIOUS_VIS = new int[PRIMALS];
     private static long lastSnapshotMillis;
+    private static int snapshotSlot = Integer.MIN_VALUE;
 
     private static final int AMOUNT_MAX_INTEGER_DIGITS = 7;
     private static final int AMOUNT_MAX_FRACTION_DIGITS = 1;
@@ -126,6 +132,14 @@ public final class CasterHudOverlay implements GuiLayer {
         float[] costs = hasFocus ? primalCosts(mc, player, caster, casterStack, focus) : new float[PRIMALS];
         int maxVis = WandVisHelper.capacityOf(casterStack);
         int[] current = new int[PRIMALS];
+        int slot = mainStack.getItem() instanceof ICaster ? player.getInventory().getSelectedSlot() : -1;
+        if (slot != snapshotSlot) {
+            for (int i = 0; i < PRIMALS; i++) {
+                PREVIOUS_VIS[i] = WandVisHelper.storedIn(casterStack, TTAspects.PRIMALS.get(i));
+            }
+            lastSnapshotMillis = Util.getMillis();
+            snapshotSlot = slot;
+        }
         graphics.blit(RenderPipelines.GUI_TEXTURED, WAND_SHEET, 0, dialY, 0, 0, DIAL_SIZE, DIAL_SIZE, DIAL_ART_SIZE, DIAL_ART_SIZE, TEX, TEX);
         float startDegrees = bottomMode ? BOTTOM_START_DEGREES : STACK_START_DEGREES;
         for (int i = 0; i < PRIMALS; i++) {
@@ -186,7 +200,7 @@ public final class CasterHudOverlay implements GuiLayer {
 
     private static void drawCentre(GuiGraphicsExtractor graphics, Minecraft mc, LocalPlayer player, ItemStack focus, int dialY) {
         int itemY = dialY + ITEM_OFFSET;
-        ItemStack picked = pickedStack(player.getMainHandItem());
+        ItemStack picked = picksBlocks(focus, mc.level.registryAccess()) ? pickedStack(player.getMainHandItem()) : ItemStack.EMPTY;
         if (picked.isEmpty()) {
             graphics.item(focus, ITEM_OFFSET, itemY);
             return;
@@ -202,6 +216,20 @@ public final class CasterHudOverlay implements GuiLayer {
         }
         graphics.text(mc.font, count, x, TRADE_DOWN, WHITE, false);
         graphics.pose().popMatrix();
+    }
+
+    private static boolean picksBlocks(ItemStack focus, HolderLookup.Provider registries) {
+        Spell spell = Spells.spellOf(focus);
+        if (spell == null) {
+            return false;
+        }
+        for (SpellNode node : spell.nodes()) {
+            Optional<SpellPart> part = Spells.part(registries, node.part());
+            if (part.isPresent() && part.get().behavior() instanceof IFocusBlockPicker) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ItemStack pickedStack(ItemStack mainStack) {

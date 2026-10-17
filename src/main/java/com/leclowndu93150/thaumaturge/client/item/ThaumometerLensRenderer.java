@@ -57,6 +57,7 @@ public final class ThaumometerLensRenderer {
     private static final float NAME_Y = -0.25F;
     private static final float NAME_FRONT_Z = 0.0005F;
     private static final float NAME_BASE_SCALE = 0.005F;
+    private static final float NAME_MIN_SCALE = 0.001F;
     private static final float NAME_SCALE_STEP = 0.000025F;
     private static final int NAME_FULL_SCALE_WIDTH = 90;
     private static final float GRID_SCALE = 0.0075F;
@@ -160,7 +161,7 @@ public final class ThaumometerLensRenderer {
         if (width <= NAME_FULL_SCALE_WIDTH) {
             return NAME_BASE_SCALE;
         }
-        return NAME_BASE_SCALE - NAME_SCALE_STEP * (width - NAME_FULL_SCALE_WIDTH);
+        return Math.max(NAME_MIN_SCALE, NAME_BASE_SCALE - NAME_SCALE_STEP * (width - NAME_FULL_SCALE_WIDTH));
     }
 
     private static void submitName(Font font, PoseStack poseStack, SubmitNodeCollector collector, Component name) {

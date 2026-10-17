@@ -111,6 +111,16 @@ public final class BlockEntityTubeValve extends BlockEntityTube {
     }
 
     @Override
+    public boolean canInputFrom(Direction face) {
+        return allowFlow() && super.canInputFrom(face);
+    }
+
+    @Override
+    public boolean canOutputTo(Direction face) {
+        return allowFlow() && super.canOutputTo(face);
+    }
+
+    @Override
     public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
         if (!allowFlow()) {
             return 0;

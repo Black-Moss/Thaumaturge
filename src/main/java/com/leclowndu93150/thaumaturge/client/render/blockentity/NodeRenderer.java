@@ -117,7 +117,11 @@ public final class NodeRenderer implements BlockEntityRenderer<BlockEntityNode, 
 
     @Override
     public AABB getRenderBoundingBox(BlockEntityNode node) {
-        return new AABB(node.getBlockPos()).inflate(BOUNDS_MARGIN);
+        AABB bounds = new AABB(node.getBlockPos()).inflate(BOUNDS_MARGIN);
+        UUID drainId = node.getDrainPlayer();
+        Level level = node.getLevel();
+        Player drainer = drainId == null || level == null ? null : level.getPlayerByUUID(drainId);
+        return drainer == null ? bounds : bounds.minmax(drainer.getBoundingBox());
     }
 
     @Override

@@ -16,6 +16,7 @@ import org.joml.Matrix4fc;
 public final class FloatyLineRenderer {
     private static final Identifier WISPY_TEXTURE = TTIds.rl("textures/misc/wispy.png");
 
+    private static final long CLOCK_WRAP = 1_048_576L;
     private static final float CLOCK_SCALE_NUMERATOR = 50.0F;
     private static final float CLOCK_SCALE_DENOMINATOR = 30.0F;
     private static final double MIN_LINE_LENGTH = 0.1;
@@ -47,7 +48,7 @@ public final class FloatyLineRenderer {
     }
 
     public static float time(long gameTime, float partialTick) {
-        return (gameTime + partialTick) * CLOCK_SCALE_NUMERATOR / CLOCK_SCALE_DENOMINATOR;
+        return (Math.floorMod(gameTime, CLOCK_WRAP) + partialTick) * CLOCK_SCALE_NUMERATOR / CLOCK_SCALE_DENOMINATOR;
     }
 
     private static RenderType renderType() {

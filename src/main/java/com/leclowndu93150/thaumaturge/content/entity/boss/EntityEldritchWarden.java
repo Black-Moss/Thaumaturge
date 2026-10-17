@@ -62,7 +62,6 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
     private static final String TITLE_SEPARATOR = ";";
     private static final String TITLE_ROSTER = "Aphoom-Zhah;Basatan;Chaugnar Faugn;Mnomquah;Nyogtha;Oorn;Shaikorth;Rhan-Tegoth;Rhogog;Shudde M'ell;Vulthoom;Yag-Kosha;Yibb-Tstll;Zathog;Zushakon";
     private static final BossTitles TITLES = new BossTitles(NAME_KEY, List.of(TITLE_ROSTER.split(TITLE_SEPARATOR)));
-    private static final byte EVENT_EMERGENCE = 18;
     private static final int EMERGENCE_TICKS = 150;
     private static final int SHROUD_INTERVAL = 4;
     private static final int SHROUD_SPIRALS = 33;
@@ -125,7 +124,6 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
     private final RingPhase ring = new RingPhase(this, arms);
     private final BlockPos.MutableBlockPos trailCursor = new BlockPos.MutableBlockPos();
     private int title;
-    private boolean emergenceAnnounced;
 
     public EntityEldritchWarden(EntityType<? extends EntityEldritchWarden> type, Level level) {
         super(type, level);
@@ -173,7 +171,6 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
 
     @Override
     public void tick() {
-        announceEmergence();
         super.tick();
         if (level() instanceof ServerLevel server) {
             tickServerSide(server);
@@ -232,9 +229,7 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
 
     @Override
     public void handleEntityEvent(byte event) {
-        if (event == EVENT_EMERGENCE) {
-            spawnTimer = EMERGENCE_TICKS;
-        } else if (!arms.receive(event)) {
+        if (!arms.receive(event)) {
             super.handleEntityEvent(event);
         }
     }
@@ -289,14 +284,6 @@ public class EntityEldritchWarden extends EntityThaumaturgeBoss implements Range
 
     private static Goal gazeGoal(EntityEldritchWarden warden) {
         return new LookAtPlayerGoal(warden, Player.class, LOOK_RANGE);
-    }
-
-    private void announceEmergence() {
-        if (emergenceAnnounced || spawnTimer <= 0 || !(level() instanceof ServerLevel server)) {
-            return;
-        }
-        emergenceAnnounced = true;
-        server.broadcastEntityEvent(this, EVENT_EMERGENCE);
     }
 
     private void tickServerSide(ServerLevel server) {

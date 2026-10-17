@@ -137,8 +137,12 @@ public final class BlockEntityThaumatorium extends AbstractSyncedBlockEntity imp
         if (refreshNow) {
             refresh(level, pos);
         }
-        if (workNow && canWork(level, pos)) {
-            work(level, pos);
+        if (workNow) {
+            if (canWork(level, pos)) {
+                work(level, pos);
+            } else {
+                selection.request(null);
+            }
         }
     }
 
@@ -170,6 +174,7 @@ public final class BlockEntityThaumatorium extends AbstractSyncedBlockEntity imp
         }
         CrucibleRecipe active = selectRecipe(level, held);
         if (active == null) {
+            selection.request(null);
             return;
         }
         Holder<IAspect> missing = requirements.firstUnmet();

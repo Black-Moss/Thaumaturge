@@ -95,7 +95,7 @@ public final class BlockEntityMirror extends BlockEntityMirrorBase {
     }
 
     private @Nullable BlockEntityMirror linkedMirror() {
-        if (!verifyPairing()) {
+        if (!partnerAvailable() || !verifyPairing()) {
             return null;
         }
         return partner() instanceof BlockEntityMirror mirror ? mirror : null;

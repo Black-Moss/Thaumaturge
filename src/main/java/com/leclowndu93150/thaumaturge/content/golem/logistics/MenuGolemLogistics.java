@@ -159,7 +159,7 @@ public final class MenuGolemLogistics extends AbstractContainerMenu {
             }
         }
         visible = matching;
-        lastPageSlot.set(Math.max(0, visible.size() / COLUMNS - (ROWS - 1)));
+        lastPageSlot.set(Math.max(0, Math.ceilDiv(visible.size(), COLUMNS) - ROWS));
         showPage(Math.min(start(), end()));
     }
 

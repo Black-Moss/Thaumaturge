@@ -74,7 +74,7 @@ public class EntityInhabitedZombie extends Zombie {
 
     @Override
     public boolean killedEntity(ServerLevel level, LivingEntity entity, DamageSource source) {
-        return false;
+        return true;
     }
 
     @Override
@@ -114,6 +114,7 @@ public class EntityInhabitedZombie extends Zombie {
             return;
         }
         crab.snapTo(this.getX(), this.getY() + this.getEyeHeight(), this.getZ(), this.getYRot(), this.getXRot());
+        crab.setYHeadRot(this.getYHeadRot());
         crab.setHelm(true);
         server.addFreshEntity(crab);
     }

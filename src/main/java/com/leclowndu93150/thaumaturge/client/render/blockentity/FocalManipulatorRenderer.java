@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.util.ARGB;
 import net.minecraft.util.LightCoordsUtil;
@@ -27,6 +28,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.jspecify.annotations.Nullable;
@@ -69,6 +71,7 @@ public final class FocalManipulatorRenderer implements BlockEntityRenderer<Block
     private static final float[] RAY_BASE_X = {-RAY_SPREAD_X, RAY_SPREAD_X, 0.0F};
     private static final float[] RAY_BASE_Z = {-RAY_SPREAD_Z, -RAY_SPREAD_Z, 1.0F};
     private static final int VIEW_DISTANCE = 32;
+    private static final double BOUNDS_HEIGHT = 2.0;
     private static final int SALT_ROLL = 0;
     private static final int SALT_LENGTH = 1;
     private static final int SALT_WIDTH = 2;
@@ -90,6 +93,12 @@ public final class FocalManipulatorRenderer implements BlockEntityRenderer<Block
     @Override
     public int getViewDistance() {
         return VIEW_DISTANCE;
+    }
+
+    @Override
+    public AABB getRenderBoundingBox(BlockEntityFocalManipulator table) {
+        BlockPos pos = table.getBlockPos();
+        return new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1.0, pos.getY() + BOUNDS_HEIGHT, pos.getZ() + 1.0);
     }
 
     @Override

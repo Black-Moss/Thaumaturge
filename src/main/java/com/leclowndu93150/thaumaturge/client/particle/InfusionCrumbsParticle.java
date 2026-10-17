@@ -6,6 +6,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.data.AtlasIds;
@@ -36,7 +37,17 @@ public final class InfusionCrumbsParticle extends SeekerParticle {
         this.quadSize = (SIZE_BASE + this.random.nextFloat() * SIZE_RANGE) * SIZE_UNIT;
         this.windowU = this.random.nextFloat() * (1.0F - WINDOW_FRACTION);
         this.windowV = this.random.nextFloat() * (1.0F - WINDOW_FRACTION);
-        this.layer = Layer.bySprite(sprite);
+        this.layer = translucentLayer(sprite);
+    }
+
+    private static Layer translucentLayer(TextureAtlasSprite sprite) {
+        if (sprite.atlasLocation().equals(TextureAtlas.LOCATION_BLOCKS)) {
+            return Layer.TRANSLUCENT_TERRAIN;
+        }
+        if (sprite.atlasLocation().equals(TextureAtlas.LOCATION_ITEMS)) {
+            return Layer.TRANSLUCENT_ITEMS;
+        }
+        return Layer.TRANSLUCENT;
     }
 
     @Override

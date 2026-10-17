@@ -102,7 +102,7 @@ public final class WispZapGoal extends Goal {
         level.playSound(null, wisp.getX(), wisp.getY(), wisp.getZ(), TTSounds.ZAP.get(), SoundSource.HOSTILE, ZAP_VOLUME, ZAP_PITCH);
         PacketDistributor.sendToPlayersTrackingEntity(wisp, new ClientboundWispZapPayload(wisp.getId(), target.getId()));
         RandomSource random = wisp.getRandom();
-        boolean still = isStill(target.getDeltaMovement());
+        boolean still = isStill(target.getKnownMovement());
         float damage = (float) wisp.getAttributeValue(Attributes.ATTACK_DAMAGE);
         if (random.nextFloat() < (still ? STILL_HIT_CHANCE : MOVING_HIT_CHANCE)) {
             target.hurtServer(level, wisp.damageSources().mobAttack(wisp), still ? damage + STILL_DAMAGE_BONUS : damage);

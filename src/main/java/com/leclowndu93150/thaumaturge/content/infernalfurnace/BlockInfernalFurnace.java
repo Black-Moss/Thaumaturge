@@ -165,7 +165,8 @@ public class BlockInfernalFurnace extends BaseEntityBlock {
         restoreShell(level, furnacePos, broken);
         BlockPos outside = furnacePos.relative(furnaceState.getValue(FACING).getOpposite());
         if (!outside.equals(broken) && level.getBlockState(outside).isAir()) {
-            level.setBlock(outside, Blocks.IRON_BARS.defaultBlockState(), Block.UPDATE_ALL);
+            BlockState bars = Block.updateFromNeighbourShapes(Blocks.IRON_BARS.defaultBlockState(), level, outside);
+            level.setBlock(outside, bars, Block.UPDATE_ALL);
         }
         if (ThaumaturgeServerConfig.INFERNAL_FURNACE_TURN_TO_BLAZE.get()) {
             level.setBlock(furnacePos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);

@@ -68,7 +68,8 @@ public final class BlockEntityEssentiaPort extends BlockEntity implements IEssen
 
     private void pullFromSources(ServerLevel server, IEssentiaTransport tube, Direction touching) {
         Holder<IAspect> wanted = tube.getSuctionType(touching);
-        if (!tube.canInputFrom(touching) || wanted == null || tube.getSuctionAmount(touching) <= 0 || !sources.drain(server, wanted, VISUAL_EXTENSION)) {
+        if (!tube.canInputFrom(touching) || wanted == null || tube.getSuctionAmount(touching) <= 0 || tube.addEssentia(wanted, SINGLE_POINT, touching, true) < SINGLE_POINT
+                || !sources.drain(server, wanted, VISUAL_EXTENSION)) {
             return;
         }
         if (tube.addEssentia(wanted, SINGLE_POINT, touching) < SINGLE_POINT) {

@@ -4,6 +4,7 @@ import com.leclowndu93150.thaumaturge.api.aura.AuraHelper;
 import com.leclowndu93150.thaumaturge.content.entity.EntityFluxRift;
 import com.leclowndu93150.thaumaturge.registry.TTBlockEntities;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -75,6 +76,14 @@ public final class BlockEntityStabilizer extends BlockEntity {
         setChanged();
         if (level != null) {
             level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
+            if (!level.isClientSide()) {
+                for (Direction side : Direction.Plane.HORIZONTAL) {
+                    BlockPos neighbour = worldPosition.relative(side);
+                    if (level.hasChunkAt(neighbour) && BlockInlay.chargeAt(level, neighbour) >= 0) {
+                        BlockInlay.updateNetwork(level, neighbour);
+                    }
+                }
+            }
         }
     }
 

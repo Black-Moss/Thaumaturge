@@ -264,6 +264,11 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
 
     @Override
     public int takeEssentia(Holder<IAspect> kind, int amount, Direction side) {
+        return takeEssentia(kind, amount, side, false);
+    }
+
+    @Override
+    public int takeEssentia(Holder<IAspect> kind, int amount, Direction side, boolean simulate) {
         if (side == null || !canOutputTo(side)) {
             return 0;
         }
@@ -271,6 +276,9 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
         int moved = Math.min(amount, contents.amountOf(kind));
         if (outbid || moved < SINGLE_UNIT) {
             return 0;
+        }
+        if (simulate) {
+            return moved;
         }
         boolean removed = drain(kind, moved);
         return removed ? moved : 0;
@@ -283,8 +291,24 @@ public final class BlockEntityTubeBuffer extends AbstractSyncedBlockEntity imple
 
     @Override
     public int addEssentia(Holder<IAspect> kind, int amount, Direction side) {
+        return addEssentia(kind, amount, side, false);
+    }
+
+    @Override
+    public int addEssentia(Holder<IAspect> kind, int amount, Direction side, boolean simulate) {
         boolean accepted = side != null && canInputFrom(side) && kind.unwrapKey().isPresent();
-        return accepted ? insert(kind, amount) : 0;
+        if (!accepted) {
+            return 0;
+        }
+        if (simulate) {
+            return amount == SINGLE_UNIT && !isFull() ? SINGLE_UNIT : 0;
+        }
+        return insert(kind, amount);
+    }
+
+    @Override
+    public int spaceFor(Holder<IAspect> kind, Direction side) {
+        return side != null && canInputFrom(side) ? Math.max(0, MAX_AMOUNT - heldTotal()) : 0;
     }
 
     @Override

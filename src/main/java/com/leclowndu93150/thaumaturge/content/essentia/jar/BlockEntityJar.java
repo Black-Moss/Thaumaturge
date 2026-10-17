@@ -182,7 +182,7 @@ public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssent
         if (requested <= 0) {
             return 0;
         }
-        if (aspectFilter != null && !aspectFilter.equals(key) || amount > 0 && !key.equals(aspect)) {
+        if (isRefused(key)) {
             return requested;
         }
         int stored = Math.max(0, Math.min(requested, capacity() - amount));
@@ -311,6 +311,19 @@ public class BlockEntityJar extends AbstractSyncedBlockEntity implements IEssent
             return 0;
         }
         return requested - doAddToContainer(key, requested);
+    }
+
+    @Override
+    public int spaceFor(Holder<IAspect> type, Direction face) {
+        ResourceKey<IAspect> key = type.unwrapKey().orElse(null);
+        if (!isTopFace(face) || key == null || isRefused(key)) {
+            return 0;
+        }
+        return Math.max(0, capacity() - amount);
+    }
+
+    private boolean isRefused(ResourceKey<IAspect> key) {
+        return aspectFilter != null && !aspectFilter.equals(key) || amount > 0 && !key.equals(aspect);
     }
 
     @Override

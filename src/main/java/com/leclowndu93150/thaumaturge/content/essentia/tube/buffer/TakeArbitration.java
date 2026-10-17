@@ -38,7 +38,7 @@ public final class TakeArbitration {
     private static int peerSuction(Level level, BlockPos pos, Direction side, @Nullable Holder<IAspect> accepted) {
         Direction back = side.getOpposite();
         IEssentiaTransport peer = EssentiaFlowHandler.transport(level, pos.relative(side), back);
-        if (peer == null) {
+        if (peer == null || !peer.isConnectable(back)) {
             return NO_SUCTION;
         }
         Holder<IAspect> wanted = peer.getSuctionType(back);

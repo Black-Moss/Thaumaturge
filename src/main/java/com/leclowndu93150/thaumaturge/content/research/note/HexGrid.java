@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
-import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 
 public final class HexGrid {
@@ -84,9 +83,12 @@ public final class HexGrid {
     }
 
     public static Hex pixelToHex(float x, float y, float size) {
-        double[] exact = {x / (COLUMN_SPACING * size), 0.0, 0.0};
-        exact[AXIS_R] = y / (size * SQRT3) - exact[AXIS_Q] * HALF;
-        exact[AXIS_S] = -exact[AXIS_Q] - exact[AXIS_R];
+        double q = x / (COLUMN_SPACING * size);
+        return nearest(q, y / (size * SQRT3) - q * HALF);
+    }
+
+    private static Hex nearest(double q, double r) {
+        double[] exact = {q, r, -q - r};
         long[] snapped = Arrays.stream(exact).mapToLong(Math::round).toArray();
         int worst = IntStream.of(AXIS_S, AXIS_R, AXIS_Q).reduce((best, axis) -> Math.abs(snapped[axis] - exact[axis]) > Math.abs(snapped[best] - exact[best]) ? axis : best).getAsInt();
         snapped[worst] = -(LongStream.of(snapped).sum() - snapped[worst]);
@@ -94,9 +96,17 @@ public final class HexGrid {
     }
 
     public static Hex clampToDisk(Hex hex, int radius) {
-        if (distance(hex, new Hex(0, 0)) <= radius) {
+        Hex origin = new Hex(0, 0);
+        int reach = distance(hex, origin);
+        if (reach <= radius) {
             return hex;
         }
-        return new Hex(Mth.clamp(hex.q(), -radius, radius), Mth.clamp(hex.r(), -radius, radius));
+        int limit = Math.max(0, radius);
+        double shrink = (double) limit / reach;
+        Hex pulled = nearest(hex.q() * shrink, hex.r() * shrink);
+        while (distance(pulled, origin) > limit) {
+            pulled = nearest(pulled.q() * shrink, pulled.r() * shrink);
+        }
+        return pulled;
     }
 }

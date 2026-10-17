@@ -5,6 +5,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -62,7 +63,7 @@ final class BossRage {
         if (damage <= HIT_CAP || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return damage;
         }
-        if (anger() <= 0) {
+        if (anger() <= 0 && boss.level() instanceof ServerLevel level && !boss.isInvulnerableTo(level, source) && boss.isAlive()) {
             enrage(source, damage);
         }
         return HIT_CAP;

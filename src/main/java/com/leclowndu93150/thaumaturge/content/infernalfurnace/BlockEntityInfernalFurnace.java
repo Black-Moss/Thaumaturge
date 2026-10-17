@@ -61,6 +61,7 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
 
     private final FurnaceInventory inventory = new FurnaceInventory();
     private final CookTimer timer = new CookTimer();
+    private boolean contentsDirty = true;
 
     public int visCharge;
     public int smeltTicksTotal;
@@ -194,7 +195,12 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
         }
         switch (timer.step()) {
             case FINISHING -> completeSmelt(serverLevel);
-            case IDLE -> startCycle(serverLevel);
+            case IDLE -> {
+                if (contentsDirty) {
+                    contentsDirty = false;
+                    startCycle(serverLevel);
+                }
+            }
             case COOKING -> {
             }
         }
@@ -221,8 +227,8 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
             ItemResource resource = inventory.getResource(slot);
             int amount = inventory.getAmountAsInt(slot);
             Optional<RecipeHolder<SmeltingRecipe>> found = smelting(serverLevel, resource.toStack(amount));
-            inventory.set(slot, amount > 1 ? resource : ItemResource.EMPTY, amount - 1);
             if (found.isPresent()) {
+                inventory.set(slot, amount > 1 ? resource : ItemResource.EMPTY, amount - 1);
                 finishSmelt(serverLevel, found.get().value(), resource.toStack(1));
                 return;
             }
@@ -510,6 +516,7 @@ public class BlockEntityInfernalFurnace extends AbstractSyncedBlockEntity {
 
         @Override
         protected void onContentsChanged(int index, ItemStack previousContents) {
+            contentsDirty = true;
             setChanged();
         }
     }

@@ -20,6 +20,11 @@ abstract class PassiveEssentiaSource implements IEssentiaTransport {
     }
 
     @Override
+    public final int spaceFor(Holder<IAspect> aspect, Direction face) {
+        return ZERO;
+    }
+
+    @Override
     public final int getMinimumSuction() {
         return ZERO;
     }

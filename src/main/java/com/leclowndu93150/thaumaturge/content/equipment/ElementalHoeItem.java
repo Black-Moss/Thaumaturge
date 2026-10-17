@@ -51,7 +51,7 @@ public final class ElementalHoeItem extends HoeItem {
         if (tilled) {
             return InteractionResult.SUCCESS;
         }
-        if (!BoneMealItem.growCrop(new ItemStack(Items.BONE_MEAL), level, origin)) {
+        if (!BoneMealItem.applyBonemeal(new ItemStack(Items.BONE_MEAL), level, origin, player)) {
             return InteractionResult.PASS;
         }
         if (!level.isClientSide()) {

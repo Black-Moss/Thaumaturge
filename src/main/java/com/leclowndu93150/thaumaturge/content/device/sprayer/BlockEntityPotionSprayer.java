@@ -72,6 +72,7 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     private int essentiaTimer;
     private int ventTicks;
     private boolean powerEdgeLatched;
+    private boolean powerKnown;
     private @Nullable Holder<IAspect> requested;
 
     public BlockEntityPotionSprayer(BlockPos pos, BlockState state) {
@@ -140,6 +141,11 @@ public final class BlockEntityPotionSprayer extends AbstractSyncedBlockEntity im
     }
 
     private void trackPowerEdge(ServerLevel level, BlockPos pos, BlockState state) {
+        if (!powerKnown) {
+            powerKnown = true;
+            powerEdgeLatched = !state.getValue(BlockStateProperties.ENABLED);
+            return;
+        }
         if (state.getValue(BlockStateProperties.ENABLED)) {
             powerEdgeLatched = false;
             return;

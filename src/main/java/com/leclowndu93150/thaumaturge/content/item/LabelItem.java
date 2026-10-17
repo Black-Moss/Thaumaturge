@@ -44,12 +44,15 @@ public final class LabelItem extends Item implements ILabel {
             return InteractionResult.PASS;
         }
         Level level = context.getLevel();
+        ILabelable target = findTarget(level, context.getClickedPos());
+        if (target == null) {
+            return InteractionResult.PASS;
+        }
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
         ItemStack held = context.getItemInHand();
-        ILabelable target = findTarget(level, context.getClickedPos());
-        if (target == null || !target.applyLabel(player, context.getClickedPos(), context.getClickedFace(), held)) {
+        if (!target.applyLabel(player, context.getClickedPos(), context.getClickedFace(), held)) {
             return InteractionResult.PASS;
         }
         if (!player.hasInfiniteMaterials()) {

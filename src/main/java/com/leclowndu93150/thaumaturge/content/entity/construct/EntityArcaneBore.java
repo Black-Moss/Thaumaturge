@@ -174,25 +174,27 @@ public class EntityArcaneBore extends EntityOwnedConstruct implements ArcaneBore
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (level().isClientSide() || !isAlive() || !isOwner(player)) {
+        if (!isAlive() || !isOwner(player)) {
             return super.mobInteract(player, hand);
         }
-        return useAsOwner(player, hand);
+        if (level() instanceof ServerLevel) {
+            useAsOwner(player, hand);
+        }
+        return InteractionResult.SUCCESS;
     }
 
-    private InteractionResult useAsOwner(Player player, InteractionHand hand) {
+    private void useAsOwner(Player player, InteractionHand hand) {
         if (player.isShiftKeyDown()) {
             dropHeld();
             dismantle(player, hand, new ItemStack(TTItems.ARCANE_BORE.get()));
         } else {
             MenuArcaneBore.open(player, this);
         }
-        return InteractionResult.SUCCESS;
     }
 
     @Override
     public void move(MoverType type, Vec3 delta) {
-        super.move(type, dampHorizontal(delta, MOVE_DAMPING));
+        super.move(type, type == MoverType.SELF ? dampHorizontal(delta, MOVE_DAMPING) : delta);
     }
 
     @Override

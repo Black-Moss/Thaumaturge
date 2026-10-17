@@ -118,14 +118,21 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
     }
 
     private void runCycle(Level level) {
-        if (!isWorking() || !payUnit(level)) {
+        if (pending == null) {
             return;
         }
-        cost--;
-        setChanged();
-        if (cost <= 0) {
-            deliver(level);
+        if (cost > 0) {
+            if (!payUnit(level)) {
+                return;
+            }
+            cost--;
+            if (cost > 0) {
+                setChanged();
+                return;
+            }
+            setChangedAndSync();
         }
+        deliver(level);
     }
 
     private boolean payUnit(Level level) {
@@ -144,7 +151,7 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
             }
             Direction facing = side.getOpposite();
             if (!source.canOutputTo(facing)) {
-                break;
+                continue;
             }
             if (source.takeEssentia(machina, UNIT, facing) > 0) {
                 return true;
@@ -210,7 +217,7 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
     }
 
     public boolean beginAssembly(GolemProperties props, Player player) {
-        if (level == null || level.isClientSide() || cost != 0) {
+        if (level == null || level.isClientSide() || cost != 0 || pending != null) {
             return false;
         }
         if (!props.isKnownBy(KnowledgeAccess.of(player))) {
@@ -224,7 +231,9 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
         if (!InvHelper.consumeItemsFromAdjacentInventoryOrPlayer(level, worldPosition, player, true, components)) {
             return abandonJob();
         }
-        InvHelper.consumeItemsFromAdjacentInventoryOrPlayer(level, worldPosition, player, false, components);
+        if (!InvHelper.consumeItemsFromAdjacentInventoryOrPlayer(level, worldPosition, player, false, components)) {
+            return abandonJob();
+        }
         int total = COST_PER_TRAIT * props.traits().size();
         for (ItemStack component : components) {
             total += component.getCount();
@@ -323,9 +332,25 @@ public final class BlockEntityGolemBuilder extends AbstractSyncedBlockEntity imp
 
     @Override
     public int addEssentia(Holder<IAspect> aspect, int amount, Direction face) {
-        boolean acceptable = isWorking() && !buffered && amount > 0 && aspect.is(TTAspects.MACHINA);
-        buffered = buffered || acceptable;
+        return addEssentia(aspect, amount, face, false);
+    }
+
+    @Override
+    public int addEssentia(Holder<IAspect> aspect, int amount, Direction face, boolean simulate) {
+        boolean acceptable = amount > 0 && acceptsUnit(aspect);
+        if (!simulate) {
+            buffered = buffered || acceptable;
+        }
         return acceptable ? UNIT : NOTHING;
+    }
+
+    @Override
+    public int spaceFor(Holder<IAspect> aspect, Direction face) {
+        return acceptsUnit(aspect) ? UNIT : NOTHING;
+    }
+
+    private boolean acceptsUnit(Holder<IAspect> aspect) {
+        return isWorking() && !buffered && aspect.is(TTAspects.MACHINA);
     }
 
     @Override

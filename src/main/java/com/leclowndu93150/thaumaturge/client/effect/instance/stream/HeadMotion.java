@@ -5,7 +5,7 @@ import net.minecraft.world.phys.Vec3;
 public final class HeadMotion {
     private static final double RISE_PER_TICK = 0.002;
     private static final double DAMPING = 0.985;
-    private static final int[] WAVE_DIVISORS = {4, 3, 2};
+    private static final double[] WAVE_DIVISORS = {4.0, 3.0, 2.0};
 
     private double x;
     private double y;

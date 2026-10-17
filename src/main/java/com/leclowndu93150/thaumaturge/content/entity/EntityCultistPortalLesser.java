@@ -67,7 +67,7 @@ public class EntityCultistPortalLesser extends Monster {
         super.tick();
         boolean awake = this.isActive();
         this.activeCounter += awake ? 1 : 0;
-        if (this.level() instanceof ServerLevel level) {
+        if (this.level() instanceof ServerLevel level && this.isAlive()) {
             if (awake) {
                 runSpawnCycle(level);
             } else {

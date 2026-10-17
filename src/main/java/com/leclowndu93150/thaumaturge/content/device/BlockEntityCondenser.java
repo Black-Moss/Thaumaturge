@@ -174,7 +174,8 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
         int draw = level.getRandom().nextInt(count * count);
         BlockPos target = dirtyCandidates.get((draw + count) / (count + 1));
         if (isClean(level, target)) {
-            level.setBlock(target, TTBlocks.CONDENSER_LATTICE_DIRTY.get().defaultBlockState(), Block.UPDATE_ALL);
+            BlockState clean = level.getBlockState(target);
+            level.setBlock(target, TTBlocks.CONDENSER_LATTICE_DIRTY.get().withPropertiesOf(clean), Block.UPDATE_ALL);
             score = UNSCANNED;
         }
     }
@@ -340,6 +341,11 @@ public final class BlockEntityCondenser extends BlockEntity implements IEssentia
         flux -= removed;
         setChanged();
         return removed;
+    }
+
+    @Override
+    public int spaceFor(Holder<IAspect> aspect, Direction face) {
+        return canInputFrom(face) ? Math.max(0, CAPACITY - essentia) : 0;
     }
 
     @Override

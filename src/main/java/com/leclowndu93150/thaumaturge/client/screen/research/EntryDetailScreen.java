@@ -184,7 +184,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         if (insertOpen) {
             hits.clear();
         }
-        if (EntryDetailModel.knowsResearch(player, EntryDetailModel.KNOWLEDGE_TYPES_RESEARCH) && model.isKnowledgeTypesEntry()) {
+        if (model.leftPage() == 0 && EntryDetailModel.knowsResearch(player, EntryDetailModel.KNOWLEDGE_TYPES_RESEARCH) && model.isKnowledgeTypesEntry()) {
             KnowledgeGridRenderer.drawInPage(graphics, frame, pageMouseX, pageMouseY);
         }
         drawInsert(graphics, frame, stage, mouseX, mouseY);

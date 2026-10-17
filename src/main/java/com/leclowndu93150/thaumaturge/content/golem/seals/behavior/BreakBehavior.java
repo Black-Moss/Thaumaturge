@@ -40,7 +40,7 @@ public final class BreakBehavior extends CellWorkBehavior {
     @Override
     protected boolean isWorkable(Level level, ISealEntity seal, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        if (state.isAir() || state.getDestroySpeed(level, pos) < 0.0F) {
+        if (state.isAir() || state.liquid() || state.getDestroySpeed(level, pos) < 0.0F) {
             return false;
         }
         ISealFilter filter = seal.filter().orElse(null);
@@ -49,17 +49,19 @@ public final class BreakBehavior extends CellWorkBehavior {
 
     private static boolean passesFilter(ISealFilter filter, BlockState state) {
         Item blockItem = state.getBlock().asItem();
-        boolean blacklist = filter.isBlacklist();
+        boolean filled = false;
+        boolean matched = false;
         for (ItemStack entry : filter.stacks()) {
             if (entry.isEmpty()) {
                 continue;
             }
-            boolean equal = blockItem != Items.AIR && entry.is(blockItem);
-            if (blacklist == equal) {
-                return false;
+            filled = true;
+            if (blockItem != Items.AIR && entry.is(blockItem)) {
+                matched = true;
+                break;
             }
         }
-        return true;
+        return !filled || matched != filter.isBlacklist();
     }
 
     @Override

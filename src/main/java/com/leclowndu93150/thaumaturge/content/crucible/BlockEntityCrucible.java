@@ -239,11 +239,9 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
             RandomSource random = serverLevel.getRandom();
             takeOnePoint(random);
             boolean attempt = random.nextInt(LEAK_SPILL_CHANCE_DENOMINATOR) < LEAK_SPILL_CHANCE_NUMERATOR;
-            if (attempt && PhysicalFlux.spill(serverLevel, worldPosition, random)) {
+            if (!attempt || !PhysicalFlux.spill(serverLevel, worldPosition, random)) {
                 AuraHelper.polluteAura(serverLevel, worldPosition, LEAK_FLUX, true);
             }
-        }
-        if (level instanceof ServerLevel) {
             setChangedAndSync();
         }
     }
@@ -335,7 +333,7 @@ public class BlockEntityCrucible extends AbstractSyncedBlockEntity implements Re
         }
         int budget = (stack.getCount() + 1) / 2;
         int consumed = 0;
-        while (consumed < budget) {
+        while (consumed < budget && hasWater()) {
             if (!smeltOne(serverLevel, stack.copyWithCount(1), player)) {
                 break;
             }

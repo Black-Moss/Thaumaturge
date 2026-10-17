@@ -291,6 +291,9 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
         if (!canBeHandledBy(player)) {
             return super.mobInteract(player, hand);
         }
+        if (level().isClientSide()) {
+            return InteractionResult.SUCCESS;
+        }
         if (player.isShiftKeyDown()) {
             dropAmmo();
             dismantle(player, hand, placerItem());
@@ -301,7 +304,7 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
     }
 
     private boolean canBeHandledBy(Player player) {
-        return isAlive() && !level().isClientSide() && isOwner(player);
+        return isAlive() && isOwner(player);
     }
 
     protected ItemStack placerItem() {
@@ -324,8 +327,7 @@ public class EntityTurretCrossbow extends EntityOwnedConstruct implements Ranged
 
     @Override
     public void move(MoverType type, Vec3 delta) {
-        Vec3 damped = dampHorizontal(delta, moveDamping());
-        super.move(type, damped);
+        super.move(type, type == MoverType.SELF ? dampHorizontal(delta, moveDamping()) : delta);
     }
 
     protected void dropAmmo() {
