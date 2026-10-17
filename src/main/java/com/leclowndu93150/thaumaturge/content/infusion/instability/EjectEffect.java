@@ -9,6 +9,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import java.util.List;
+import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -23,7 +24,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.Vec3;
 
-public record EjectEffect(boolean consume, EjectAftermath aftermath, IntProvider mitigation, IntProvider pollution, float explosionPower) implements InstabilityEffect {
+public record EjectEffect(boolean consume, EjectAftermath aftermath, IntProvider mitigation, IntProvider pollution, float explosionPower,
+        Optional<Float> consumeAtOrBelow) implements InstabilityEffect {
     private static final int MITIGATION_MIN = 5;
     private static final int MITIGATION_MAX = 10;
     private static final int POLLUTION_MIN = 5;
@@ -43,10 +45,15 @@ public record EjectEffect(boolean consume, EjectAftermath aftermath, IntProvider
             EjectAftermath.CODEC.optionalFieldOf("aftermath", EjectAftermath.NONE).forGetter(EjectEffect::aftermath),
             IntProviders.CODEC.optionalFieldOf("mitigation", DEFAULT_MITIGATION).forGetter(EjectEffect::mitigation),
             IntProviders.CODEC.optionalFieldOf("pollution", DEFAULT_POLLUTION).forGetter(EjectEffect::pollution),
-            Codec.FLOAT.optionalFieldOf("explosion_power", DEFAULT_EXPLOSION_POWER).forGetter(EjectEffect::explosionPower)).apply(instance, EjectEffect::new));
+            Codec.FLOAT.optionalFieldOf("explosion_power", DEFAULT_EXPLOSION_POWER).forGetter(EjectEffect::explosionPower),
+            Codec.FLOAT.optionalFieldOf("consume_at_or_below").forGetter(EjectEffect::consumeAtOrBelow)).apply(instance, EjectEffect::new));
 
     public static EjectEffect of(boolean consume, EjectAftermath aftermath) {
-        return new EjectEffect(consume, aftermath, DEFAULT_MITIGATION, DEFAULT_POLLUTION, DEFAULT_EXPLOSION_POWER);
+        return new EjectEffect(consume, aftermath, DEFAULT_MITIGATION, DEFAULT_POLLUTION, DEFAULT_EXPLOSION_POWER, Optional.empty());
+    }
+
+    public EjectEffect withConsumeAtOrBelow(float stability) {
+        return new EjectEffect(consume, aftermath, mitigation, pollution, explosionPower, Optional.of(stability));
     }
 
     @Override
@@ -95,12 +102,16 @@ public record EjectEffect(boolean consume, EjectAftermath aftermath, IntProvider
         BlockPos origin = pedestal.getBlockPos();
         ItemStack held = pedestal.getItem();
         pedestal.setItem(ItemStack.EMPTY);
-        if (!consume) {
+        if (!destroysItem(context)) {
             spill(level, origin, held);
         }
         runAftermath(level, context.random(), origin);
         context.arcTo(Vec3.atCenterOf(origin.above()));
         context.zapSound();
+    }
+
+    private boolean destroysItem(InstabilityContext context) {
+        return consume || consumeAtOrBelow.isPresent() && context.stability() <= consumeAtOrBelow.get();
     }
 
     private static void spill(ServerLevel level, BlockPos origin, ItemStack held) {

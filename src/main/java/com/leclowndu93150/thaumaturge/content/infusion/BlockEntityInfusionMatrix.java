@@ -81,6 +81,10 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
     private static final float FAILED_DRAIN_PENALTY = 0.25F;
     private static final int PULL_TICKS = 5;
     private static final int FINISH_GRACE_CYCLES = 3;
+    private static final int UNREST_MARKER_INTERVAL = 20;
+    private static final double UNREST_MARKER_INSET = 0.25;
+    private static final double UNREST_MARKER_SPAN = 0.5;
+    private static final float UNREST_CRACKLE_CHANCE = 0.2F;
 
     private boolean active;
     private final StabilityState stability = new StabilityState();
@@ -175,8 +179,8 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         if (ingredients == null) {
             return false;
         }
-        job = new InfusionCraftJob(ingredients, projectedCost(level, recipe.jobEssentia(input)), recipe.jobResult(input, level.getRandom()), input.catalyst(), recipe.jobInstability(input),
-                Optional.of(player.getUUID()));
+        AspectList quote = projectedCost(level, recipe.jobEssentia(input));
+        job = new InfusionCraftJob(ingredients, quote, quote, recipe.jobResult(input, level.getRandom()), input.catalyst(), recipe.jobInstability(input), Optional.of(player.getUUID()));
         pipeline.reset();
         playSound(level, TTSounds.CRAFTSTART.get(), SOUND_VOLUME, SOUND_PITCH);
         setChangedAndSync();
@@ -315,12 +319,14 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         if (!active) {
             return;
         }
+        markFaultyStabiliser(level, env);
         int half = halfCycle(env);
         if (!crafting) {
             regenerateIdle(half);
             return;
         }
         ambience(level);
+        crackle(level);
         if (due(half)) {
             runCycle(level, env, half);
         }
@@ -362,6 +368,30 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         }
     }
 
+    private void markFaultyStabiliser(ServerLevel level, MatrixEnvironment env) {
+        List<BlockPos> faulty = env.faultyStabilisers();
+        if (!due(UNREST_MARKER_INTERVAL) || faulty.isEmpty()) {
+            return;
+        }
+        RandomSource random = level.getRandom();
+        BlockPos marked = faulty.get(random.nextInt(faulty.size()));
+        double x = marked.getX() + UNREST_MARKER_INSET + random.nextDouble() * UNREST_MARKER_SPAN;
+        double y = marked.getY() + UNREST_MARKER_INSET + random.nextDouble() * UNREST_MARKER_SPAN;
+        double z = marked.getZ() + UNREST_MARKER_INSET + random.nextDouble() * UNREST_MARKER_SPAN;
+        InfusionFx.unrestSpark(level, new Vec3(x, y, z));
+    }
+
+    private void crackle(ServerLevel level) {
+        RandomSource random = level.getRandom();
+        if (random.nextFloat() >= stability.severity() * UNREST_CRACKLE_CHANCE) {
+            return;
+        }
+        double x = worldPosition.getX() + random.nextDouble();
+        double y = worldPosition.getY() + random.nextDouble();
+        double z = worldPosition.getZ() + random.nextDouble();
+        InfusionFx.unrestSpark(level, new Vec3(x, y, z));
+    }
+
     private void runCycle(ServerLevel level, MatrixEnvironment env, int half) {
         InfusionCraftJob current = job;
         if (current == null) {
@@ -372,7 +402,7 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
         BlockEntityPedestal center = centralPedestal(level);
         CycleOutcome outcome = CycleOutcome.decide(center != null && catalystMatches(center, current), stability, random);
         if (outcome.firesEvent()) {
-            InstabilityEvents.trigger(level, worldPosition, env.pedestals());
+            InstabilityEvents.trigger(level, worldPosition, env.pedestals(), stability.value());
             stability.rebound(random);
         }
         switch (outcome) {
@@ -459,6 +489,15 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
             stability.punish();
         }
 
+        private void chargeForAbsentComponent(int position) {
+            RandomSource random = level.getRandom();
+            if (random.nextInt(position) != 0) {
+                return;
+            }
+            current.addPenaltyEssentia(random);
+            stability.punish();
+        }
+
         private void markChanged() {
             setChangedAndSync();
         }
@@ -482,25 +521,24 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
 
     private static final class CraftPipeline {
         private final List<CraftStage> stages;
-        private int cursor;
 
         private CraftPipeline(List<CraftStage> stages) {
             this.stages = stages;
         }
 
         private void reset() {
-            cursor = 0;
             for (CraftStage stage : stages) {
                 stage.reset();
             }
         }
 
         private void advance(CycleContext context) {
-            int last = stages.size() - 1;
-            while (cursor < last && stages.get(cursor).complete(context.job())) {
-                cursor++;
+            for (CraftStage stage : stages) {
+                if (!stage.complete(context.job())) {
+                    stage.advance(context);
+                    return;
+                }
             }
-            stages.get(cursor).advance(context);
         }
     }
 
@@ -550,6 +588,7 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
                     pull(context, holder, ingredients, index);
                     return;
                 }
+                context.chargeForAbsentComponent(index + 1);
             }
         }
 
@@ -667,6 +706,10 @@ public final class BlockEntityInfusionMatrix extends AbstractSyncedBlockEntity i
 
         private void punish() {
             value -= FAILED_DRAIN_PENALTY;
+        }
+
+        private float severity() {
+            return value >= 0.0F ? 0.0F : Math.min(1.0F, value / STABILITY_FLOOR);
         }
 
         private boolean canRegenerate() {
