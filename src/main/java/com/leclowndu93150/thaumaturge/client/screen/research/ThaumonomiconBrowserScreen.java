@@ -234,6 +234,10 @@ public final class ThaumonomiconBrowserScreen extends AbstractTTScreen {
         if (searching || scrollY == 0.0) {
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
+        if (scrollButtonsVisible() && mouseX >= width - TAB_ADD_ON_X_OFFSET) {
+            shiftScroll(scrollY < 0.0 ? 1 : -1);
+            return true;
+        }
         zoom = steppedZoom(zoom, scrollY);
         return true;
     }

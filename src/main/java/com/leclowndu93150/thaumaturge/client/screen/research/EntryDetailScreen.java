@@ -34,6 +34,8 @@ import com.leclowndu93150.thaumaturge.network.ServerboundAdvanceStagePayload;
 import com.leclowndu93150.thaumaturge.network.ServerboundClearResearchFlagsPayload;
 import com.leclowndu93150.thaumaturge.network.ServerboundObtainNotePayload;
 import com.leclowndu93150.thaumaturge.registry.TTSounds;
+import com.leclowndu93150.thaumaturge.client.screen.research.detail.page.NavigationLayout;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import java.util.List;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -296,16 +298,30 @@ public final class EntryDetailScreen extends AbstractTTScreen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (model.insertOpen() || scrollY == 0.0) {
+        if (scrollY == 0.0) {
             return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
-        if (minecraft != null && minecraft.hasShiftDown()) {
-            if (model.hasStageHistory(localPlayer())) {
-                stepStageHistory(scrollY > 0.0 ? -1 : 1);
+        int step = scrollY < 0.0 ? 1 : -1;
+        if (model.aspectsOpen()) {
+            stepAspectsPage(step);
+            return true;
+        }
+        if (model.openRecipe() != null) {
+            stepRecipeVariant(step);
+            return true;
+        }
+        if (model.insertOpen()) {
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
+        Player player = localPlayer();
+        boolean overStages = model.canNavigateStageHistory(player) && NavigationLayout.stageStripHit(frameFor(player)).contains(mouseX, mouseY);
+        if (overStages || minecraft != null && minecraft.hasShiftDown()) {
+            if (model.hasStageHistory(player)) {
+                stepStageHistory(step);
             }
             return true;
         }
-        turnPage(scrollY <= 0.0);
+        turnPage(step > 0);
         return true;
     }
 
@@ -376,6 +392,27 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             preview.reset();
             model.restoreTrailRecipe();
         }
+    }
+
+    private void stepAspectsPage(int delta) {
+        int target = model.aspectsPageIndex() + delta;
+        if (target < 0 || target >= AspectInsertRenderer.pageCount(localPlayer())) {
+            return;
+        }
+        model.shiftAspectsPage(delta);
+        playCue(SELECT);
+    }
+
+    private void stepRecipeVariant(int delta) {
+        Identifier recipeId = model.openRecipe();
+        List<RecipeDisplay> variants = recipeId == null ? null : RecipeDisplayCache.get(recipeId);
+        int target = model.recipeVariant() + delta;
+        if (variants == null || target < 0 || target >= variants.size()) {
+            return;
+        }
+        model.setRecipeVariant(target);
+        preview.reset();
+        playCue(SELECT);
     }
 
     private void stepStageHistory(int delta) {
@@ -453,15 +490,12 @@ public final class EntryDetailScreen extends AbstractTTScreen {
 
         @Override
         public void turnAspectsPage(int delta) {
-            model.shiftAspectsPage(delta);
-            playCue(SELECT);
+            stepAspectsPage(delta);
         }
 
         @Override
         public void turnRecipeVariant(int delta) {
-            model.setRecipeVariant(model.recipeVariant() + delta);
-            preview.reset();
-            playCue(SELECT);
+            stepRecipeVariant(delta);
         }
 
         @Override

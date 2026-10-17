@@ -75,6 +75,12 @@ public final class NavigationLayout {
         return new Rect(stageRightDrawX(frame) - STAGE_HIT_INSET, frame.top() + STAGE_HIT_ROW_OFFSET, STAGE_HIT_SIZE, STAGE_HIT_SIZE);
     }
 
+    public static Rect stageStripHit(DetailFrame frame) {
+        Rect left = stageLeftHit(frame);
+        Rect right = stageRightHit(frame);
+        return new Rect(left.x(), left.y(), right.x() + right.width() - left.x(), left.height());
+    }
+
     public static Rect pagerLeftHit(DetailFrame frame) {
         return new Rect(frame.left() + PAGER_LEFT_HIT_OFFSET, frame.top() + PAGER_HIT_ROW_OFFSET, PAGER_HIT_SIZE, PAGER_HIT_SIZE);
     }
