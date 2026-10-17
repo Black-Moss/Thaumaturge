@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.world.tree.crown;
 
+import com.leclowndu93150.thaumaturge.content.world.tree.TrunkQuadrant;
 import com.leclowndu93150.thaumaturge.registry.TTTreePlacers;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -19,6 +20,7 @@ import net.minecraft.world.level.levelgen.feature.configurations.TreeConfigurati
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacer;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacerType;
+import org.jspecify.annotations.Nullable;
 
 public final class CrownTrunkPlacer extends TrunkPlacer {
     public static final MapCodec<CrownTrunkPlacer> CODEC = RecordCodecBuilder.mapCodec(instance -> trunkPlacerParts(instance).and(CrownShape.CODEC.fieldOf("shape").forGetter(placer -> placer.shape))
@@ -161,7 +163,7 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
             Direction.Axis axis = limbAxis(start, cluster);
             List<BlockPos> run = run(start, cluster);
             for (int index = 1; index < run.size(); index++) {
-                placeLog(level, trunkSetter, random, config, run.get(index), axis);
+                placeLog(level, trunkSetter, random, config, run.get(index), axis, null);
             }
             attachments.add(new FoliagePlacer.FoliageAttachment(cluster, 0, false));
         }
@@ -169,22 +171,27 @@ public final class CrownTrunkPlacer extends TrunkPlacer {
 
     private void placeColumn(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, BlockPos base, int fromOffset, int toOffset) {
         int width = shape.trunkWidth();
+        boolean wideTrunk = width == TrunkQuadrant.TRUNK_WIDTH;
         for (int y = fromOffset; y <= toOffset; y++) {
             for (int dx = 0; dx < width; dx++) {
                 for (int dz = 0; dz < width; dz++) {
-                    placeLog(level, trunkSetter, random, config, base.offset(dx, y, dz), Direction.Axis.Y);
+                    TrunkQuadrant quadrant = wideTrunk ? TrunkQuadrant.forOffsets(dx, dz, width) : null;
+                    placeLog(level, trunkSetter, random, config, base.offset(dx, y, dz), Direction.Axis.Y, quadrant);
                 }
             }
         }
     }
 
-    private void placeLog(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, BlockPos pos, Direction.Axis axis) {
+    private void placeLog(WorldGenLevel level, BiConsumer<BlockPos, BlockState> trunkSetter, RandomSource random, TreeConfiguration config, BlockPos pos, Direction.Axis axis, @Nullable TrunkQuadrant quadrant) {
         if (level.isOutsideBuildHeight(pos) || !CrownRule.canHostLog(level.getBlockState(pos))) {
             return;
         }
         BlockState log = config.trunkProvider.getState(level, random, pos);
         if (log.hasProperty(RotatedPillarBlock.AXIS)) {
             log = log.setValue(RotatedPillarBlock.AXIS, axis);
+        }
+        if (quadrant != null && log.hasProperty(TrunkQuadrant.PROPERTY)) {
+            log = log.setValue(TrunkQuadrant.PROPERTY, quadrant);
         }
         trunkSetter.accept(pos, log);
     }
