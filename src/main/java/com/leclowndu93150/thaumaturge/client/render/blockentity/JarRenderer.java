@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
+import com.leclowndu93150.thaumaturge.client.render.SpriteVertex;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.api.aspect.IAspect;
 import com.leclowndu93150.thaumaturge.content.essentia.EssentiaTransportHelper;
@@ -199,7 +200,7 @@ public final class JarRenderer implements BlockEntityRenderer<BlockEntityJar, Ja
     }
 
     public static void addVertex(VertexConsumer buffer, PoseStack.Pose pose, float x, float y, float z, float u, float v, int colour, int light, float nx, float ny, float nz) {
-        buffer.addVertex(pose, x, y, z).setColor(colour).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
+        SpriteVertex.add(buffer, pose, x, y, z, colour, u, v, OverlayTexture.NO_OVERLAY, light, nx, ny, nz);
     }
 
     private static void submitLabel(JarRenderState state, Identifier iconTexture, PoseStack poseStack, SubmitNodeCollector collector) {

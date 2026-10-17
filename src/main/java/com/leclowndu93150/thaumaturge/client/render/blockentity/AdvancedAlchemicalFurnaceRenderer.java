@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
+import com.leclowndu93150.thaumaturge.client.render.SpriteVertex;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.golem.GolemMeshes;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TTMeshPart;
@@ -259,7 +260,7 @@ public final class AdvancedAlchemicalFurnaceRenderer implements BlockEntityRende
     }
 
     private static void panelVertex(VertexConsumer buffer, PoseStack.Pose pose, PanelPlane plane, float px, float py, float u, float v, int light, float nx, float ny, float nz) {
-        buffer.addVertex(pose, plane.x(px, py), plane.y(px, py), plane.z(px, py)).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(light).setNormal(pose, nx, ny, nz);
+        SpriteVertex.add(buffer, pose, plane.x(px, py), plane.y(px, py), plane.z(px, py), WHITE, u, v, OverlayTexture.NO_OVERLAY, light, nx, ny, nz);
     }
 
     private static PanelPlane windowPlane(float startX, float spanX, float z) {

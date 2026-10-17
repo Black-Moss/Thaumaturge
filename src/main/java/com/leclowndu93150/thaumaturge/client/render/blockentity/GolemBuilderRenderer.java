@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.client.render.blockentity;
 
+import com.leclowndu93150.thaumaturge.client.render.SpriteVertex;
 import com.leclowndu93150.thaumaturge.TTIds;
 import com.leclowndu93150.thaumaturge.client.golem.GolemMeshes;
 import com.leclowndu93150.thaumaturge.client.model.mesh.TTMesh;
@@ -121,6 +122,6 @@ public final class GolemBuilderRenderer implements BlockEntityRenderer<BlockEnti
     }
 
     private static void lavaVertex(PoseStack.Pose pose, VertexConsumer buffer, float x, float z, float u, float v) {
-        buffer.addVertex(pose, x, LAVA_HEIGHT, z).setColor(WHITE).setUv(u, v).setOverlay(OverlayTexture.NO_OVERLAY).setLight(LAVA_LIGHT).setNormal(pose, 0.0F, 1.0F, 0.0F);
+        SpriteVertex.add(buffer, pose, x, LAVA_HEIGHT, z, WHITE, u, v, OverlayTexture.NO_OVERLAY, LAVA_LIGHT, 0.0F, 1.0F, 0.0F);
     }
 }
