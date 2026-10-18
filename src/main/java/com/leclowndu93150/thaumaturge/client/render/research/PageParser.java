@@ -15,21 +15,25 @@ import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
 
 public final class PageParser {
-    public static final int PAGE_HEIGHT = 210;
-    public static final int PAGE_WIDTH = 140;
+    public static final int PAGE_HEIGHT = 195;
+    public static final int PAGE_WIDTH = 132;
 
     private static final int REQUIREMENT_ROW_HEIGHT = 18;
     private static final int KNOWLEDGE_ROW_HEIGHT = 20;
     private static final int KNOWLEDGE_TOP_PADDING = 2;
-    private static final int FIRST_PAGE_HEIGHT = 182;
+    private static final int FIRST_PAGE_HEIGHT = 171;
     private static final int KNOWLEDGE_DIVIDER_ALLOWANCE = 12;
-    private static final int REQUIREMENT_DIVIDER_ALLOWANCE = 24;
+    private static final int REQUIREMENT_DIVIDER_ALLOWANCE = 13;
     private static final int HISTORY_GAP = 5;
     private static final int IMAGE_GAP = 2;
     private static final int MAX_IMAGE_HEIGHT = 208;
     private static final int MAX_IMAGE_WIDTH = PAGE_WIDTH;
     private static final int DESCRIPTOR_FIELDS = 6;
     private static final float PARAGRAPH_EXTRA = 0.66F;
+    private static final float[] COMPACT_PARAGRAPH_EXTRAS = {0.33F, 0.0F};
+    private static final int SHORT_TAIL_LINES = 6;
+    private static final int PAGES_PER_SPREAD = 2;
+    private static final int MIN_SPLIT_LINES = 2;
     private static final Identifier KNOWLEDGE_TYPES = TTIds.rl("knowledge_types");
     private static final String ADDENDUM_KEY = "gui.thaumaturge.thaumonomicon.addendum";
     private static final char TAG_OPEN = '<';
@@ -58,9 +62,15 @@ public final class PageParser {
 
     public static final class Page {
         private final List<PageElement> elements;
+        private final int paragraphGap;
 
-        public Page() {
+        public Page(int paragraphGap) {
             this.elements = new ArrayList<>();
+            this.paragraphGap = paragraphGap;
+        }
+
+        public int paragraphGap() {
+            return paragraphGap;
         }
 
         void add(PageElement element) {
@@ -149,7 +159,7 @@ public final class PageParser {
     private PageParser() {}
 
     public static List<Page> parse(Font font, String textKey, int budget) {
-        return new Layout(font, budget).run(tokens(textKey, List.of()));
+        return new Layout(font, budget, PARAGRAPH_EXTRA).run(tokens(textKey, List.of()));
     }
 
     public static List<Page> parse(Font font, Identifier entryId, String stageTextKey, List<String> addendaTextKeys, int knowledgeRows, boolean complete, boolean hasRequiredResearch, boolean hasObtain, boolean hasCraft, boolean hasKnowledge, boolean reserveHistoryGap) {
@@ -175,7 +185,34 @@ public final class PageParser {
         if (reserveHistoryGap) {
             reserved += HISTORY_GAP;
         }
-        return new Layout(font, FIRST_PAGE_HEIGHT - reserved).run(tokens(stageTextKey, addendaTextKeys));
+        List<Token> tokens = tokens(stageTextKey, addendaTextKeys);
+        int budget = FIRST_PAGE_HEIGHT - reserved;
+        List<Page> pages = new Layout(font, budget, PARAGRAPH_EXTRA).run(tokens);
+        if (spreads(pages) > 1 && lastSpreadLines(pages) <= SHORT_TAIL_LINES) {
+            for (float extra : COMPACT_PARAGRAPH_EXTRAS) {
+                List<Page> compact = new Layout(font, budget, extra).run(tokens);
+                if (spreads(compact) < spreads(pages)) {
+                    return compact;
+                }
+            }
+        }
+        return pages;
+    }
+
+    private static int spreads(List<Page> pages) {
+        return (pages.size() + PAGES_PER_SPREAD - 1) / PAGES_PER_SPREAD;
+    }
+
+    private static int lastSpreadLines(List<Page> pages) {
+        int lines = 0;
+        for (Page page : pages.subList((spreads(pages) - 1) * PAGES_PER_SPREAD, pages.size())) {
+            for (PageElement element : page.elements()) {
+                if (element instanceof PageElement.Text text && !text.content().isEmpty()) {
+                    lines++;
+                }
+            }
+        }
+        return lines;
     }
 
     private static List<Token> tokens(String textKey, List<String> addendaTextKeys) {
@@ -260,17 +297,24 @@ public final class PageParser {
         private final Deque<PageImage> queue = new ArrayDeque<>();
         private final StringSplitter splitter;
         private final int lineHeight;
+        private final float paragraphExtra;
         private final StringBuilder paragraph = new StringBuilder();
         private Style paragraphStyle = Style.EMPTY;
-        private Page page = new Page();
+        private Page page;
         private int remaining;
         private boolean breakPending;
 
-        Layout(Font font, int firstPageHeight) {
+        Layout(Font font, int firstPageHeight, float paragraphExtra) {
             this.splitter = font.getSplitter();
             this.lineHeight = font.lineHeight;
+            this.paragraphExtra = paragraphExtra;
             this.remaining = firstPageHeight;
+            this.page = new Page(paragraphGap());
             pages.add(page);
+        }
+
+        private int paragraphGap() {
+            return (int) (lineHeight * paragraphExtra);
         }
 
         List<Page> run(List<Token> tokens) {
@@ -314,7 +358,7 @@ public final class PageParser {
         }
 
         private void openNewPage() {
-            page = new Page();
+            page = new Page(paragraphGap());
             pages.add(page);
             remaining = PAGE_HEIGHT;
             breakPending = false;
@@ -357,9 +401,29 @@ public final class PageParser {
                     lines.add(new Line(content, style));
                 }
             });
-            for (int i = 0; i < lines.size(); i++) {
+            int first = keepTogether(lines);
+            for (int i = first; i < lines.size(); i++) {
                 placeLine(lines.get(i), endsParagraph && i == lines.size() - 1);
             }
+        }
+
+        private int keepTogether(List<Line> lines) {
+            if (lines.size() < MIN_SPLIT_LINES || page.elements().isEmpty() || breakPending) {
+                return 0;
+            }
+            int fit = Math.min(lines.size(), Math.max(0, remaining / lineHeight));
+            if (fit == 1) {
+                breakPending = true;
+                return 0;
+            }
+            if (fit > 1 && lines.size() - fit == 1) {
+                for (int i = 0; i < fit - 1; i++) {
+                    placeLine(lines.get(i), false);
+                }
+                breakPending = true;
+                return fit - 1;
+            }
+            return 0;
         }
 
         private void placeLine(Line line, boolean paragraphBreak) {
@@ -367,7 +431,7 @@ public final class PageParser {
                 openNewPage();
             }
             page.add(new PageElement.Text(line.content, line.style, paragraphBreak));
-            float used = paragraphBreak ? lineHeight + lineHeight * PARAGRAPH_EXTRA : lineHeight;
+            float used = paragraphBreak ? lineHeight + lineHeight * paragraphExtra : lineHeight;
             remaining = (int) (remaining - used);
         }
     }

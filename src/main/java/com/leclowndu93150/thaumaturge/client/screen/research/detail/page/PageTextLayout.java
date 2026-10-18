@@ -19,12 +19,12 @@ import net.minecraft.util.StringDecomposer;
 
 public final class PageTextLayout {
     private static final int PAGE_WIDTH = PageParser.PAGE_WIDTH;
-    private static final int PAGE_LEFT_OFFSET = -15;
-    private static final int PAGE_SIDE_OFFSET = 152;
+    private static final int PAGE_LEFT_OFFSET = -13;
+    private static final int PAGE_SIDE_OFFSET = 151;
     private static final int CONTENT_Y_OFFSET = -10;
     private static final int TITLE_Y_ADVANCE = 28;
+    private static final int CONTINUATION_Y_SHIFT = 4;
     private static final int LINE_HEIGHT = 9;
-    private static final float PARAGRAPH_GAP_FACTOR = 0.66F;
     private static final int TEXT_BASELINE_SHIFT = 6;
     private static final int IMAGE_BASELINE_SHIFT = 5;
     private static final int IMAGE_GAP = 2;
@@ -72,20 +72,22 @@ public final class PageTextLayout {
             drawTitle(graphics, frame, title, cursorY);
             drawDivider(graphics, frame.left() + DIVIDER_INSET_X, cursorY + DIVIDER_BELOW_OFFSET);
             cursorY += TITLE_Y_ADVANCE;
+        } else {
+            cursorY += CONTINUATION_Y_SHIFT;
         }
         int columnX = frame.left() + PAGE_LEFT_OFFSET + side * PAGE_SIDE_OFFSET;
         for (PageParser.PageElement element : page.elements()) {
             switch (element) {
-                case PageParser.PageElement.Text text -> cursorY += drawTextLine(graphics, frame.font(), text, columnX, cursorY);
+                case PageParser.PageElement.Text text -> cursorY += drawTextLine(graphics, frame.font(), text, page.paragraphGap(), columnX, cursorY);
                 case PageParser.PageElement.Image image -> cursorY += drawImage(graphics, image.image(), columnX, cursorY);
             }
         }
     }
 
-    private static int drawTextLine(GuiGraphicsExtractor graphics, Font font, PageParser.PageElement.Text text, int columnX, int lineY) {
+    private static int drawTextLine(GuiGraphicsExtractor graphics, Font font, PageParser.PageElement.Text text, int paragraphGap, int columnX, int lineY) {
         FormattedCharSequence sequence = sink -> StringDecomposer.iterateFormatted(text.content(), text.style(), sink);
         graphics.text(font, sequence, columnX, lineY - TEXT_BASELINE_SHIFT, BookSprites.INK_COLOR, false);
-        return LINE_HEIGHT + (text.paragraphBreak() ? (int) (LINE_HEIGHT * PARAGRAPH_GAP_FACTOR) : 0);
+        return LINE_HEIGHT + (text.paragraphBreak() ? paragraphGap : 0);
     }
 
     private static int drawImage(GuiGraphicsExtractor graphics, PageParser.PageImage image, int columnX, int imageY) {
