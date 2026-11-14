@@ -2,6 +2,7 @@ package com.leclowndu93150.thaumaturge.content.taint.ecology;
 
 import com.leclowndu93150.thaumaturge.api.taint.ITaintBlock;
 import com.leclowndu93150.thaumaturge.config.ThaumaturgeCommonConfig;
+import com.leclowndu93150.thaumaturge.content.world.LoadedChunks;
 import com.leclowndu93150.thaumaturge.content.world.space.LevelSpaces;
 import com.leclowndu93150.thaumaturge.data.worldgen.biome.TTBiomes;
 import com.leclowndu93150.thaumaturge.registry.TTAttachments;
@@ -32,11 +33,12 @@ public final class TaintBiomeManager {
     private static final int CLEAN_SEARCH_RADIUS = 256;
     private static final int CLEARED_SCAN_HEIGHT = 8;
     private static final int BLOCKS_PER_QUART = 4;
+    private static final int FRONTIER_ONE_IN = 10;
 
     private TaintBiomeManager() {}
 
     public static boolean isTainted(ServerLevel level, BlockPos pos) {
-        return level.hasChunkAt(pos)
+        return LoadedChunks.contains(level, pos)
                 && level.getNoiseBiome(
                                 QuartPos.fromBlock(pos.getX()),
                                 QuartPos.fromBlock(pos.getY()),
@@ -58,6 +60,10 @@ public final class TaintBiomeManager {
             return false;
         }
         return LevelSpaces.isPlot(level, pos) || replaceColumn(level, pos, TTBiomes.TAINTED_LANDS);
+    }
+
+    public static boolean trySpreadColumn(ServerLevel level, BlockPos pos) {
+        return level.getRandom().nextInt(FRONTIER_ONE_IN) == 0 && taintColumn(level, pos);
     }
 
     public static boolean replaceColumn(ServerLevel level, BlockPos pos, ResourceKey<Biome> biomeKey) {

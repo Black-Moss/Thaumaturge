@@ -1,5 +1,6 @@
 package com.leclowndu93150.thaumaturge.content.taint.flux;
 
+import com.leclowndu93150.thaumaturge.content.world.LoadedChunks;
 import com.leclowndu93150.thaumaturge.registry.TTBlockTags;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import net.minecraft.core.BlockPos;
@@ -45,10 +46,13 @@ public final class PhysicalFlux {
         }
         int removed = Math.min(current, amount);
         int remaining = current - removed;
-        if (remaining <= 0) {
-            level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
-        } else {
-            level.setBlock(pos, flux.withFluxAmount(remaining), Block.UPDATE_CLIENTS);
+        boolean updated = remaining == 0
+                ? level.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL)
+                : level.setBlock(pos, flux.withFluxAmount(remaining), Block.UPDATE_CLIENTS);
+        if (!updated) {
+            return 0;
+        }
+        if (remaining > 0) {
             flux.scheduleFluxTick(level, pos);
         }
         return removed;
@@ -74,7 +78,7 @@ public final class PhysicalFlux {
                 continue;
             }
             BlockPos target = origin.offset(dx, dy, dz);
-            if (level.hasChunkAt(target) && trySpillAt(level, target, random)) {
+            if (LoadedChunks.contains(level, target) && trySpillAt(level, target, random)) {
                 return true;
             }
         }

@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -41,7 +42,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.ModelBakery;
 import net.minecraft.core.BlockPos;
@@ -56,6 +56,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.Recipe;
@@ -66,9 +67,19 @@ import net.minecraft.world.item.crafting.SmithingRecipe;
 import net.minecraft.world.item.crafting.SmithingRecipeInput;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.jspecify.annotations.Nullable;
 
 public final class RecipeDisplayWidget {
+    private static final ChatFormatting[] RECIPE_INSTABILITY_COLORS = {
+        ChatFormatting.DARK_BLUE,
+        ChatFormatting.BLUE,
+        ChatFormatting.DARK_PURPLE,
+        ChatFormatting.YELLOW,
+        ChatFormatting.GOLD,
+        ChatFormatting.DARK_RED
+    };
+
     public record ItemHit(ItemStack stack, int x, int y) {
         public boolean contains(double mouseX, double mouseY) {
             return hitItem(x, y, mouseX, mouseY);
@@ -753,7 +764,8 @@ public final class RecipeDisplayWidget {
         }
         int inst = Math.min(INFUSION_INSTABILITY_MAX, display.instability() / 2);
         Component text = Component.translatable("gui.thaumaturge.recipe.instability")
-                .append(Component.translatable("gui.thaumaturge.recipe.instability." + inst));
+                .append(Component.translatable("gui.thaumaturge.recipe.instability." + inst)
+                        .withStyle(RECIPE_INSTABILITY_COLORS[inst]));
         int offset = font.width(text);
         graphics.drawString(font, text, cx - offset / 2, cy + INFUSION_INSTABILITY_Y, LABEL_COLOR, false);
     }
@@ -1025,7 +1037,14 @@ public final class RecipeDisplayWidget {
             } else if (!state.getFluidState().isEmpty() && Minecraft.getInstance().level != null) {
                 renderFluidPreview(buffers, pose, state);
             } else {
-                dispatcher.renderSingleBlock(state, pose, buffers, LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY);
+                dispatcher.renderSingleBlock(
+                        state,
+                        pose,
+                        buffers,
+                        LightTexture.FULL_BRIGHT,
+                        OverlayTexture.NO_OVERLAY,
+                        ModelData.EMPTY,
+                        null);
             }
             pose.popPose();
         }
@@ -1037,7 +1056,7 @@ public final class RecipeDisplayWidget {
         TextureAtlasSprite sprite = state.getFluidState().is(FluidTags.LAVA)
                 ? ModelBakery.LAVA_FLOW.sprite()
                 : ModelBakery.WATER_FLOW.sprite();
-        VertexConsumer consumer = buffers.getBuffer(RenderType.entityTranslucent(TextureAtlas.LOCATION_BLOCKS));
+        VertexConsumer consumer = buffers.getBuffer(RenderType.entityTranslucent(InventoryMenu.BLOCK_ATLAS));
         float minU = sprite.getU0();
         float maxU = sprite.getU1();
         float minV = sprite.getV0();

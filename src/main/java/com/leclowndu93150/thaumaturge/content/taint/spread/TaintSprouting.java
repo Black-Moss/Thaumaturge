@@ -6,8 +6,10 @@ import com.leclowndu93150.thaumaturge.content.entity.AbstractTaintSeed;
 import com.leclowndu93150.thaumaturge.content.entity.EntityTaintSeed;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintBlooms;
 import com.leclowndu93150.thaumaturge.content.taint.ecology.TaintEcology;
+import com.leclowndu93150.thaumaturge.content.world.LoadedChunks;
 import com.leclowndu93150.thaumaturge.registry.TTBlocks;
 import com.leclowndu93150.thaumaturge.registry.TTEntities;
+import java.util.function.BooleanSupplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -41,7 +43,7 @@ public final class TaintSprouting {
                     offset(random, SATELLITE_HORIZONTAL_REACH),
                     offset(random, SATELLITE_VERTICAL_REACH),
                     offset(random, SATELLITE_HORIZONTAL_REACH));
-            if (level.hasChunkAt(spot) && trySprout(level, spot, false)) {
+            if (LoadedChunks.contains(level, spot) && trySprout(level, spot, false)) {
                 return true;
             }
         }
@@ -66,6 +68,10 @@ public final class TaintSprouting {
     }
 
     public static boolean plant(ServerLevel level, BlockPos standing, float reserve) {
+        return plant(level, standing, reserve, () -> true);
+    }
+
+    public static boolean plant(ServerLevel level, BlockPos standing, float reserve, BooleanSupplier pay) {
         if (ThaumaturgeCommonConfig.WUSS_MODE.get()
                 || level.getDifficulty() == Difficulty.PEACEFUL
                 || TaintBlooms.isProtected(level, standing)) {
@@ -77,6 +83,10 @@ public final class TaintSprouting {
         }
         seed.setTaintReserve(reserve);
         if (!level.addFreshEntity(seed)) {
+            return false;
+        }
+        if (!pay.getAsBoolean()) {
+            seed.discard();
             return false;
         }
         TaintEcology.addPressure(level, standing, SPROUT_PRESSURE);
