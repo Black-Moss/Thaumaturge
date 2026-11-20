@@ -1,5 +1,8 @@
 package com.leclowndu93150.thaumaturge.content.golem.ai;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -15,6 +18,7 @@ class TaskGoalPortTest {
     void stoppingReleasesAndClearsTheTaskItStillOwns() {
         EntityThaumaturgeGolem golem = mock(EntityThaumaturgeGolem.class);
         Task task = mock(Task.class);
+        when(golem.getNavigation()).thenReturn(mock(net.minecraft.world.entity.ai.navigation.PathNavigation.class));
         when(golem.getTask()).thenReturn(task);
 
         goal(golem).stop();
@@ -28,12 +32,27 @@ class TaskGoalPortTest {
         EntityThaumaturgeGolem golem = mock(EntityThaumaturgeGolem.class);
         Task task = mock(Task.class);
         Task replacement = mock(Task.class);
+        when(golem.getNavigation()).thenReturn(mock(net.minecraft.world.entity.ai.navigation.PathNavigation.class));
         when(golem.getTask()).thenReturn(task, replacement);
 
         goal(golem).stop();
 
         verify(task).release();
         verify(golem, never()).setTask(null);
+    }
+
+    @Test
+    void returningHomeWaitsAfterACompletedTask() {
+        EntityThaumaturgeGolem golem = mock(EntityThaumaturgeGolem.class);
+        doCallRealMethod().when(golem).setTask(org.mockito.ArgumentMatchers.nullable(Task.class));
+        when(golem.recentlyFinishedTask()).thenCallRealMethod();
+        golem.tickCount = 100;
+        golem.setTask(mock(Task.class));
+        golem.setTask(null);
+        assertTrue(golem.recentlyFinishedTask());
+        assertFalse(new ReturnHomeGoal(golem).canUse());
+        golem.tickCount = 120;
+        assertFalse(golem.recentlyFinishedTask());
     }
 
     private static TaskGoal goal(EntityThaumaturgeGolem golem) {

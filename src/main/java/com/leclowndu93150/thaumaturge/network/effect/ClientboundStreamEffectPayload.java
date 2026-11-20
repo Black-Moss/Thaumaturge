@@ -5,6 +5,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import org.jspecify.annotations.Nullable;
 
 public record ClientboundStreamEffectPayload(
         StreamEffectKind kind,
@@ -26,6 +28,8 @@ public record ClientboundStreamEffectPayload(
     public static final byte FLAG_REVERSE = 1;
     public static final byte FLAG_WITH_SOURCE = 2;
     public static final byte FLAG_HIT = 4;
+    private static final byte FLAG_WAND = 8;
+    private static final byte FLAG_OFF_HAND = 16;
 
     public static final Type<ClientboundStreamEffectPayload> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(TTIds.MODID, "fx_stream"));
@@ -66,6 +70,59 @@ public record ClientboundStreamEffectPayload(
 
     public boolean hasFlag(byte mask) {
         return (this.flags & mask) != 0;
+    }
+
+    public ClientboundStreamEffectPayload withWandSource(int casterId, InteractionHand hand) {
+        byte wandFlags =
+                (byte) ((flags & ~FLAG_OFF_HAND) | FLAG_WAND | (hand == InteractionHand.OFF_HAND ? FLAG_OFF_HAND : 0));
+        return new ClientboundStreamEffectPayload(
+                kind, sx, sy, sz, tx, ty, tz, color, extraInt, extraInt2, extraFloat, extraFloat2, casterId, wandFlags);
+    }
+
+    public ClientboundStreamEffectPayload withChannel(int branch, float range) {
+        if (kind != StreamEffectKind.BEAM
+                || branch <= 0
+                || branch > Integer.MAX_VALUE >>> 2
+                || range <= 0.0F
+                || !Float.isFinite(range)) {
+            throw new IllegalArgumentException("A beam channel requires a positive branch and finite range");
+        }
+        return new ClientboundStreamEffectPayload(
+                kind,
+                sx,
+                sy,
+                sz,
+                tx,
+                ty,
+                tz,
+                color,
+                extraInt,
+                (branch << 2) | (beamType() & 3),
+                extraFloat,
+                range,
+                entityId,
+                flags);
+    }
+
+    public int channelBranch() {
+        return extraFloat2 > 0.0F ? extraInt2 >>> 2 : 0;
+    }
+
+    public int beamType() {
+        return extraFloat2 > 0.0F ? extraInt2 & 3 : extraInt2;
+    }
+
+    public @Nullable InteractionHand wandHand() {
+        if (!hasFlag(FLAG_WAND)) {
+            return null;
+        }
+        return hasFlag(FLAG_OFF_HAND) ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND;
+    }
+
+    public static ClientboundStreamEffectPayload beamStop(int casterId, InteractionHand hand) {
+        return new ClientboundStreamEffectPayload(
+                StreamEffectKind.BEAM_STOP, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0F, 0F, casterId, (byte)
+                        (FLAG_WAND | (hand == InteractionHand.OFF_HAND ? FLAG_OFF_HAND : 0)));
     }
 
     public static ClientboundStreamEffectPayload arc(

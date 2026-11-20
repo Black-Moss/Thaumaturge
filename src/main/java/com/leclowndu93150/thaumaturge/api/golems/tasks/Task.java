@@ -385,6 +385,14 @@ public final class Task {
             return true;
         }
         if (golem.color() != 0 && seal.color() != 0 && golem.color() != seal.color()) {
+            // Thaumaturge.LOGGER.debug(
+            // "[golem-task] tick={} golem={} task={} seal={} rejected=color golemColor={} sealColor={}",
+            // golem.level().getGameTime(),
+            // golem.asEntity().getUUID(),
+            // id,
+            // origin,
+            // golem.color(),
+            // seal.color());
             return false;
         }
         return seal.behavior().canPerform(seal, golem, this);

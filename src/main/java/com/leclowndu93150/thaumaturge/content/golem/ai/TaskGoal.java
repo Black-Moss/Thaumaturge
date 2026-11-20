@@ -8,7 +8,10 @@ import com.leclowndu93150.thaumaturge.content.golem.seals.SealAccess;
 import com.leclowndu93150.thaumaturge.content.golem.seals.SealHandler;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskBoard;
 import com.leclowndu93150.thaumaturge.content.golem.tasks.TaskHandoff;
+import com.leclowndu93150.thaumaturge.content.world.space.LevelSpaces;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -18,6 +21,8 @@ import org.jspecify.annotations.Nullable;
 
 public abstract class TaskGoal extends Goal {
     private static final int CLAIM_COOLDOWN = 5;
+    private static final int UNREACHABLE_RETRY_TICKS = 40;
+    private static final int MAX_REMEMBERED_FAILURES = 64;
     private static final int GIVE_UP_AFTER = 1000;
     private static final int REPATH_EVERY = 5;
     private static final int RETRY_DELAY = 10;
@@ -32,6 +37,8 @@ public abstract class TaskGoal extends Goal {
     private int cooldown;
     private int pause;
     private @Nullable BlockPos lastFoothold;
+    // A task search must not retry the same expensive failed path every five ticks.
+    private final Map<BlockPos, Long> unreachableUntil = new HashMap<>();
 
     protected TaskGoal(EntityThaumaturgeGolem golem) {
         this.golem = golem;
@@ -72,9 +79,44 @@ public abstract class TaskGoal extends Goal {
     }
 
     protected boolean mayTake(Task task, BlockPos target) {
-        return SealAccess.allows(SealHandler.getSealEntity(golem.level(), task.origin()), golem)
-                && task.canBePerformedBy(golem)
-                && golem.isWithinRestriction(target);
+        if (!SealAccess.allows(SealHandler.getSealEntity(golem.level(), task.origin()), golem)) {
+            // Thaumaturge.LOGGER.debug(
+            // "[golem-task] tick={} golem={} task={} rejected=seal_access",
+            // golem.level().getGameTime(),
+            // golem.getUUID(),
+            // task.id());
+            return false;
+        }
+        if (!task.canBePerformedBy(golem)) {
+            // Thaumaturge.LOGGER.debug(
+            // "[golem-task] tick={} golem={} task={} rejected=task_rules_or_capacity",
+            // golem.level().getGameTime(),
+            // golem.getUUID(),
+            // task.id());
+            return false;
+        }
+        if (!golem.isWithinRestriction(target)) {
+            // Thaumaturge.LOGGER.debug(
+            // "[golem-task] tick={} golem={} task={} rejected=restriction target={} home={}",
+            // golem.level().getGameTime(),
+            // golem.getUUID(),
+            // task.id(),
+            // target,
+            // golem.getRestrictCenter());
+            return false;
+        }
+        return true;
+    }
+
+    protected boolean shouldTestPath(BlockPos target) {
+        return golem.level().getGameTime() >= unreachableUntil.getOrDefault(target, 0L);
+    }
+
+    protected void rememberFailedPath(BlockPos target) {
+        if (unreachableUntil.size() >= MAX_REMEMBERED_FAILURES) {
+            unreachableUntil.clear();
+        }
+        unreachableUntil.put(target.immutable(), golem.level().getGameTime() + UNREACHABLE_RETRY_TICKS);
     }
 
     protected void take(Task task) {
@@ -125,8 +167,12 @@ public abstract class TaskGoal extends Goal {
     }
 
     private void detour(Task task) {
+        if (golem.getNavigation() instanceof GolemSpaceNavigation) {
+            approach(task);
+            return;
+        }
         Vec3 aside = DefaultRandomPos.getPosTowards(
-                golem, DETOUR_RANGE, DETOUR_HEIGHT, Vec3.atLowerCornerOf(task.pos()), Math.PI / 2.0);
+                golem, DETOUR_RANGE, DETOUR_HEIGHT, LevelSpaces.worldCenter(golem.level(), task.pos()), Math.PI / 2.0);
         if (aside != null) {
             golem.getNavigation()
                     .moveTo(
@@ -150,6 +196,7 @@ public abstract class TaskGoal extends Goal {
 
     @Override
     public void stop() {
+        golem.getNavigation().stop();
         Task task = golem.getTask();
         if (task == null) {
             return;

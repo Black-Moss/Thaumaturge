@@ -27,12 +27,25 @@ public final class BlockTaskGoal extends TaskGoal {
     @Override
     protected boolean claim(ServerLevel level) {
         standingSpot = null;
-        for (Task task : TaskBoard.of(level).openBlockTasks(golem.getUUID(), golem)) {
-            if (mayTake(task, task.pos()) && pathEndsNear(task.pos())) {
-                standingSpot = nearestOpenSide(task.pos());
+        var tasks = TaskBoard.of(level).openBlockTasks(golem.getUUID(), golem);
+        // Thaumaturge.LOGGER.debug(
+        // "[golem-task] tick={} golem={} openBlockTasks={}", level.getGameTime(), golem.getUUID(), tasks.size());
+        for (Task task : tasks) {
+            BlockPos target = task.pos();
+            if (!mayTake(task, target) || !shouldTestPath(target)) continue;
+            // TaskBoard already ranks candidates. Evaluate at most one expensive path per claim.
+            PathResult result = pathEndsNear(target);
+            if (result == PathResult.REACHABLE) {
+                standingSpot = nearestOpenSide(target);
                 take(task);
                 return true;
             }
+            // A partial path may become usable as the deck moves. Neither partial
+            // routes nor budget-deferred searches should be cached as failures.
+            if (result == PathResult.NO_ROUTE && !GolemPathSearchBudget.wasDeferred(level, golem.getUUID())) {
+                rememberFailedPath(target);
+            }
+            break;
         }
         return false;
     }
@@ -45,7 +58,7 @@ public final class BlockTaskGoal extends TaskGoal {
 
     @Override
     protected double distanceSqrTo(Task task) {
-        return golem.distanceToSqr(Vec3.atCenterOf(destination(task)));
+        return golem.distanceToSqr(LevelSpaces.worldCenter(golem.level(), destination(task)));
     }
 
     private BlockPos destination(Task task) {
@@ -74,21 +87,30 @@ public final class BlockTaskGoal extends TaskGoal {
                 .orElse(null);
     }
 
-    private boolean pathEndsNear(BlockPos pos) {
-        if (golem.distanceToSqr(Vec3.atCenterOf(pos)) < reachSqr) {
-            return true;
+    private PathResult pathEndsNear(BlockPos pos) {
+        Vec3 worldTarget = LevelSpaces.worldCenter(golem.level(), pos);
+        if (golem.distanceToSqr(worldTarget) < reachSqr) {
+            return PathResult.REACHABLE;
         }
-        Path path = golem.getNavigation().createPath(pos, 0);
+        Path path = golem.getNavigation().createPath(pos, 1);
         Node end = path == null ? null : path.getEndNode();
         if (end == null) {
-            return false;
+            return PathResult.NO_ROUTE;
         }
-        int dx = end.x - pos.getX();
-        int dy = end.y - pos.getY();
-        int dz = end.z - pos.getZ();
+        BlockPos targetInPath = BlockPos.containing(
+                LevelSpaces.frameOf(golem.level(), end.asBlockPos()).toLocal(worldTarget));
+        int dx = end.x - targetInPath.getX();
+        int dy = end.y - targetInPath.getY();
+        int dz = end.z - targetInPath.getZ();
         if (dx == 0 && dz == 0 && dy == HEAD_HEIGHT) {
             dy--;
         }
-        return dx * dx + dy * dy + dz * dz < PATH_SLACK_SQR;
+        return dx * dx + dy * dy + dz * dz < PATH_SLACK_SQR ? PathResult.REACHABLE : PathResult.PARTIAL;
+    }
+
+    private enum PathResult {
+        REACHABLE,
+        PARTIAL,
+        NO_ROUTE
     }
 }

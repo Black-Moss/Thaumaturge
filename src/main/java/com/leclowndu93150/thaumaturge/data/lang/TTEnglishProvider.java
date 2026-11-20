@@ -396,6 +396,7 @@ public final class TTEnglishProvider extends LanguageProvider {
         add("jei.thaumaturge.research.missing_research", "Missing research: ");
         add("jei.thaumaturge.infernal_furnace.count", "Count: %s");
         add("tooltip.thaumaturge.aspects.header", "Aspects:");
+        add("tooltip.thaumaturge.filter.header", "Filter:");
 
         add("block.thaumaturge.ore_amber", "Amber Bearing Stone");
         add("block.thaumaturge.ore_cinnabar", "Cinnabar Ore");
@@ -632,6 +633,7 @@ public final class TTEnglishProvider extends LanguageProvider {
         add("block.thaumaturge.vishroom", "Vishroom");
         add("block.thaumaturge.potted_sapling_greatwood", "Potted Greatwood Sapling");
         add("block.thaumaturge.potted_sapling_silverwood", "Potted Silverwood Sapling");
+        add("block.thaumaturge.potted_ethereal_bloom", "Potted Ethereal Bloom");
         add("block.thaumaturge.potted_shimmerleaf", "Potted Shimmerleaf");
         add("block.thaumaturge.potted_cinderpearl", "Potted Cinderpearl");
         add("block.thaumaturge.potted_vishroom", "Potted Vishroom");
@@ -894,6 +896,7 @@ public final class TTEnglishProvider extends LanguageProvider {
                 "gui.thaumaturge.altar.ritual_unknown",
                 "The keystone hums with power, but its purpose escapes you... for now.");
         add("gui.thaumaturge.labyrinth.unavailable", "The way beyond is sealed. Nothing answers from the other side.");
+        add("gui.thaumaturge.labyrinth.disabled", "The labyrinth is disabled in the server configuration.");
         add("gui.thaumaturge.labyrinth.closed", "The way beyond has closed.");
         add(
                 "gui.thaumaturge.labyrinth.lock.peaceful",
@@ -1203,6 +1206,7 @@ public final class TTEnglishProvider extends LanguageProvider {
         add(
                 "message.thaumaturge.node_jar.vis",
                 "The ritual fails - it demands %s vis of each primal aspect from wands in your hotbar");
+        add("message.thaumaturge.node_jar.warded", "The ritual cannot remove another player's ward");
         add(
                 "message.thaumaturge.salis_mundus.no_research",
                 "The dust sparkles with promise, but you lack the knowledge to direct it");

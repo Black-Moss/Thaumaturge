@@ -452,7 +452,7 @@ public final class TTModelProvider implements DataProvider {
         handheldItem(TTItems.ELEMENTAL_AXE.get());
         handheldItem(TTItems.ELEMENTAL_SHOVEL.get());
         handheldItem(TTItems.ELEMENTAL_HOE.get());
-        handheldItem(TTItems.PRIMAL_CRUSHER.get());
+        // Primal Crusher is a manually authored, solid extruded model in main/resources.
         flatItem(TTItems.THAUMOSTATIC_HARNESS.get());
         flatItem(TTItems.TRAVELLER_BOOTS.get());
         registerTrimmableArmor(TTItems.THAUMIUM_HELM.get(), ArmorItem.Type.HELMET);
@@ -1297,11 +1297,12 @@ public final class TTModelProvider implements DataProvider {
                 ModelLocationUtils.getModelLocation(TTItems.NITORS.get(dye).get()), () -> {
                     JsonObject model = new JsonObject();
                     model.addProperty("loader", "neoforge:separate_transforms");
+                    model.addProperty("gui_light", "front");
                     JsonObject flat = new JsonObject();
                     flat.addProperty("parent", TTIds.rl("item/nitor").toString());
                     model.add("base", flat);
                     JsonObject inHand = new JsonObject();
-                    inHand.addProperty("parent", TTIds.rl("item/nitor").toString());
+                    inHand.addProperty("parent", "minecraft:builtin/entity");
                     JsonObject perspectives = new JsonObject();
                     perspectives.add("firstperson_lefthand", inHand);
                     perspectives.add("firstperson_righthand", inHand);
@@ -1874,6 +1875,7 @@ public final class TTModelProvider implements DataProvider {
         cross(TTBlocks.PLANT_SHIMMERLEAF.get());
         cross(TTBlocks.PLANT_CINDERPEARL.get());
         cross(TTBlocks.PLANT_VISHROOM.get());
+        flowerPotCross(TTBlocks.POTTED_ETHEREAL_BLOOM.get(), TTBlocks.ETHEREAL_BLOOM.get());
         flowerPotCross(TTBlocks.POTTED_SHIMMERLEAF.get(), TTBlocks.PLANT_SHIMMERLEAF.get());
         flowerPotCross(TTBlocks.POTTED_CINDERPEARL.get(), TTBlocks.PLANT_CINDERPEARL.get());
         flowerPotCross(TTBlocks.POTTED_VISHROOM.get(), TTBlocks.PLANT_VISHROOM.get());

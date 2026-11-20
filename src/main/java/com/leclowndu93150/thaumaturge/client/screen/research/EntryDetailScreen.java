@@ -31,7 +31,6 @@ import com.leclowndu93150.thaumaturge.client.screen.TTScreenTextures;
 import com.leclowndu93150.thaumaturge.client.screen.TTTooltips;
 import com.leclowndu93150.thaumaturge.client.screen.tooltip.DeferredTooltip;
 import com.leclowndu93150.thaumaturge.client.screen.widget.TTButton;
-import com.leclowndu93150.thaumaturge.client.screen.widget.TTImageButton;
 import com.leclowndu93150.thaumaturge.content.research.ResearchManager;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNoteData;
 import com.leclowndu93150.thaumaturge.content.research.note.ResearchNotes;
@@ -126,6 +125,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     private static final String PREREQ_CHEST_PREFIX = "c_";
     private static final String PREREQ_FLASK_PREFIX = "f_";
     private static final int CHECKMARK_DEPTH = 300;
+    private static final int INSERT_DEPTH = CHECKMARK_DEPTH + 100;
 
     private static final int REQ_TOP_Y_OFFSET = 210 - 25;
     private static final int REQ_ROW_STEP = 18;
@@ -366,27 +366,44 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         }
         rebuildPages();
         if (!flagsCleared) {
-            PacketDistributor.sendToServer(new ServerboundClearResearchFlagsPayload(
-                    entryId, List.of(ResearchFlag.RESEARCH, ResearchFlag.PAGE)));
+            clearEntryFlags();
             flagsCleared = true;
         }
     }
 
+    private void clearEntryFlags() {
+        if (minecraft != null && minecraft.player != null) {
+            PlayerResearch knowledge = PlayerResearchAccess.of(minecraft.player);
+            knowledge.removeFlag(entryId, ResearchFlag.RESEARCH);
+            knowledge.removeFlag(entryId, ResearchFlag.PAGE);
+        }
+        PacketDistributor.sendToServer(
+                new ServerboundClearResearchFlagsPayload(entryId, List.of(ResearchFlag.RESEARCH, ResearchFlag.PAGE)));
+    }
+
     private TTButton createReturnControl() {
-        TTButton control = new TTImageButton(
-                width / 2 - BACK_W / 2,
-                Math.max(4, sh - 46),
-                BACK_W,
-                21,
-                TTScreenTextures.RESEARCH_BOOK,
-                BACK_U,
-                BACK_V,
-                BACK_W,
-                BACK_H,
-                TTScreenTextures.TEX_SIZE,
-                TTScreenTextures.TEX_SIZE,
-                Component.translatable("gui.thaumaturge.thaumonomicon.return_control"),
-                this::returnToBrowser);
+        TTButton control =
+                new TTButton(
+                        width / 2 - BACK_W / 2,
+                        sh + ARROW_Y_OFFSET - 4,
+                        BACK_W,
+                        21,
+                        Component.translatable("gui.thaumaturge.thaumonomicon.return_control"),
+                        this::returnToBrowser) {
+                    @Override
+                    protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+                        boolean returnsToMap = history.isEmpty() && !insertOpen();
+                        drawTexturedRectScaled(
+                                graphics,
+                                getX(),
+                                getY() + (getHeight() - BACK_H) / 2,
+                                BACK_U,
+                                BACK_V,
+                                BACK_W,
+                                BACK_H,
+                                returnsToMap ? 0.0F : bob());
+                    }
+                };
         control.setDescription(Component.translatable("gui.thaumaturge.thaumonomicon.return_control.description"));
         return control;
     }
@@ -589,6 +606,12 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         DeferredTooltip.render(graphics, font);
+        if (insertOpen() && returnControl != null) {
+            graphics.pose().pushPose();
+            graphics.pose().translate(0.0F, 0.0F, INSERT_DEPTH + 1);
+            returnControl.render(graphics, mouseX, mouseY, partialTick);
+            graphics.pose().popPose();
+        }
     }
 
     @Override
@@ -614,7 +637,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             drawKnowledges(graphics, sw, sh + KNOW_INPAGE_INSERT_INPAGE_Y_OFFSET - 16, pageMouseX, pageMouseY, true);
         }
         graphics.pose().pushPose();
-        graphics.pose().translate(0.0F, 0.0F, 200.0F);
+        graphics.pose().translate(0.0F, 0.0F, INSERT_DEPTH);
         if (showingAspects) {
             renderAspectsInsert(graphics, mouseX, mouseY);
         } else if (showingKnowledge) {
@@ -1013,7 +1036,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
             } else {
                 drawPrereqIcon(graphics, slotX, y, prereq);
             }
-            boolean met = completedStage || knowledge.hasCompleted(prereq);
+            boolean met = completedStage || ResearchManager.requirementSatisfied(minecraft.player, knowledge, prereq);
             satisfied[i] = met;
             if (met) {
                 renderCheckmark(graphics, slotX, y);
@@ -1251,13 +1274,6 @@ public final class EntryDetailScreen extends AbstractTTScreen {
                 }
             }
             satisfied[i] = met;
-            if (reward.type() == KnowledgeType.THEORY
-                    && mouseInside(slotX, y, SLOT_HIT_SIZE, SLOT_HIT_SIZE, mouseX, mouseY)) {
-                reward.category()
-                        .unwrapKey()
-                        .ifPresent(
-                                k -> DeferredTooltip.set(TTTooltips.knowledgeLabel(reward.type(), k), mouseX, mouseY));
-            }
         }
     }
 
@@ -2597,8 +2613,8 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         boolean[] craftSatisfied = new boolean[stage.craft().size()];
         boolean[] knowSatisfied = new boolean[stage.requiredKnowledge().size()];
         for (int i = 0; i < stage.requiredResearch().size(); i++) {
-            researchSatisfied[i] =
-                    knowledge.hasCompleted(stage.requiredResearch().get(i));
+            researchSatisfied[i] = ResearchManager.requirementSatisfied(
+                    player, knowledge, stage.requiredResearch().get(i));
         }
         for (int i = 0; i < stage.obtain().size(); i++) {
             obtainSatisfied[i] = countMatching(player, stage.obtain().get(i))
@@ -2653,6 +2669,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
     @Override
     public void onClose() {
         if (!closeInsert()) {
+            clearEntryFlags();
             super.onClose();
         }
     }
@@ -2661,6 +2678,7 @@ public final class EntryDetailScreen extends AbstractTTScreen {
         if (closeInsert()) {
             return;
         }
+        clearEntryFlags();
         ThaumonomiconBrowserScreen.rememberEntry(null);
         if (minecraft != null) minecraft.setScreen(parent);
     }

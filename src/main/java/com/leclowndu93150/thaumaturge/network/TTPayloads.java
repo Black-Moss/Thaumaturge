@@ -22,9 +22,11 @@ import com.leclowndu93150.thaumaturge.client.warding.WardClientHandler;
 import com.leclowndu93150.thaumaturge.client.warp.WarpFXClientHandler;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundBoreDigPayload;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundInfusionSourcePayload;
+import com.leclowndu93150.thaumaturge.network.effect.ClientboundParticleBatchPayload;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundSpawnParticlePayload;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundSpellFxPayload;
 import com.leclowndu93150.thaumaturge.network.effect.ClientboundStreamEffectPayload;
+import com.leclowndu93150.thaumaturge.network.effect.ClientboundWandSpellFxPayload;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -55,6 +57,10 @@ public final class TTPayloads {
                 ClientboundSealPayload.TYPE,
                 ClientboundSealPayload.STREAM_CODEC,
                 (payload, context) -> SealClientHandler.handle(payload, context));
+        registrar.playToClient(
+                ClientboundSealChunkPayload.TYPE,
+                ClientboundSealChunkPayload.STREAM_CODEC,
+                SealClientHandler::handleChunk);
         registrar.playToClient(
                 ClientboundGolemPressStuffPayload.TYPE,
                 ClientboundGolemPressStuffPayload.STREAM_CODEC,
@@ -140,6 +146,10 @@ public final class TTPayloads {
                 ClientboundSpawnParticlePayload.STREAM_CODEC,
                 (payload, context) -> SpawnParticleClientHandler.handle(payload, context));
         registrar.playToClient(
+                ClientboundParticleBatchPayload.TYPE,
+                ClientboundParticleBatchPayload.STREAM_CODEC,
+                (payload, context) -> SpawnParticleClientHandler.handle(payload, context));
+        registrar.playToClient(
                 ClientboundBoreDigPayload.TYPE,
                 ClientboundBoreDigPayload.STREAM_CODEC,
                 (payload, context) -> BoreDigClientHandler.handle(payload, context));
@@ -187,6 +197,12 @@ public final class TTPayloads {
                 ClientboundSpellFxPayload.TYPE,
                 ClientboundSpellFxPayload.STREAM_CODEC,
                 (payload, context) -> SpellFxClientHandler.handle(payload, context));
+        registrar
+                .optional()
+                .playToClient(
+                        ClientboundWandSpellFxPayload.TYPE,
+                        ClientboundWandSpellFxPayload.STREAM_CODEC,
+                        (payload, context) -> SpellFxClientHandler.handle(payload, context));
         registrar.playToServer(
                 ServerboundFocusChangePayload.TYPE,
                 ServerboundFocusChangePayload.STREAM_CODEC,
