@@ -199,6 +199,7 @@ public final class TTItemTagsProvider extends BlockTagCopyingItemTagProvider {
         tag(Tags.Items.CHESTS).add(TTItems.HUNGRY_CHEST.get());
         tag(Tags.Items.CHESTS_WOODEN).add(TTItems.HUNGRY_CHEST.get());
 
+        tag(Tags.Items.DUSTS).add(TTItems.SALIS_MUNDUS.get());
         tag(TTItemTags.DUST_MUNDUS).add(TTItems.SALIS_MUNDUS.get());
     }
 }
