@@ -16,8 +16,10 @@ import com.leclowndu93150.thaumaturge.content.world.space.WorldFrame;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -107,6 +109,155 @@ class GolemPathGeometryTest {
     }
 
     @Test
+    void tiltedStairEdgeSupportsBodyAtDifferentAnglesAndPositions() {
+        Fixture fixture = new Fixture();
+        fixture.blocks.put(
+                BlockPos.ZERO,
+                Blocks.OAK_STAIRS
+                        .defaultBlockState()
+                        .setValue(
+                                net.minecraft.world.level.block.StairBlock.FACING, net.minecraft.core.Direction.WEST));
+        try (var spaces = mockStatic(LevelSpaces.class)) {
+            for (double angle : new double[] {0.01, 0.1, 0.3, 0.5}) {
+                for (double shift : new double[] {0.0, 0.17, 0.39}) {
+                    MovingFrame frame = new MovingFrame(new Vec3(3 + shift, 2, 4), new Quaterniond().rotateZ(angle));
+                    spaces.when(() -> LevelSpaces.framesTouching(any(), any()))
+                            .thenReturn(List.of(WorldFrame.INSTANCE, frame));
+                    Vec3 foot = frame.toWorld(new Vec3(0.52, 1, 0.5));
+                    var point = GolemPathGeometry.surface(
+                            fixture.level, fixture.mob, foot.x, foot.z, foot.y - 1, foot.y + 1);
+                    assertNotNull(point, "angle=" + angle + " shift=" + shift);
+                    assertTrue(GolemPathGeometry.clear(
+                            fixture.level,
+                            fixture.mob,
+                            GolemPathGeometry.body(
+                                    fixture.mob, point.worldFeet().add(0, 0.001, 0))));
+                }
+            }
+        }
+    }
+
+    @Test
+    void verticalSurfaceDoesNotProvideWalkingSupport() {
+        Fixture fixture = new Fixture();
+        fixture.blocks.put(BlockPos.ZERO, Blocks.STONE.defaultBlockState());
+        MovingFrame frame = new MovingFrame(new Vec3(3, 2, 4), new Quaterniond().rotateZ(Math.PI / 2));
+        try (var spaces = mockStatic(LevelSpaces.class)) {
+            spaces.when(() -> LevelSpaces.framesTouching(any(), any())).thenReturn(List.of(WorldFrame.INSTANCE, frame));
+            assertNull(GolemPathGeometry.surface(fixture.level, fixture.mob, 2.5, 4.5, 2.1, 2.9));
+        }
+    }
+
+    @Test
+    void slightlyTiltedChestProvidesSupportAtItsEdge() {
+        Fixture fixture = new Fixture();
+        when(fixture.mob.getBbHeight()).thenReturn(0.9F);
+        for (int x = 20481032; x <= 20481037; x++)
+            for (int z = 20483073; z <= 20483080; z++)
+                fixture.blocks.put(new BlockPos(x, 128, z), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 129, 20483078), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 130, 20483077), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 131, 20483076), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 129, 20483075), Blocks.CHEST.defaultBlockState());
+        var rotation = new Quaterniond(-0.00003798537, -0.00345219625, 0.00014551207, 0.99999403954).normalize();
+        var pivot = new Vector3d(20481034.805882357, 130.1345588235294, 20483077.158823516);
+        var rotatedPivot = rotation.transform(pivot);
+        var frame = new MovingFrame(
+                new Vec3(
+                        -13.03687858581543 - rotatedPivot.x,
+                        -57.866676330566406 - rotatedPivot.y,
+                        -2.4940266609191895 - rotatedPivot.z),
+                rotation);
+        try (var spaces = mockStatic(LevelSpaces.class)) {
+            spaces.when(() -> LevelSpaces.framesTouching(any(), any())).thenReturn(List.of(WorldFrame.INSTANCE, frame));
+            assertNotNull(GolemPathGeometry.surface(
+                    fixture.level,
+                    fixture.mob,
+                    -12.824113519422195,
+                    -4.641003550940565,
+                    -62.00120125558357,
+                    -57.99120125558357));
+        }
+    }
+
+    @Test
+    void findsRouteAcrossFrozenSlantedStairs() {
+        Fixture fixture = new Fixture(true);
+        when(fixture.mob.getBbHeight()).thenReturn(0.9F);
+        when(fixture.mob.maxUpStep()).thenReturn(0.6F);
+        when(fixture.mob.getMaxFallDistance()).thenReturn(3);
+        when(fixture.mob.position()).thenReturn(new Vec3(-13.333007372921205, -54.906839681035, 3.349010566944626));
+        for (int x = 20481032; x <= 20481037; x++)
+            for (int z = 20483073; z <= 20483080; z++)
+                fixture.blocks.put(new BlockPos(x, 128, z), Blocks.JUNGLE_WOOD.defaultBlockState());
+        for (int x = 20481032; x <= 20481036; x++)
+            for (int z = 20483074; z <= 20483080; z++)
+                if (x != 20481034 || z < 20483076 || z > 20483078)
+                    fixture.blocks.put(new BlockPos(x, 132, z), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 129, 20483078), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 130, 20483077), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 131, 20483076), Blocks.JUNGLE_WOOD.defaultBlockState());
+        fixture.blocks.put(new BlockPos(20481034, 129, 20483075), Blocks.CHEST.defaultBlockState());
+        var rotation = new Quaterniond(-0.2404247224, 0.0247894693, -0.0380474143, 0.9696050286).normalize();
+        var pivot = rotation.transform(new Vector3d(20481034.805882357, 130.1345588235294, 20483077.158823516));
+        var frame = new MovingFrame(
+                new Vec3(-14.7734937668 - pivot.x, -52.6517181396 - pivot.y, 5.2165203094 - pivot.z), rotation);
+        try (var spaces =
+                mockStatic(LevelSpaces.class, org.mockito.Mockito.withSettings().stubOnly())) {
+            spaces.when(() -> LevelSpaces.trackedFrame(fixture.mob)).thenReturn(frame);
+            spaces.when(() -> LevelSpaces.frameOf(any(), any(BlockPos.class))).thenReturn(WorldFrame.INSTANCE);
+            spaces.when(() -> LevelSpaces.worldCenter(any(), any(BlockPos.class)))
+                    .thenAnswer(call -> Vec3.atCenterOf(call.getArgument(1)));
+            spaces.when(() -> LevelSpaces.framesTouching(any(), any())).thenReturn(List.of(WorldFrame.INSTANCE, frame));
+            var navigation = new GolemSpaceNavigation(fixture.mob, fixture.level, mock(PathNavigation.class), false);
+            assertNotNull(navigation.createPath(Set.of(new BlockPos(-14, -52, 1)), 0, false, 1, 40));
+        }
+    }
+
+    @Test
+    void jumpMustClearSolidWalls() {
+        Fixture fixture = new Fixture();
+        var navigation = new GolemSpaceNavigation(fixture.mob, fixture.level, mock(PathNavigation.class), false);
+        var start = new Vec3(0.5, 1, 0.5);
+        var target = new Vec3(1.5, 1, 0.5);
+        try (var spaces = mockStatic(LevelSpaces.class)) {
+            spaces.when(() -> LevelSpaces.framesTouching(any(), any())).thenReturn(List.of(WorldFrame.INSTANCE));
+            assertTrue(navigation.jumpClear(start, target));
+            fixture.blocks.put(new BlockPos(1, 1, 0), Blocks.STONE.defaultBlockState());
+            fixture.blocks.put(new BlockPos(1, 2, 0), Blocks.STONE.defaultBlockState());
+            assertFalse(navigation.jumpClear(start, target));
+        }
+    }
+
+    @Test
+    void jumpLandingNeedsMoreFootingThanAThinPost() {
+        Fixture fixture = new Fixture();
+        Vec3 feet = new Vec3(0.5, 1.0, 0.5);
+        var landing = new GolemPathGeometry.Surface(WorldFrame.INSTANCE, feet);
+        try (var spaces = mockStatic(LevelSpaces.class)) {
+            spaces.when(() -> LevelSpaces.framesTouching(any(), any())).thenReturn(List.of(WorldFrame.INSTANCE));
+            fixture.blocks.put(BlockPos.ZERO, Blocks.STONE.defaultBlockState());
+            assertTrue(GolemPathGeometry.safeJumpLanding(fixture.level, fixture.mob, landing));
+            // A narrow post provides a center hit, but not a full stable landing
+            // for the golem body. On thin moving stairs such a waypoint caused
+            // golems to step or jump directly into the void.
+            fixture.blocks.put(BlockPos.ZERO, Blocks.END_ROD.defaultBlockState());
+            assertFalse(GolemPathGeometry.safeJumpLanding(fixture.level, fixture.mob, landing));
+        }
+    }
+
+    @Test
+    void jumpCanCoverAReasonableCrossFrameGapButNotAnExcessiveOne() {
+        Fixture fixture = new Fixture();
+        var navigation = new GolemSpaceNavigation(fixture.mob, fixture.level, mock(PathNavigation.class), false);
+        try (var spaces = mockStatic(LevelSpaces.class)) {
+            spaces.when(() -> LevelSpaces.framesTouching(any(), any())).thenReturn(List.of(WorldFrame.INSTANCE));
+            assertTrue(navigation.jumpClear(new Vec3(0.5, 1, 0.5), new Vec3(1.85, 2, 0.5)));
+            assertFalse(navigation.jumpClear(new Vec3(0.5, 1, 0.5), new Vec3(2.25, 2, 0.5)));
+        }
+    }
+
+    @Test
     void hazardousSupportAndLavaClearanceAreRejected() {
         Fixture fixture = new Fixture();
         fixture.blocks.put(BlockPos.ZERO, Blocks.MAGMA_BLOCK.defaultBlockState());
@@ -120,11 +271,18 @@ class GolemPathGeometryTest {
     }
 
     private static final class Fixture {
-        final Level level = mock(Level.class);
+        final Level level;
         final Mob mob = mock(Mob.class);
         final Map<BlockPos, BlockState> blocks = new HashMap<>();
 
         Fixture() {
+            this(false);
+        }
+
+        Fixture(boolean stubOnly) {
+            level = stubOnly
+                    ? mock(Level.class, org.mockito.Mockito.withSettings().stubOnly())
+                    : mock(Level.class);
             when(level.isLoaded(any())).thenReturn(true);
             when(level.getBlockState(any()))
                     .thenAnswer(invocation ->

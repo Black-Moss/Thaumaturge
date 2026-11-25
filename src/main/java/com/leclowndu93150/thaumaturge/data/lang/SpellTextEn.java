@@ -47,6 +47,7 @@ public final class SpellTextEn {
         part(add, "flux", "Flux", "Vitium. Corrupting energy. Leaves taint in the air.");
         part(add, "curse", "Curse", "Mortuus. Poisons and weakens. Saps the life from the ground.");
         part(add, "heal", "Heal", "Victus. Mends living creatures and sears the undead.");
+        part(add, "elemental_strike", "Elemental Strike", "Channels a chosen aspect into a single target.");
         part(add, "burst", "Elemental Burst", "Releases the chosen aspect in an explosion around the target.");
         part(add, "imbue", "Imbue", "Grants the boon of the chosen aspect to the target.");
         part(add, "break", "Break", "Disruptive energy that breaks down most materials.");
@@ -102,7 +103,8 @@ public final class SpellTextEn {
             {"jumps", "Jumps"},
             {"width", "Width"},
             {"target", "Targets"},
-            {"method", "Method"},
+            {"method", "Shape"},
+            {"block_type", "Block Type"},
             {"depth", "Depth"},
             {"bats", "Bats"},
             {"potency", "Potency"},
@@ -125,6 +127,8 @@ public final class SpellTextEn {
             {"ally", "Allies"},
             {"full", "Full"},
             {"surface", "Surface"},
+            {"all", "All"},
+            {"same", "Same"},
             {"forward", "Forward"},
             {"reflect", "Reflect"},
             {"up", "Up"},
@@ -159,6 +163,8 @@ public final class SpellTextEn {
         add.accept(problem + "misplaced_origin", "The caster can only be the root");
         add.accept(problem + "hidden_part", "%s cannot be inscribed");
         add.accept(problem + "repeated", "%s at most %s times");
+        add.accept(problem + "spread_conflict", "Fan and Scatter cannot be combined");
+        add.accept(problem + "spread_needs_delivery", "%s must lead to a directional delivery before any effect");
         add.accept(problem + "part_locked", "%s needs %s");
         add.accept(problem + "too_many_children", "%s holds at most %s");
         add.accept(problem + "empty_branch", "A branch is empty");
